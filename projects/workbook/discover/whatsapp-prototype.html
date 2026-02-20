@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Workbook - WhatsApp Flow Prototype</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0b141a;
+    color: #e9edef;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: #1f2c34;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .header .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #00a884;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px; color: #fff;
+  }
+  .header .name { font-size: 16px; font-weight: 600; }
+  .header .status { font-size: 12px; color: #8696a0; }
+
+  /* Fidelity badge */
+  .fidelity-badge {
+    background: #1f2c34;
+    text-align: center;
+    padding: 6px;
+    font-size: 11px;
+    color: #8696a0;
+    border-bottom: 1px solid #2a3942;
+    flex-shrink: 0;
+  }
+  .fidelity-badge span { color: #00a884; font-weight: 600; }
+
+  /* Chat area */
+  .chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .message {
+    max-width: 85%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14.5px;
+    line-height: 1.4;
+    position: relative;
+    animation: fadeIn 0.2s ease;
+    white-space: pre-line;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message.bot {
+    background: #1f2c34;
+    align-self: flex-start;
+    border-top-left-radius: 2px;
+  }
+  .message.user {
+    background: #005c4b;
+    align-self: flex-end;
+    border-top-right-radius: 2px;
+  }
+  .message .time {
+    font-size: 11px;
+    color: #8696a0;
+    float: right;
+    margin: 4px 0 -4px 12px;
+  }
+  .message strong { color: #e9edef; }
+
+  /* Typing indicator */
+  .typing {
+    align-self: flex-start;
+    background: #1f2c34;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-top-left-radius: 2px;
+    display: flex;
+    gap: 4px;
+  }
+  .typing span {
+    width: 7px; height: 7px;
+    background: #8696a0;
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+
+  /* Photo placeholder in chat */
+  .photo-thumb {
+    width: 200px;
+    height: 140px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #8696a0;
+    margin-bottom: 4px;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .photo-thumb.before { background: #2a1a1a; border: 1px solid #5c3a3a; }
+  .photo-thumb.progress { background: #2a2a1a; border: 1px solid #5c5c3a; }
+  .photo-thumb.completed { background: #1a2a1a; border: 1px solid #3a5c3a; }
+  .photo-thumb .icon { font-size: 28px; }
+
+  /* Input area */
+  .input-area {
+    background: #1f2c34;
+    padding: 8px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .input-area input {
+    flex: 1;
+    background: #2a3942;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 16px;
+    color: #e9edef;
+    font-size: 15px;
+    outline: none;
+  }
+  .input-area input::placeholder { color: #8696a0; }
+  .input-area input:disabled { opacity: 0.5; }
+
+  .send-btn, .photo-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .send-btn {
+    background: #00a884;
+    color: #fff;
+  }
+  .send-btn:disabled { opacity: 0.4; cursor: default; }
+  .photo-btn {
+    background: transparent;
+    color: #8696a0;
+    font-size: 22px;
+  }
+
+  /* Quick reply buttons */
+  .quick-replies {
+    display: flex;
+    gap: 8px;
+    padding: 8px 16px;
+    flex-shrink: 0;
+    background: #0b141a;
+    flex-wrap: wrap;
+  }
+  .quick-replies button {
+    background: #1f2c34;
+    color: #00a884;
+    border: 1px solid #00a884;
+    border-radius: 18px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .quick-replies button:active { background: #2a3942; }
+
+  /* Day divider */
+  .day-divider {
+    text-align: center;
+    margin: 8px 0;
+  }
+  .day-divider span {
+    background: #1f2c34;
+    color: #8696a0;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 6px;
+  }
+
+  /* Portfolio card */
+  .portfolio-card {
+    background: #12202a;
+    border: 1px solid #2a3942;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 4px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .portfolio-card .job {
+    padding: 6px 0;
+    border-bottom: 1px solid #2a3942;
+  }
+  .portfolio-card .job:last-child { border-bottom: none; }
+  .portfolio-card .badge {
+    display: inline-block;
+    background: #00a884;
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="avatar">W</div>
+  <div>
+    <div class="name">Workbook</div>
+    <div class="status">online</div>
+  </div>
+</div>
+
+<div class="fidelity-badge"><span>Cardboard</span> prototype — simulated flow, no real backend</div>
+
+<div class="chat" id="chat"></div>
+
+<div class="quick-replies" id="quickReplies"></div>
+
+<div class="input-area">
+  <button class="photo-btn" id="photoBtn" title="Send photo">&#128247;</button>
+  <input type="text" id="input" placeholder="Type a message" autocomplete="off">
+  <button class="send-btn" id="sendBtn">&#10148;</button>
+</div>
+
+<script>
+const chat = document.getElementById('chat');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const photoBtn = document.getElementById('photoBtn');
+const quickRepliesEl = document.getElementById('quickReplies');
+
+let state = 'start';
+let userName = '';
+let userTrade = '';
+let currentJob = null;
+let jobs = [];
+let photoCount = 0;
+const now = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+function scrollDown() {
+  requestAnimationFrame(() => chat.scrollTop = chat.scrollHeight);
+}
+
+function addMessage(text, sender, extra) {
+  const el = document.createElement('div');
+  el.className = `message ${sender}`;
+  el.innerHTML = `${extra || ''}${text}<span class="time">${now()}</span>`;
+  chat.appendChild(el);
+  scrollDown();
+}
+
+function addPhoto(stage) {
+  const colors = { before: 'before', progress: 'progress', completed: 'completed' };
+  const icons = { before: '&#128679;', progress: '&#128296;', completed: '&#9989;' };
+  const labels = { before: 'Before photo', progress: 'Progress photo', completed: 'Completed photo' };
+  return `<div class="photo-thumb ${colors[stage]}"><span class="icon">${icons[stage]}</span>${labels[stage]}</div>`;
+}
+
+function showTyping() {
+  const el = document.createElement('div');
+  el.className = 'typing';
+  el.id = 'typing';
+  el.innerHTML = '<span></span><span></span><span></span>';
+  chat.appendChild(el);
+  scrollDown();
+}
+function hideTyping() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+function setQuickReplies(options) {
+  quickRepliesEl.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.textContent = opt;
+    btn.onclick = () => handleInput(opt);
+    quickRepliesEl.appendChild(btn);
+  });
+}
+function clearQuickReplies() { quickRepliesEl.innerHTML = ''; }
+
+function botSays(text, extra, delay) {
+  return new Promise(resolve => {
+    showTyping();
+    setTimeout(() => {
+      hideTyping();
+      addMessage(text, 'bot', extra);
+      resolve();
+    }, delay || 800 + Math.random() * 600);
+  });
+}
+
+function addDayDivider() {
+  const el = document.createElement('div');
+  el.className = 'day-divider';
+  el.innerHTML = `<span>TODAY</span>`;
+  chat.appendChild(el);
+}
+
+// -- Flow engine --
+
+async function handleInput(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return;
+
+  input.value = '';
+  clearQuickReplies();
+  input.disabled = true;
+
+  if (state === 'photo_prompt') {
+    // This was triggered by a quick reply after "sending" a photo
+    addMessage(trimmed, 'user');
+    await handlePhotoTag(trimmed.toLowerCase());
+    input.disabled = false;
+    return;
+  }
+
+  addMessage(trimmed, 'user');
+
+  switch (state) {
+    case 'start':
+      await onboardGreet();
+      break;
+    case 'ask_name':
+      userName = trimmed;
+      await askTrade();
+      break;
+    case 'ask_trade':
+      userTrade = trimmed;
+      await confirmAccount();
+      break;
+    case 'ready':
+      await handleReady(trimmed.toLowerCase());
+      break;
+    case 'peer_vouch':
+      await handlePeerVouch(trimmed.toLowerCase());
+      break;
+    case 'manual_location':
+      await handleManualLocation(trimmed);
+      break;
+    default:
+      await handleReady(trimmed.toLowerCase());
+  }
+
+  input.disabled = false;
+  input.focus();
+}
+
+async function onboardGreet() {
+  await botSays(
+    `Hey! Welcome to Workbook \u2014 the app that turns your work into a portfolio.\n\nEvery job you do, you already prove it with your hands. Now you can prove it with photos too. Send us Before, Progress, and Completed shots from your jobs, and we'll build your digital Reference Book \u2014 a verified record of your skills that you own and share with anyone.\n\nWhat's your first name?`
+  );
+  state = 'ask_name';
+}
+
+async function askTrade() {
+  await botSays(
+    `Good to meet you, ${userName}. What's your trade? For example: tile, framing, drywall, electrical, plumbing, painting, concrete...`
+  );
+  state = 'ask_trade';
+  setQuickReplies(['Tile', 'Framing', 'Drywall', 'Electrical', 'Plumbing', 'Painting']);
+}
+
+async function confirmAccount() {
+  await botSays(
+    `Got it \u2014 ${userName}, ${userTrade}. Your Workbook is set up and linked to this number.\n\nWhenever you're on a job, just tap the camera button and tell me if it's a Before, Progress, or Completed shot. That's it. I'll handle the rest.\n\nReady to log your first job? Tap the &#128247; to send a photo.`
+  );
+  state = 'ready';
+}
+
+async function handleReady(text) {
+  if (text.includes('my workbook') || text.includes('workbook') || text.includes('portfolio')) {
+    await showPortfolio();
+  } else if (text.includes('share')) {
+    await shareLink();
+  } else {
+    await botSays(
+      `To log a job, tap the &#128247; button to send a photo. To see your work, type "my workbook."`
+    );
+  }
+}
+
+// Photo flow
+async function simulatePhoto() {
+  clearQuickReplies();
+  input.disabled = true;
+  photoCount++;
+
+  // Simulate different scenarios
+  if (photoCount === 4) {
+    // Simulate a "blurry" photo
+    addMessage('', 'user', addPhoto('before'));
+    await botSays(
+      `That photo came through a little blurry \u2014 I can't make out the work clearly. Could you send another shot? Try to get good lighting and hold steady.`
+    );
+    input.disabled = false;
+    state = 'ready';
+    return;
+  }
+
+  if (photoCount === 5) {
+    // Simulate no EXIF
+    addMessage('', 'user', addPhoto('before'));
+    await botSays(
+      `I couldn't detect the location or time from this photo. This can happen with screenshots or forwarded images.\n\nCan you tell me where this job is? Just type the city or address.`
+    );
+    state = 'manual_location';
+    input.disabled = false;
+    input.focus();
+    return;
+  }
+
+  // Normal flow: ask for tag
+  addMessage('', 'user', addPhoto('before'));
+  await botSays(`Is this a <strong>Before</strong>, <strong>Progress</strong>, or <strong>Completed</strong> photo?`);
+  state = 'photo_prompt';
+  setQuickReplies(['Before', 'Progress', 'Completed']);
+  input.disabled = false;
+}
+
+async function handlePhotoTag(tag) {
+  if (tag === 'before') {
+    if (!currentJob) {
+      currentJob = { location: 'Brookfield, IL', photos: [], validated: false, date: 'Feb 19, 2026' };
+    } else {
+      // New job
+      currentJob = { location: 'Oak Park, IL', photos: [], validated: false, date: 'Feb 19, 2026' };
+    }
+    currentJob.photos.push('before');
+    await botSays(
+      `Got it \u2014 logged as a Before photo. I can see you're at a site in ${currentJob.location}. I'll use this as the starting point for this job.\n\nSend more photos as you go. When you send the Completed shot, I'll bundle the whole job together in your Workbook.`
+    );
+  } else if (tag === 'progress') {
+    if (currentJob) currentJob.photos.push('progress');
+    await botSays(
+      `Added to your current job at the ${currentJob ? currentJob.location : 'job'} site. Looking good, ${userName}. Keep going.`
+    );
+  } else if (tag === 'completed') {
+    if (currentJob) currentJob.photos.push('completed');
+    const loc = currentJob ? currentJob.location : 'your site';
+    const count = currentJob ? currentJob.photos.length : 1;
+
+    await botSays(
+      `Your ${userTrade.toLowerCase()} work at ${loc} is now in your Workbook.\n\n<strong>Job summary:</strong>\n\u2022 ${count} photos (Before \u2192 Progress \u2192 Completed)\n\u2022 Location verified: ${loc}\n\u2022 Date: ${currentJob ? currentJob.date : 'today'}\n\nThis job is now part of your Reference Book. Say "my workbook" anytime to see it.`
+    );
+
+    if (currentJob) {
+      jobs.push({ ...currentJob });
+      currentJob = null;
+    }
+
+    // Trigger peer validation after a beat
+    setTimeout(() => triggerPeerValidation(), 2000);
+  }
+  state = 'ready';
+}
+
+async function handleManualLocation(text) {
+  await botSays(
+    `Got it \u2014 logging this as ${text}. Is this a <strong>Before</strong>, <strong>Progress</strong>, or <strong>Completed</strong> photo?`
+  );
+  if (!currentJob) {
+    currentJob = { location: text, photos: [], validated: false, date: 'Feb 19, 2026' };
+  }
+  state = 'photo_prompt';
+  setQuickReplies(['Before', 'Progress', 'Completed']);
+}
+
+async function triggerPeerValidation() {
+  if (jobs.length < 1) return;
+  const job = jobs[jobs.length - 1];
+  if (job.validated) return;
+
+  await botSays(
+    `\u{1f4e2} A nearby verified worker \u2014 Carlos, also in ${userTrade.toLowerCase()} \u2014 was at the same location today.\n\nI've asked Carlos if he can vouch for your work. You'll get a notification if he validates it.`
+  );
+
+  // Simulate Carlos responding after a delay
+  setTimeout(async () => {
+    job.validated = true;
+    await botSays(
+      `Your ${job.location} ${userTrade.toLowerCase()} job just got a peer validation from <strong>Carlos</strong>. That's a trust badge on your Workbook entry \u2014 it shows others that a fellow tradesperson verified your work in person.`
+    );
+  }, 3000);
+}
+
+async function showPortfolio() {
+  let html = `Here's your Workbook, ${userName}:\n\n<strong>${userName} \u2014 ${userTrade}</strong>\n${jobs.length} job${jobs.length !== 1 ? 's' : ''} logged | ${jobs.reduce((s, j) => s + j.photos.length, 0)} photos | ${jobs.filter(j => j.validated).length} peer validation${jobs.filter(j => j.validated).length !== 1 ? 's' : ''}`;
+
+  if (jobs.length === 0) {
+    html += `\n\nNo jobs logged yet. Tap &#128247; to send your first photo!`;
+    await botSays(html);
+    return;
+  }
+
+  jobs.forEach((job, i) => {
+    html += `\n\n<strong>Job ${i + 1} \u2014 ${job.location}</strong> (${job.date})\n${userTrade}, ${job.photos.length} photos${job.validated ? ', peer validated' : ''}`;
+  });
+
+  html += `\n\nWant to share your Workbook? Just say "share."`;
+  await botSays(html);
+  setQuickReplies(['Share', 'Send a photo']);
+}
+
+async function shareLink() {
+  const slug = userName.toLowerCase().replace(/\s+/g, '-');
+  const hash = Math.random().toString(36).substring(2, 6);
+  await botSays(
+    `Here's your public Workbook link:\n\n<strong>workbook.co/${slug}-${userTrade.toLowerCase()}-${hash}</strong>\n\nAnyone with this link can see your verified jobs, photos, and badges. Send it to contractors, post it anywhere \u2014 it's yours.`
+  );
+}
+
+// -- Event handlers --
+
+sendBtn.onclick = () => handleInput(input.value);
+input.onkeydown = (e) => { if (e.key === 'Enter') handleInput(input.value); };
+photoBtn.onclick = () => simulatePhoto();
+
+// -- Boot --
+addDayDivider();
+state = 'start';
+setQuickReplies(['Hi', 'Hello', 'Hey']);
+</script>
+</body>
+</html>

@@ -36,3 +36,10 @@ Following Marty Cagan's framework:
 |---|---|
 | **Supply — Labor** | "Social Credit" and gamification: badges, skill tiers, peer respect. Workers build equity with every photo. |
 | **Demand — General Contractors** | Access to a "Verified-Only" labor pool and automated compliance/reporting. Reduces hiring risk. |
+
+## Prototypes
+
+| Artifact | Fidelity | Description |
+|---|---|---|
+| [`discover/whatsapp-flow.md`](discover/whatsapp-flow.md) | Paper | Scripted conversation flow — the full WhatsApp interaction written as Worker/Bot dialogue. |
+| [`discover/whatsapp-prototype.html`](discover/whatsapp-prototype.html) | Cardboard | Interactive mobile web page simulating the WhatsApp experience. Open in a phone browser. |

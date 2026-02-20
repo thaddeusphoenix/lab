@@ -31,6 +31,19 @@ When in doubt, ask: **"What is the cheapest thing we could build or fake to lear
 
 Each persona file includes a section on prototyping approaches specific to that role's domain. Consult it whenever a decision feels uncertain or a debate is going in circles — the answer is usually "build something and find out."
 
+### Prototype Fidelity Levels
+
+Every prototype has a fidelity level. Name it explicitly so the team knows what they're looking at and what kind of feedback to give.
+
+| Level | Name | What it is | Feedback to seek |
+|---|---|---|---|
+| **Paper** | Napkin sketch | Very fake and flimsy. Sketches, scripts, fake screenshots, written flows. Nothing works — it just communicates an idea. | "Does this concept make sense? Are we solving the right problem?" |
+| **Cardboard** | Looks real-ish | Somewhat functional. Clickable mockups, simulated workflows, hardcoded demos. Feels like the thing but is held together with tape. | "Does the flow feel right? What's confusing? What's missing?" |
+| **Plastic** | Functional but limited | Works in a real sense but scoped to a narrow slice. Real inputs, real outputs, but only for the happy path or a single use case. | "Does this actually work? Is the core interaction viable?" |
+| **Metal** | Nearly production | Fully functional, handles edge cases, styled, tested. Just short of shipping — may lack scale, polish, or integrations. | "Is this ready? What's blocking launch?" |
+
+When creating a prototype, label it with its fidelity level (e.g., "Cardboard prototype" in the file or README). This sets expectations and prevents over-investing in feedback on the wrong things.
+
 ## Workflow: Discover-Build-Launch-Grow
 
 Every project moves through four phases. Each phase has a purpose and a set of personas that lead or contribute.
