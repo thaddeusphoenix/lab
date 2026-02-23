@@ -3,6 +3,7 @@
 A Dynamic Reputation Marketplace for skilled labor. Workers send Before/Progress/Completed photos via WhatsApp, and an AI Trust Engine builds a verified digital portfolio — their "Reference Book."
 
 **Phase: Discover**
+**Brief:** [`briefs/strategic-initiative-brief.md`](briefs/strategic-initiative-brief.md)
 
 ## Problem
 

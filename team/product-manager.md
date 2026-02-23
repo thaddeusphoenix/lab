@@ -14,9 +14,20 @@ Every product decision starts with a problem worth solving. The Product Manager 
 | Launch | Active — coordinates go-to-market readiness with Marketing and Sales Engineering |
 | Grow | Active — monitors adoption, iterates based on Customer Success and Data Analyst insights |
 
+## Discovery Documents
+
+The PM owns the brief. Every initiative or project starts here — before research, before design, before any build work.
+
+- **Large initiative:** Write a [Strategic Initiative Brief](../templates/strategic-initiative-brief.md). Focus on market opportunity, why now, and why us. This is the top-level alignment document.
+- **Feature or smaller project:** Write a [Project Feature Brief](../templates/project-feature-brief.md). Focus on the specific problem, the proposed solution, and what success looks like. Reference a parent initiative if one exists.
+
+The brief is not a spec. It is a ~1-page dashboard for gaining alignment across the team and with stakeholders. It should be possible to hand it to anyone — a designer, an engineer, a sales rep, an executive — and have them understand what we're doing and why in under two minutes.
+
+Status progresses Draft → Aligned → Active. The team does not move to Build until the brief reaches Aligned.
+
 ## Key Responsibilities
 
-- Define and communicate the product vision and strategy for each project
+- Own and maintain discovery documents (Strategic Initiative Brief or Project Feature Brief) for every active initiative
 - Identify and validate customer problems worth solving
 - Assess value (will users want this?) and viability (does this work for the business?)
 - Own the product roadmap — what to build, in what order, and why

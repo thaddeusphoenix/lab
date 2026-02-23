@@ -80,8 +80,25 @@ Drive adoption, monitor health, and feed learnings back into the next cycle.
 - **Key personas:** Customer Success Manager (lead), Data Analyst, Marketing Manager, Sales Engineering Lead
 - **Exit criteria:** Measurable adoption, feedback incorporated into the next Discover phase
 
+## Discovery Documents
+
+Every initiative or project begins with a written brief before any build work starts. These are ~1-page alignment documents — a dashboard for quickly orienting any team member or stakeholder on the problem, the opportunity, and the rationale for building.
+
+There are two types. Use whichever fits the scope:
+
+| Document | Use when | Focus | Template |
+|---|---|---|---|
+| **Strategic Initiative Brief** | Large, multi-feature initiative with a meaningful market bet | Market opportunity, why now, why us | `templates/strategic-initiative-brief.md` |
+| **Project Feature Brief** | A single feature or smaller-scoped project | Problem to be solved, proposed solution, success criteria | `templates/project-feature-brief.md` |
+
+A Project Feature Brief can reference a parent Strategic Initiative Brief. A Strategic Initiative Brief links out to its child Feature Briefs as they are created.
+
+Both documents live in the project directory, typically at `projects/<project-name>/briefs/`. Status progresses Draft → Aligned → Active as the team validates the direction.
+
+The brief is the first artifact created in Discover and the last thing updated before moving to Build. If the team cannot align on the brief, they are not ready to build.
+
 ## Repo Conventions
 
-- **Monorepo layout:** `team/` for persona definitions, `projects/` for individual project directories
+- **Monorepo layout:** `team/` for persona definitions, `projects/` for individual project directories, `templates/` for document templates
 - **File naming:** kebab-case for all files and directories (e.g., `sales-engineering-lead.md`, `my-project/`)
 - **Commits:** Use concise commit messages that focus on the "why" rather than the "what"
