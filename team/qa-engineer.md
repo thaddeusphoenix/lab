@@ -1,4 +1,5 @@
 # QA / Quality Engineer
+*The Finn*
 
 ## Core Philosophy
 

@@ -1,4 +1,5 @@
 # Tech Lead
+*Case*
 
 ## Core Philosophy
 
