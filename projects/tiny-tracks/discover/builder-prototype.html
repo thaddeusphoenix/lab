@@ -322,9 +322,9 @@
         // --- Model Factories ---
         function createStraightTrack() {
             const group = new THREE.Group();
-            // 8 sleepers across a 4-unit tile — wider than gauge (realistic ballast bed)
+            // 8 sleepers across a 4-unit tile — tie width ~1.8× gauge (prototype proportion)
             for(let i = 0; i < 8; i++) {
-                const sleeper = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.12, 0.4), matWood);
+                const sleeper = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.12, 0.4), matWood);
                 sleeper.position.set(0, 0.06, -1.75 + i * 0.5);
                 sleeper.castShadow = true; sleeper.receiveShadow = true;
                 group.add(sleeper);
@@ -388,7 +388,7 @@
             for(let a = Math.PI + 0.15; a < Math.PI*1.5; a += 0.2) {
                 const sx = 2 + Math.cos(a) * 2;
                 const sz = 2 + Math.sin(a) * 2;
-                const sleeper = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.12, 0.4), matWood);
+                const sleeper = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.12, 0.4), matWood);
                 sleeper.position.set(sx, 0.06, sz);
                 sleeper.rotation.y = -a;
                 sleeper.castShadow = true; sleeper.receiveShadow = true;
@@ -450,7 +450,7 @@
 
             // --- Sleepers ---
             for(let i=0; i<8; i++) {
-                const sleeper = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.12, 0.4), matWood);
+                const sleeper = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.12, 0.4), matWood);
                 sleeper.position.set(0, 0.06, -1.75 + i*0.5);
                 sleeper.castShadow = true; sleeper.receiveShadow = true;
                 group.add(sleeper);
@@ -458,7 +458,7 @@
             for(let a = Math.PI + 0.5; a < Math.PI*1.5; a += 0.2) {
                 const sx = 2 + Math.cos(a) * 2;
                 const sz = 2 + Math.sin(a) * 2;
-                const sleeper = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.12, 0.4), matWood);
+                const sleeper = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.12, 0.4), matWood);
                 sleeper.position.set(isLeft ? -sx : sx, 0.06, sz);
                 sleeper.rotation.y = isLeft ? a : -a;
                 sleeper.castShadow = true; sleeper.receiveShadow = true;
@@ -1029,6 +1029,10 @@
                         const pathInfo = getPathInfo(trackInfo.type, trackInfo.rotation, entryDir, trackInfo.switchState);
 
                         if (pathInfo) {
+                            // Remove any existing locomotive — only one on the layout at a time
+                            for (const train of state.trains) scene.remove(train.mesh);
+                            state.trains.length = 0;
+
                             const newTrain = createLocomotive();
                             scene.add(newTrain);
                             state.trains.push({
