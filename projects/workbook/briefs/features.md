@@ -14,8 +14,8 @@ The core loop. Workers can onboard, document work, build a verified portfolio, a
 |---|---|---|
 | **WhatsApp Ingestion Engine** | Worker onboarding, photo logging (Before / Progress / Completed), job bundling, Proximity Protocol initiation | [`whatsapp-ingestion.md`](whatsapp-ingestion.md) |
 | **Trust Engine** | EXIF metadata verification, computer vision consistency checks, composite trust badge per job entry | [`trust-engine.md`](trust-engine.md) |
-| **Proximity Protocol** | Detects co-present verified workers at the same GPS location; sends WhatsApp vouching request; feeds peer validation signal to Trust Engine | Embedded in ingestion + trust engine briefs — needs own brief |
-| **Worker Profile & Reference Book** | Public-facing portfolio page showing verified jobs, trust badges, trade, and location; shareable via link generated in WhatsApp | Needed |
+| **Proximity Protocol** | Detects co-present verified workers at the same GPS location; sends WhatsApp vouching request; feeds peer validation signal to Trust Engine | [`proximity-protocol.md`](proximity-protocol.md) |
+| **Worker Profile & Reference Book** | Public-facing portfolio page showing verified jobs, trust badges, trade, and location; shareable via link generated in WhatsApp | [`worker-profile.md`](worker-profile.md) |
 
 ---
 
@@ -26,8 +26,8 @@ Workers can agree on scope and price, invoice clients, and get paid. The supply 
 | Feature | Description | Brief |
 |---|---|---|
 | **Worker Payments** | Scope agreement with client confirmation via WhatsApp, invoice generation, payment link delivery, payment status tracking | [`worker-payments.md`](worker-payments.md) |
-| **Worker Payment Setup** | One-time flow for a worker to connect a bank account and complete identity verification (Stripe Connect) before they can receive payouts | Needed |
-| **Notification & Reminder Engine** | Automated WhatsApp messages for: payment overdue reminders to clients, peer validation requests, badge updates, new inquiry alerts | Needed |
+| **Worker Payment Setup** | One-time flow for a worker to connect a bank account and complete identity verification (Stripe Connect) before they can receive payouts | [`worker-payment-setup.md`](worker-payment-setup.md) |
+| **Notification & Reminder Engine** | Automated WhatsApp messages for: payment overdue reminders to clients, peer validation requests, badge updates, new inquiry alerts | [`notification-reminder-engine.md`](notification-reminder-engine.md) |
 
 ---
 
@@ -37,8 +37,8 @@ Contractors and homeowners can find, evaluate, and hire verified workers. This i
 
 | Feature | Description | Brief |
 |---|---|---|
-| **GC & Homeowner Marketplace** | Searchable directory of verified workers; filterable by trade, location, and trust level; contact/hire flow for buyers | Needed |
-| **Worker Discoverability** | How workers surface in the marketplace — skill tags, location radius, trust score ranking, availability signal | Needed |
+| **GC & Homeowner Marketplace** | Searchable directory of verified workers; filterable by trade, location, and trust level; contact/hire flow for buyers | [`gc-homeowner-marketplace.md`](gc-homeowner-marketplace.md) |
+| **Worker Discoverability** | How workers surface in the marketplace — skill tags, location radius, trust score ranking, availability signal | [`worker-discoverability.md`](worker-discoverability.md) |
 
 ---
 
@@ -48,7 +48,7 @@ Internal and operational features that support reliability, safety, and scale. N
 
 | Feature | Description | Brief |
 |---|---|---|
-| **Admin & Trust Operations** | Internal tooling for fraud review, badge dispute adjudication, Trust Engine overrides, and manual worker verification | Needed |
+| **Admin & Trust Operations** | Internal tooling for fraud review, badge dispute adjudication, Trust Engine overrides, and manual worker verification | [`admin-trust-operations.md`](admin-trust-operations.md) |
 
 ---
 
@@ -56,11 +56,11 @@ Internal and operational features that support reliability, safety, and scale. N
 
 | Phase | Features | Briefed | Needs Brief |
 |---|---|---|---|
-| Phase 1 — Supply Foundation | 4 | 2 | 2 |
-| Phase 2 — Transaction Layer | 3 | 1 | 2 |
-| Phase 3 — Demand Side | 2 | 0 | 2 |
-| Platform | 1 | 0 | 1 |
-| **Total** | **10** | **3** | **7** |
+| Phase 1 — Supply Foundation | 4 | 4 | 0 |
+| Phase 2 — Transaction Layer | 3 | 3 | 0 |
+| Phase 3 — Demand Side | 2 | 2 | 0 |
+| Platform | 1 | 1 | 0 |
+| **Total** | **10** | **10** | **0** |
 
 ---
 

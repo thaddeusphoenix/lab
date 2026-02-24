@@ -6,7 +6,7 @@
 **Owner:** Wintermute (Product Manager)
 **Last updated:** 2026-02-23
 **Feature List:** [`features.md`](features.md)
-**Feature Briefs:** [`whatsapp-ingestion.md`](whatsapp-ingestion.md), [`trust-engine.md`](trust-engine.md), [`worker-payments.md`](worker-payments.md)
+**Feature Briefs:** [`whatsapp-ingestion.md`](whatsapp-ingestion.md), [`trust-engine.md`](trust-engine.md), [`proximity-protocol.md`](proximity-protocol.md), [`worker-profile.md`](worker-profile.md), [`worker-payments.md`](worker-payments.md), [`worker-payment-setup.md`](worker-payment-setup.md), [`notification-reminder-engine.md`](notification-reminder-engine.md), [`gc-homeowner-marketplace.md`](gc-homeowner-marketplace.md), [`worker-discoverability.md`](worker-discoverability.md), [`admin-trust-operations.md`](admin-trust-operations.md)
 
 ---
 
