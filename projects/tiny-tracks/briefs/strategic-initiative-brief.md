@@ -5,7 +5,7 @@
 **Status:** Draft
 **Owner:** Wintermute (Product Manager)
 **Last updated:** 2026-02-24
-**Features:** *(none yet — first feature brief pending)*
+**Features:** [`briefs/building-experience-validation.md`](building-experience-validation.md)
 
 ---
 
