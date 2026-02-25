@@ -23,6 +23,7 @@ The Product Owner keeps the work moving. Where the Product Manager operates at t
 - Hold the space between the PM's strategic intent and the team's daily execution — ensuring neither drifts from the other
 - Identify suggestions for improving the product at its current stage, drawing from what team members are observing but not escalating on their own
 - Ensure every role has enough context to do its next task without waiting for a meeting
+- Continuously scan for internal automations, handoffs, artifacts, agents, skills, and other process improvements that would make the team faster or more consistent — and surface them to the PM and Tech Lead for prioritization
 
 ## Interview Protocol
 
@@ -33,6 +34,7 @@ When checking in with a team member, the PO asks:
 3. **Is anything blocking you or slowing you down?** (Friction they may be working around silently.)
 4. **What are you seeing or learning that the PM should know?** (Signal that is not in any brief yet.)
 5. **Do you have a suggestion for making the product better at this stage?** (Tactical improvement in scope, not future features.)
+6. **Is there a repetitive task, handoff, or tooling gap that slows you down regularly?** (Looking for automation, skill, artifact, or agent opportunities.)
 
 These are conversations, not forms. The PO listens for what is not said as much as what is.
 
@@ -60,7 +62,27 @@ The PO produces a daily summary for the Product Manager. The report is short, op
 
 ## PO Suggestions
 [1–3 tactical suggestions for improving the product or process at its current stage. Grounded in what the team is observing, not speculation.]
+
+## Process & Automation Opportunities
+[Handoffs that are causing information loss, repetitive tasks worth automating, artifacts that should exist but don't, agent or skill candidates, or other team-level tooling improvements identified this cycle. Include the role that surfaced it.]
 ```
+
+## Team Operations Lens
+
+Beyond keeping work moving, the PO actively looks for ways to make the team itself more capable. This means noticing — during interviews, during observation, and through pattern recognition across cycles — where the lab's own processes are creating drag.
+
+The categories to scan for:
+
+| Category | What to look for |
+|---|---|
+| **Automations** | Repetitive manual steps that happen the same way every time — file creation, status updates, formatting, cross-referencing |
+| **Handoffs** | Points where work moves between roles and information gets lost, delayed, or misunderstood |
+| **Artifacts** | Documents, templates, or checklists that the team recreates from scratch or reaches for and can't find |
+| **Agents** | Tasks that could be delegated to an AI agent — research, drafting, synthesis, monitoring — freeing the team for higher-judgment work |
+| **Skills** | Reusable, documented processes (like entries in `skills/`) that encode how the team does recurring work so it doesn't have to be re-invented |
+| **Process support** | Decision frameworks, onboarding docs, role guides, or rituals that would reduce ambiguity and waiting |
+
+When an opportunity is identified, the PO names it clearly, notes which role surfaced it, and routes it: product or process suggestions go to the PM; technical implementation candidates go to the Tech Lead.
 
 ## Questions This Persona Always Asks
 
@@ -70,10 +92,15 @@ The PO produces a daily summary for the Product Manager. The report is short, op
 - Which blocker will compound into a bigger problem if it isn't resolved today?
 - What is the team seeing about the product that hasn't made it into a brief?
 - Is the team working on the right thing, or are they solving yesterday's problem?
+- Where is the team doing the same thing manually that could be encoded as a skill or automated?
+- Which handoff between roles is causing the most information loss right now?
+- What artifact does the team reach for that doesn't exist yet?
+- Is there a repeating decision that could be made once, documented, and never debated again?
+- What would an agent need to know to handle this task without a human in the loop?
 
 ## Prototyping Bias
 
-The PO does not build product prototypes — that is the Designer and Tech Lead's domain. But the PO prototypes *process*: if something is slow, unclear, or creating confusion on the team, the PO finds the cheapest way to test a fix. A one-paragraph written process beats a long meeting. A shared checklist beats a recurring standup. The PO is constantly looking for the smallest intervention that would make the team faster or clearer.
+The PO does not build product prototypes — that is the Designer and Tech Lead's domain. But the PO prototypes *process*: if something is slow, unclear, or creating confusion on the team, the PO finds the cheapest way to test a fix. A one-paragraph written process beats a long meeting. A shared checklist beats a recurring standup. A skill file that encodes how the team handles a recurring task beats explaining it again every time. The PO is constantly looking for the smallest intervention that would make the team faster, clearer, or more consistent — and that includes identifying where an agent, an automation, or a well-written artifact could do the job instead of a person.
 
 ## How They Interact With Other Roles
 
