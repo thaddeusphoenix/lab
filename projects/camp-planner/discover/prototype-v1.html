@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camp Planner</title>
+  <style>
+    :root {
+      --blue:        #2563EB;
+      --blue-50:     #EFF6FF;
+      --blue-100:    #DBEAFE;
+      --green:       #16A34A;
+      --green-50:    #F0FDF4;
+      --amber:       #D97706;
+      --amber-50:    #FFFBEB;
+      --red:         #DC2626;
+      --red-50:      #FEF2F2;
+      --purple:      #7C3AED;
+      --purple-50:   #F5F3FF;
+      --gray-50:     #F9FAFB;
+      --gray-100:    #F3F4F6;
+      --gray-200:    #E5E7EB;
+      --gray-300:    #D1D5DB;
+      --gray-400:    #9CA3AF;
+      --gray-500:    #6B7280;
+      --gray-700:    #374151;
+      --gray-900:    #111827;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-900);
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ── Prototype banner ── */
+    .proto-banner {
+      background: var(--purple);
+      color: white;
+      text-align: center;
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── App header ── */
+    header {
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--blue);
+      letter-spacing: -0.02em;
+    }
+
+    .child-chips {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .child-chip {
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+    }
+
+    .child-chip.active {
+      background: var(--blue-50);
+      color: var(--blue);
+      border-color: var(--blue-100);
+    }
+
+    .child-chip.add {
+      background: none;
+      color: var(--gray-400);
+      border-color: var(--gray-200);
+      font-weight: 500;
+    }
+
+    /* ── Tab nav ── */
+    .tab-nav {
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0 24px;
+      display: flex;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 14px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-500);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn:hover { color: var(--gray-700); }
+
+    .tab-btn.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+      font-weight: 600;
+    }
+
+    .tab-badge {
+      background: var(--red);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      line-height: 1.4;
+    }
+
+    .tab-count {
+      background: var(--gray-100);
+      color: var(--gray-500);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    /* ── Content area ── */
+    .content {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Summary bar ── */
+    .summary-bar {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 16px 24px;
+      display: flex;
+      gap: 32px;
+      margin-bottom: 20px;
+    }
+
+    .stat { display: flex; flex-direction: column; gap: 3px; }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--gray-900);
+    }
+
+    .stat-value.red   { color: var(--red); }
+    .stat-value.amber { color: var(--amber); }
+    .stat-value.green { color: var(--green); }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--gray-400);
+      font-weight: 500;
+    }
+
+    .stat-divider {
+      width: 1px;
+      background: var(--gray-200);
+      align-self: stretch;
+    }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--gray-400);
+    }
+
+    .btn-add {
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* ── Program cards ── */
+    .program-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+    }
+
+    .program-card.conflict {
+      border-color: var(--amber);
+      border-left: 3px solid var(--amber);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .program-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .program-dates {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-top: 3px;
+    }
+
+    .status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .status-registered  { background: var(--green-50);  color: var(--green); }
+    .status-considering { background: var(--amber-50);  color: var(--amber); }
+    .status-open        { background: var(--gray-100);  color: var(--gray-500); }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 24px;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--gray-400);
+    }
+
+    .meta-value { font-size: 13px; color: var(--gray-700); font-weight: 500; }
+    .meta-value.urgent { color: var(--red);   font-weight: 700; }
+    .meta-value.soon   { color: var(--amber); font-weight: 700; }
+    .meta-value.ok     { color: var(--gray-500); }
+
+    .conflict-note {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: var(--amber-50);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--amber);
+      font-weight: 500;
+    }
+
+    /* ── Coverage grid ── */
+    .coverage-grid {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .coverage-row {
+      display: grid;
+      grid-template-columns: 90px 100px 1fr;
+      min-height: 50px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .coverage-row:last-child { border-bottom: none; }
+
+    .cov-week, .cov-dates, .cov-program {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .cov-week {
+      background: var(--gray-50);
+      border-right: 1px solid var(--gray-100);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray-400);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .cov-dates {
+      border-right: 1px solid var(--gray-100);
+      font-size: 12px;
+      color: var(--gray-500);
+      font-weight: 500;
+    }
+
+    .cov-program {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cov-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .cov-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    .cov-sub {
+      font-size: 11px;
+      color: var(--gray-400);
+      margin-top: 2px;
+    }
+
+    /* Row state variants */
+    .row-covered { background: white; }
+
+    .row-gap {
+      background: var(--red-50);
+    }
+
+    .row-gap .cov-week  { background: #FEE2E2; }
+    .row-gap .cov-dates { color: var(--red); font-weight: 600; }
+    .row-gap .cov-name  { color: var(--red); }
+
+    .row-considering {
+      background: var(--amber-50);
+    }
+
+    .row-considering .cov-week  { background: #FEF3C7; }
+    .row-considering .cov-name  { color: var(--amber); }
+
+    .row-conflict {
+      background: #FFF7ED;
+    }
+
+    .row-conflict .cov-week { background: #FFEDD5; }
+
+    /* ── Coverage legend ── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* ── Decision cards ── */
+    .decisions-section { margin-bottom: 28px; }
+
+    .decisions-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--gray-400);
+      margin-bottom: 10px;
+    }
+
+    .decision-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 14px;
+    }
+
+    .decision-card.urgent  { border-left: 3px solid var(--red);   }
+    .decision-card.warning { border-left: 3px solid var(--amber); }
+    .decision-card.info    { border-left: 3px solid var(--blue);  }
+    .decision-card.gap     { border-left: 3px solid var(--gray-300); }
+
+    .decision-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      line-height: 1;
+    }
+
+    .decision-body { flex: 1; }
+
+    .decision-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .decision-desc {
+      font-size: 13px;
+      color: var(--gray-500);
+      line-height: 1.55;
+    }
+
+    .decision-desc strong { color: var(--gray-700); font-weight: 600; }
+
+    .decision-deadline {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .deadline-urgent  { background: var(--red-50);   color: var(--red);   }
+    .deadline-warning { background: var(--amber-50); color: var(--amber); }
+    .deadline-ok      { background: var(--gray-100); color: var(--gray-500); }
+
+    .decision-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      background: var(--gray-100);
+      color: var(--gray-600);
+      border: none;
+      padding: 6px 14px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-danger {
+      background: var(--red-50);
+      color: var(--red);
+      border: none;
+      padding: 6px 14px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="proto-banner">
+  Cardboard Prototype &nbsp;·&nbsp; Camp Planner &nbsp;·&nbsp; For research use only — all data is fictional
+</div>
+
+<header>
+  <div class="app-name">Camp Planner</div>
+  <div class="child-chips">
+    <div class="child-chip active">Alex, age 8</div>
+    <div class="child-chip add">+ Add child</div>
+  </div>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="programs" onclick="showTab('programs')">
+    Programs <span class="tab-count">6</span>
+  </button>
+  <button class="tab-btn" data-tab="coverage" onclick="showTab('coverage')">
+    Summer Coverage
+  </button>
+  <button class="tab-btn" data-tab="decisions" onclick="showTab('decisions')">
+    Decisions Needed <span class="tab-badge">5</span>
+  </button>
+</nav>
+
+<div class="content">
+
+  <!-- ══════════════════════════════
+       TAB 1: PROGRAMS
+  ══════════════════════════════ -->
+  <div id="programs" class="tab-content active">
+
+    <div class="summary-bar">
+      <div class="stat">
+        <div class="stat-value">6</div>
+        <div class="stat-label">Programs tracked</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-value">$1,450</div>
+        <div class="stat-label">Paid so far</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-value green">4</div>
+        <div class="stat-label">Weeks covered</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-value red">4</div>
+        <div class="stat-label">Weeks with gaps</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-value amber">5</div>
+        <div class="stat-label">Open decisions</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-label">All programs</div>
+      <button class="btn-add">+ Add Program</button>
+    </div>
+
+    <!-- Program 1: YMCA -->
+    <div class="program-card">
+      <div class="card-top">
+        <div>
+          <div class="program-name">YMCA Multi-Sport Week</div>
+          <div class="program-dates">June 22–26, 2026 &nbsp;·&nbsp; Week 1 of summer</div>
+        </div>
+        <div class="status-badge status-registered">Registered</div>
+      </div>
+      <div class="card-meta">
+        <div class="meta-item">
+          <div class="meta-label">Fee</div>
+          <div class="meta-value">$320 paid</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Registration</div>
+          <div class="meta-value ok">Closed</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Cancel by</div>
+          <div class="meta-value soon">Apr 15 · full refund · 49 days</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Program 2: Lakeside Art Camp (conflict) -->
+    <div class="program-card conflict">
+      <div class="card-top">
+        <div>
+          <div class="program-name">Lakeside Art Camp</div>
+          <div class="program-dates">July 7–11, 2026 &nbsp;·&nbsp; Week 3 of summer</div>
+        </div>
+        <div class="status-badge status-registered">Registered</div>
+      </div>
+      <div class="card-meta">
+        <div class="meta-item">
+          <div class="meta-label">Fee</div>
+          <div class="meta-value">$450 paid</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Registration</div>
+          <div class="meta-value ok">Closed</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Cancel by</div>
+          <div class="meta-value soon">Apr 30 · full refund · 64 days</div>
+        </div>
+      </div>
+      <div class="conflict-note">
+        ⚠️ You're also considering Riverside Art Studio for the same week (July 7–11). Decide which to keep.
+      </div>
+    </div>
+
+    <!-- Program 3: Riverside Art Studio (conflict/considering) -->
+    <div class="program-card conflict">
+      <div class="card-top">
+        <div>
+          <div class="program-name">Riverside Art Studio</div>
+          <div class="program-dates">July 7–11, 2026 &nbsp;·&nbsp; Week 3 of summer</div>
+        </div>
+        <div class="status-badge status-considering">Considering</div>
+      </div>
+      <div class="card-meta">
+        <div class="meta-item">
+          <div class="meta-label">Fee</div>
+          <div class="meta-value">$280</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Register by</div>
+          <div class="meta-value urgent">Mar 20 · 23 days</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Cancel policy</div>
+          <div class="meta-value ok">Full refund before May 1</div>
+        </div>
+      </div>
+      <div class="conflict-note">
+        ⚠️ Conflicts with Lakeside Art Camp (Jul 7–11). Riverside is $170 cheaper. Register by Mar 20 if switching.
+      </div>
+    </div>
+
+    <!-- Program 4: Science Explorers -->
+    <div class="program-card">
+      <div class="card-top">
+        <div>
+          <div class="program-name">Science Explorers Day Camp</div>
+          <div class="program-dates">July 14–18, 2026 &nbsp;·&nbsp; Week 4 of summer</div>
+        </div>
+        <div class="status-badge status-considering">Considering</div>
+      </div>
+      <div class="card-meta">
+        <div class="meta-item">
+          <div class="meta-label">Fee</div>
+          <div class="meta-value">$375</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Register by</div>
+          <div class="meta-value soon">Mar 30 · 33 days</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Coverage</div>
+          <div class="meta-value urgent">Week 4 is currently a gap</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Program 5: Community Theater -->
+    <div class="program-card">
+      <div class="card-top">
+        <div>
+          <div class="program-name">Community Theater Workshop</div>
+          <div class="program-dates">July 21–August 1, 2026 &nbsp;·&nbsp; Weeks 5–6 of summer</div>
+        </div>
+        <div class="status-badge status-registered">Registered</div>
+      </div>
+      <div class="card-meta">
+        <div class="meta-item">
+          <div class="meta-label">Fee</div>
+          <div class="meta-value">$680 paid</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Registration</div>
+          <div class="meta-value ok">Closed</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Cancel by</div>
+          <div class="meta-value ok">Jun 1 · 50% refund · 96 days</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Program 6: Riverside Coding -->
+    <div class="program-card">
+      <div class="card-top">
+        <div>
+          <div class="program-name">Riverside Coding Camp</div>
+          <div class="program-dates">August 11–15, 2026 &nbsp;·&nbsp; Week 8 of summer</div>
+        </div>
+        <div class="status-badge status-open">Not registered</div>
+      </div>
+      <div class="card-meta">
+        <div class="meta-item">
+          <div class="meta-label">Fee</div>
+          <div class="meta-value">$295</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Register by</div>
+          <div class="meta-value ok">May 15 · 79 days</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Coverage</div>
+          <div class="meta-value urgent">Week 8 is currently a gap</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /programs -->
+
+
+  <!-- ══════════════════════════════
+       TAB 2: SUMMER COVERAGE
+  ══════════════════════════════ -->
+  <div id="coverage" class="tab-content">
+
+    <div class="summary-bar">
+      <div class="stat">
+        <div class="stat-value green">4</div>
+        <div class="stat-label">Weeks confirmed</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-value amber">2</div>
+        <div class="stat-label">Weeks tentative</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-value red">4</div>
+        <div class="stat-label">Weeks with gaps</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-value">10</div>
+        <div class="stat-label">Total weeks (Jun–Aug)</div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#16A34A"></div> Confirmed
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#D97706"></div> Considering / not yet registered
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#DC2626"></div> Gap — no program
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#EA580C"></div> Conflict — two programs same week
+      </div>
+    </div>
+
+    <div class="coverage-grid">
+
+      <!-- Week 1: Covered -->
+      <div class="coverage-row row-covered">
+        <div class="cov-week">Week 1</div>
+        <div class="cov-dates">Jun 22–26</div>
+        <div class="cov-program">
+          <div class="cov-dot" style="background:#2563EB"></div>
+          <div>
+            <div class="cov-name">YMCA Multi-Sport Week</div>
+            <div class="cov-sub">Registered · $320</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Week 2: Gap -->
+      <div class="coverage-row row-gap">
+        <div class="cov-week">Week 2</div>
+        <div class="cov-dates">Jun 29–Jul 3</div>
+        <div class="cov-program">
+          <div class="cov-dot" style="background:#DC2626"></div>
+          <div>
+            <div class="cov-name">No program</div>
+            <div class="cov-sub">Nothing on the list covers this week</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Week 3: Conflict -->
+      <div class="coverage-row row-conflict">
+        <div class="cov-week">Week 3</div>
+        <div class="cov-dates">Jul 7–11</div>
+        <div class="cov-program" style="flex-direction:column; align-items:flex-start; gap:6px; padding-top:10px; padding-bottom:10px;">
+          <div style="display:flex; gap:10px; align-items:center;">
+            <div class="cov-dot" style="background:#EC4899"></div>
+            <div>
+              <div class="cov-name" style="color:#D97706">Lakeside Art Camp <span style="font-size:11px; font-weight:500; color:#9CA3AF">— registered ($450)</span></div>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <div class="cov-dot" style="background:#8B5CF6"></div>
+            <div>
+              <div class="cov-name" style="color:#D97706">Riverside Art Studio <span style="font-size:11px; font-weight:500; color:#9CA3AF">— considering ($280) · reg by Mar 20</span></div>
+            </div>
+          </div>
+          <div style="font-size:11px; color:#D97706; font-weight:600; margin-left:20px;">⚠️ Conflict — decide which to keep</div>
+        </div>
+      </div>
+
+      <!-- Week 4: Considering -->
+      <div class="coverage-row row-considering">
+        <div class="cov-week">Week 4</div>
+        <div class="cov-dates">Jul 14–18</div>
+        <div class="cov-program">
+          <div class="cov-dot" style="background:#F59E0B"></div>
+          <div>
+            <div class="cov-name">Science Explorers Day Camp</div>
+            <div class="cov-sub">Considering · $375 · Register by Mar 30</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Week 5: Covered -->
+      <div class="coverage-row row-covered">
+        <div class="cov-week">Week 5</div>
+        <div class="cov-dates">Jul 21–25</div>
+        <div class="cov-program">
+          <div class="cov-dot" style="background:#10B981"></div>
+          <div>
+            <div class="cov-name">Community Theater Workshop</div>
+            <div class="cov-sub">Registered · $680 (covers weeks 5–6)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Week 6: Covered -->
+      <div class="coverage-row row-covered">
+        <div class="cov-week">Week 6</div>
+        <div class="cov-dates">Jul 28–Aug 1</div>
+        <div class="cov-program">
+          <div class="cov-dot" style="background:#10B981"></div>
+          <div>
+            <div class="cov-name">Community Theater Workshop</div>
+            <div class="cov-sub">Registered · week 2 of 2</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Week 7: Gap -->
+      <div class="coverage-row row-gap">
+        <div class="cov-week">Week 7</div>
+        <div class="cov-dates">Aug 4–8</div>
+        <div class="cov-program">
+          <div class="cov-dot" style="background:#DC2626"></div>
+          <div>
+            <div class="cov-name">No program</div>
+            <div class="cov-sub">Nothing on the list covers this week</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Week 8: Not registered -->
+      <div class="coverage-row row-considering">
+        <div class="cov-week">Week 8</div>
+        <div class="cov-dates">Aug 11–15</div>
+        <div class="cov-program">
+          <div class="cov-dot" style="background:#06B6D4"></div>
+          <div>
+            <div class="cov-name">Riverside Coding Camp</div>
+            <div class="cov-sub">Not registered yet · $295 · Register by May 15</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Week 9: Gap -->
+      <div class="coverage-row row-gap">
+        <div class="cov-week">Week 9</div>
+        <div class="cov-dates">Aug 18–22</div>
+        <div class="cov-program">
+          <div class="cov-dot" style="background:#DC2626"></div>
+          <div>
+            <div class="cov-name">No program</div>
+            <div class="cov-sub">Nothing on the list covers this week</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Week 10: Gap -->
+      <div class="coverage-row row-gap">
+        <div class="cov-week">Week 10</div>
+        <div class="cov-dates">Aug 25–29</div>
+        <div class="cov-program">
+          <div class="cov-dot" style="background:#DC2626"></div>
+          <div>
+            <div class="cov-name">No program</div>
+            <div class="cov-sub">Nothing on the list covers this week</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /coverage-grid -->
+  </div><!-- /coverage -->
+
+
+  <!-- ══════════════════════════════
+       TAB 3: DECISIONS NEEDED
+  ══════════════════════════════ -->
+  <div id="decisions" class="tab-content">
+
+    <!-- Section A: Urgent registrations -->
+    <div class="decisions-section">
+      <div class="decisions-section-label">Registration deadlines coming up</div>
+
+      <div class="decision-card urgent">
+        <div class="decision-icon">📋</div>
+        <div class="decision-body">
+          <div class="decision-title">Register for Riverside Art Studio — or lose your spot</div>
+          <div class="decision-desc">
+            Registration closes <strong>March 20 (23 days)</strong>. At $280, it's $170 cheaper than Lakeside Art Camp for the same week (July 7–11). If you register here, cancel Lakeside by April 30 for a full refund.
+          </div>
+          <span class="decision-deadline deadline-urgent">Due Mar 20 · 23 days</span>
+          <div class="decision-actions">
+            <button class="btn-primary">Register ($280)</button>
+            <button class="btn-secondary">Keep Lakeside instead</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision-card warning">
+        <div class="decision-icon">📋</div>
+        <div class="decision-body">
+          <div class="decision-title">Register for Science Explorers — covers your July 14–18 gap</div>
+          <div class="decision-desc">
+            Registration closes <strong>March 30 (33 days)</strong>. July 14–18 currently has no program. Science Explorers would fill it for $375.
+          </div>
+          <span class="decision-deadline deadline-warning">Due Mar 30 · 33 days</span>
+          <div class="decision-actions">
+            <button class="btn-primary">Register ($375)</button>
+            <button class="btn-secondary">Skip this one</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section B: Cancellation windows -->
+    <div class="decisions-section">
+      <div class="decisions-section-label">Cancellation windows — act before you lose your refund</div>
+
+      <div class="decision-card warning">
+        <div class="decision-icon">💰</div>
+        <div class="decision-body">
+          <div class="decision-title">YMCA Multi-Sport — confirm or cancel by April 15</div>
+          <div class="decision-desc">
+            You're registered for June 22–26. Cancel before <strong>April 15</strong> to get a <strong>full $320 refund</strong>. After that, no refund. Confirm you want to keep this program.
+          </div>
+          <span class="decision-deadline deadline-warning">Refund window closes Apr 15 · 49 days</span>
+          <div class="decision-actions">
+            <button class="btn-primary">Keep it</button>
+            <button class="btn-danger">Cancel for $320 refund</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision-card warning">
+        <div class="decision-icon">💰</div>
+        <div class="decision-body">
+          <div class="decision-title">Lakeside Art Camp — cancel by April 30 if switching to Riverside</div>
+          <div class="decision-desc">
+            You're registered for July 7–11 at $450. If you decide to go with Riverside Art Studio ($280) for that week instead, cancel Lakeside before <strong>April 30</strong> to get a <strong>full $450 refund</strong>.
+          </div>
+          <span class="decision-deadline deadline-warning">Refund window closes Apr 30 · 64 days</span>
+          <div class="decision-actions">
+            <button class="btn-primary">Keep Lakeside</button>
+            <button class="btn-danger">Switch to Riverside + cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section C: Coverage gaps -->
+    <div class="decisions-section">
+      <div class="decisions-section-label">Coverage gaps — weeks with no program</div>
+
+      <div class="decision-card gap">
+        <div class="decision-icon">📅</div>
+        <div class="decision-body">
+          <div class="decision-title">June 29–July 3 (Week 2) — nothing planned</div>
+          <div class="decision-desc">No programs are on your list for this week. You'll need to find something or make other arrangements.</div>
+        </div>
+      </div>
+
+      <div class="decision-card gap">
+        <div class="decision-icon">📅</div>
+        <div class="decision-body">
+          <div class="decision-title">August 4–8 (Week 7) — nothing planned</div>
+          <div class="decision-desc">No programs are on your list for this week. You'll need to find something or make other arrangements.</div>
+        </div>
+      </div>
+
+      <div class="decision-card gap">
+        <div class="decision-icon">📅</div>
+        <div class="decision-body">
+          <div class="decision-title">August 18–22 and August 25–29 (Weeks 9–10) — nothing planned</div>
+          <div class="decision-desc">The last two weeks of summer have no programs on your list. This may be intentional, or you may need to plan ahead.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /decisions -->
+
+</div><!-- /content -->
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector('[data-tab="' + name + '"]').classList.add('active');
+    document.getElementById(name).classList.add('active');
+  }
+</script>
+
+</body>
+</html>
