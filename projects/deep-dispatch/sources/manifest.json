@@ -1,0 +1,8 @@
+[
+  {
+    "id": "example-project",
+    "title": "Example NotebookLM Project",
+    "topics": ["replace this with a real topic description"],
+    "file": "sources/example-project.md"
+  }
+]
