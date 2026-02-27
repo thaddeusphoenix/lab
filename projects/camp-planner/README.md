@@ -22,6 +22,7 @@ reports/        Team observations, daily summaries, and research findings
 ## Documents
 
 - [Strategic Initiative Brief](briefs/strategic-initiative-brief.md)
+- [Feature Brief: Core Planning Loop](briefs/feature-brief-core-planning.md)
 - [Persona: The Logistics Parent](discover/persona-working-parent.md)
 - [User Interview Guide](discover/interview-guide.md)
 
