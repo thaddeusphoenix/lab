@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Mood Ring</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: #07070e;
+  color: #c0c0d0;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Screens ─────────────────────────────────────────────────────────── */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 36px;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+.screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Welcome ──────────────────────────────────────────────────────────── */
+
+#screen-welcome h1 {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #35354e;
+  margin-bottom: 52px;
+}
+
+.welcome-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 260px;
+  gap: 12px;
+}
+
+.welcome-desc {
+  font-size: 13px;
+  color: #28283e;
+  line-height: 1.9;
+  margin-bottom: 20px;
+  align-self: center;
+  text-align: center;
+}
+
+.field-label {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #28283e;
+}
+
+#age-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #14142a;
+  color: #7070a0;
+  font-size: 36px;
+  font-weight: 200;
+  letter-spacing: 0.04em;
+  padding: 10px 0 10px;
+  outline: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+#age-input::-webkit-outer-spin-button,
+#age-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+#age-input::placeholder { color: #181828; }
+#age-input:focus { border-bottom-color: #28284a; }
+
+#begin-btn {
+  margin-top: 36px;
+  align-self: stretch;
+  background: transparent;
+  border: 1px solid #14142a;
+  color: #30304a;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s;
+}
+#begin-btn:hover { border-color: #30304a; color: #6060a0; }
+#begin-btn:disabled { opacity: 0.3; pointer-events: none; }
+
+/* ── Main ─────────────────────────────────────────────────────────────── */
+
+#screen-main {
+  justify-content: flex-start;
+  padding-top: max(72px, 14vh);
+  gap: 0;
+}
+
+/* Ring */
+.ring-outer {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin-bottom: 36px;
+  flex-shrink: 0;
+}
+
+.ring-svg {
+  position: absolute;
+  inset: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  pointer-events: none;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+
+.ring-track {
+  fill: none;
+  stroke: #0e0e1c;
+  stroke-width: 2;
+}
+
+.ring-arc {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.ring-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #0e0e1c;
+  touch-action: none;
+  cursor: pointer;
+  transition: box-shadow 0.6s ease;
+}
+
+.ring-circle.idle {
+  animation: idle-pulse 4s ease-in-out infinite;
+}
+
+@keyframes idle-pulse {
+  0%, 100% { box-shadow: 0 0 0px 0px rgba(90, 80, 140, 0); }
+  50%       { box-shadow: 0 0 24px 4px rgba(90, 80, 140, 0.07); }
+}
+
+/* Instruction */
+.instruction {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #1e1e30;
+  text-align: center;
+  transition: opacity 0.4s ease;
+  flex-shrink: 0;
+  height: 16px;
+}
+
+/* Reading */
+.reading {
+  margin-top: 44px;
+  text-align: center;
+  max-width: 280px;
+  width: 100%;
+  pointer-events: none;
+}
+.reading.visible { pointer-events: auto; }
+
+.reading-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.reading-line {
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 2;
+  color: #505070;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reading-line.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reset-btn {
+  display: block;
+  margin: 32px auto 0;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #1e1e30;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 8px;
+  opacity: 0;
+  transition: opacity 0.4s ease 1.4s, color 0.2s;
+}
+.reading.visible .reset-btn { opacity: 1; }
+.reset-btn:hover { color: #5050808; }
+</style>
+</head>
+<body>
+
+<!-- Welcome -->
+<div class="screen" id="screen-welcome">
+  <h1>Mood Ring</h1>
+  <div class="welcome-body">
+    <p class="welcome-desc">A color derived from where you are<br>in the cycles that move through everything.</p>
+    <span class="field-label">Your age</span>
+    <input type="number" id="age-input" min="1" max="110" inputmode="numeric" placeholder="—">
+    <button id="begin-btn">Begin</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="screen hidden" id="screen-main">
+
+  <div class="ring-outer" id="ring-outer">
+    <svg class="ring-svg" id="ring-svg" viewBox="0 0 236 236">
+      <circle class="ring-track" cx="118" cy="118" r="114"/>
+      <circle class="ring-arc"   cx="118" cy="118" r="114"
+        id="ring-arc"
+        stroke-dasharray="716.3"
+        stroke-dashoffset="716.3"
+        stroke="rgba(255,255,255,0.4)"/>
+    </svg>
+    <div class="ring-circle idle" id="ring-circle"></div>
+  </div>
+
+  <div class="instruction" id="instruction">hold</div>
+
+  <div class="reading" id="reading">
+    <div class="reading-lines" id="reading-lines"></div>
+    <button class="reset-btn" id="reset-btn">read again</button>
+  </div>
+
+</div>
+
+<script>
+// ── Color utilities ───────────────────────────────────────────────────
+
+function hslToRgb(h, s, l) {
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return [Math.round(255 * f(0)), Math.round(255 * f(8)), Math.round(255 * f(4))];
+}
+
+function lerpHSL(a, b, t) {
+  let dh = b.h - a.h;
+  if (dh > 180) dh -= 360;
+  if (dh < -180) dh += 360;
+  return { h: (a.h + dh * t + 360) % 360, s: a.s + (b.s - a.s) * t, l: a.l + (b.l - a.l) * t };
+}
+
+function multiStop(stops, t) {
+  const n = stops.length - 1;
+  const pos = Math.min(t * n, n - 0.00001);
+  const i = Math.floor(pos);
+  return lerpHSL(stops[i], stops[i + 1], pos - i);
+}
+
+function blendToRgb(colors) {
+  const rgbs = colors.map(c => hslToRgb(c.h, c.s, c.l));
+  return {
+    r: Math.round(rgbs.reduce((s, c) => s + c[0], 0) / rgbs.length),
+    g: Math.round(rgbs.reduce((s, c) => s + c[1], 0) / rgbs.length),
+    b: Math.round(rgbs.reduce((s, c) => s + c[2], 0) / rgbs.length),
+  };
+}
+
+function lerpRgb(a, b, t) {
+  return {
+    r: Math.round(a.r + (b.r - a.r) * t),
+    g: Math.round(a.g + (b.g - a.g) * t),
+    b: Math.round(a.b + (b.b - a.b) * t),
+  };
+}
+
+function rgbStr(c) { return `rgb(${c.r},${c.g},${c.b})`; }
+
+function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
+// ── Cycle math ────────────────────────────────────────────────────────
+
+// Filippi palette: Q1 Icy Blue (Acetylcholine) · Q2 Green (Serotonin)
+//                 Q3 Warm Yellow (Dopamine)    · Q4 Deep Purple (Norepinephrine)
+const PALETTE = [
+  { h: 218, s: 65, l: 80 },
+  { h: 135, s: 65, l: 42 },
+  { h: 50,  s: 90, l: 54 },
+  { h: 290, s: 75, l: 28 },
+];
+
+function cycleColor(t, loop) {
+  const stops = loop ? [...PALETTE, PALETTE[0]] : PALETTE;
+  return multiStop(stops, t);
+}
+
+function getLifeT(age) {
+  let ex = age < 20 ? 82 : age < 40 ? 84 : age < 55 ? 86 : age < 70 ? 89 : Math.max(age + 10, 92);
+  return Math.min(age / ex, 1);
+}
+
+function getMoonT(date) {
+  const knownNew = new Date('2024-01-11T11:57:00Z');
+  const lunation = 29.530588861;
+  const elapsed = (date - knownNew) / 86400000;
+  return (((elapsed % lunation) + lunation) % lunation) / lunation;
+}
+
+function getSeasonT(date) {
+  // Q1=Spring equinox · Q2=Summer · Q3=Autumn · Q4=Winter
+  const doy = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+  return ((doy - 80 + 365) % 365) / 365;
+}
+
+function getCircadianT(date) {
+  // Q1=6am · Q2=noon · Q3=6pm · Q4=midnight
+  const h = date.getHours() + date.getMinutes() / 60;
+  return ((h - 6 + 24) % 24) / 24;
+}
+
+function computeColor(age) {
+  const now = new Date();
+  return blendToRgb([
+    cycleColor(getLifeT(age),       false),
+    cycleColor(getMoonT(now),       true),
+    cycleColor(getSeasonT(now),     true),
+    cycleColor(getCircadianT(now),  true),
+  ]);
+}
+
+// ── Poetry ────────────────────────────────────────────────────────────
+
+const PHRASES = {
+  moon: [
+    // Q1 — New moon — Acetylcholine
+    ["The moon has turned its face away.", "A new cycle opens in the dark."],
+    // Q2 — First quarter — Serotonin
+    ["Light returns to one side of the world.", "The moon is carving its edge."],
+    // Q3 — Full moon — Dopamine
+    ["The moon holds nothing back tonight.", "Everything is illuminated."],
+    // Q4 — Last quarter — Norepinephrine
+    ["Something is passing.", "The light retreats without apology."],
+  ],
+  season: [
+    // Q1 — Spring
+    ["What was frozen is remembering how to move.", "The thaw has begun."],
+    // Q2 — Summer
+    ["The long hours hold their light.", "Everything that was seeded is now working."],
+    // Q3 — Autumn
+    ["The world is giving itself away.", "The harvest has no interest in hesitation."],
+    // Q4 — Winter
+    ["The earth holds still beneath the cold.", "This is the stillness before the turn."],
+  ],
+  life: [
+    // Q1 — Youth
+    ["You are still in the becoming.", "The roots are going deeper than you know."],
+    // Q2 — Young adult
+    ["You are building the self that will carry you.", "The work you do now is the foundation."],
+    // Q3 — Midlife
+    ["You are at the peak of your expression.", "What you have made is real."],
+    // Q4 — Elder
+    ["You carry the weight of what you know.", "The knowing has become its own kind of grace."],
+  ],
+  circadian: [
+    // Q1 — Morning
+    ["Let this moment plant something.", "Begin with the body. The mind will follow."],
+    // Q2 — Midday
+    ["Make what you came here to make.", "The light is at its sharpest. Use it."],
+    // Q3 — Evening
+    ["Give it away. This is what it was for.", "The evening belongs to expression."],
+    // Q4 — Night
+    ["Let it rest. Let it become.", "The night is doing its own work."],
+  ],
+};
+
+function generateReading(age) {
+  const now  = new Date();
+  const q    = t => Math.min(Math.floor(t * 4), 3);
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  return [
+    pick(PHRASES.moon[q(getMoonT(now))]),
+    pick(PHRASES.season[q(getSeasonT(now))]),
+    pick(PHRASES.life[q(getLifeT(age))]),
+    pick(PHRASES.circadian[q(getCircadianT(now))]),
+  ];
+}
+
+// ── State ─────────────────────────────────────────────────────────────
+
+let userAge      = null;
+let targetColor  = null;
+let isHolding    = false;
+let isComplete   = false;
+let holdStart    = null;
+let rafId        = null;
+let heldProgress = 0;
+
+const HOLD_MS    = 3200;
+const CIRCUMF    = 2 * Math.PI * 114; // ≈ 716.3
+const COLOR_BASE = { r: 14, g: 14, b: 28 };
+
+// ── DOM ───────────────────────────────────────────────────────────────
+
+const screenWelcome = document.getElementById('screen-welcome');
+const screenMain    = document.getElementById('screen-main');
+const ageInput      = document.getElementById('age-input');
+const beginBtn      = document.getElementById('begin-btn');
+const ringCircle    = document.getElementById('ring-circle');
+const ringArc       = document.getElementById('ring-arc');
+const instructEl    = document.getElementById('instruction');
+const readingEl     = document.getElementById('reading');
+const readingLines  = document.getElementById('reading-lines');
+const resetBtn      = document.getElementById('reset-btn');
+
+// ── Welcome ───────────────────────────────────────────────────────────
+
+beginBtn.addEventListener('click', () => {
+  const age = parseInt(ageInput.value);
+  if (!age || age < 1 || age > 110) { ageInput.focus(); return; }
+  userAge = age;
+  targetColor = computeColor(age);
+  beginBtn.disabled = true;
+
+  if (navigator.geolocation) {
+    // Request location — graceful fail, not blocking
+    navigator.geolocation.getCurrentPosition(
+      () => transitionToMain(),
+      () => transitionToMain(),
+      { timeout: 4000 }
+    );
+  } else {
+    transitionToMain();
+  }
+});
+
+ageInput.addEventListener('keydown', e => { if (e.key === 'Enter') beginBtn.click(); });
+
+function transitionToMain() {
+  screenWelcome.classList.add('hidden');
+  setTimeout(() => screenMain.classList.remove('hidden'), 300);
+}
+
+// ── Hold ──────────────────────────────────────────────────────────────
+
+function startHold(e) {
+  if (isComplete) return;
+  e.preventDefault();
+  ringCircle.setPointerCapture(e.pointerId);
+  isHolding = true;
+  holdStart = Date.now();
+  ringCircle.classList.remove('idle');
+  instructEl.style.opacity = '0';
+  cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(tick);
+}
+
+function tick() {
+  if (!isHolding) return;
+  const p = Math.min((Date.now() - holdStart) / HOLD_MS, 1);
+  heldProgress = p;
+  paint(easeInOut(p));
+  if (p >= 1) { complete(); return; }
+  rafId = requestAnimationFrame(tick);
+}
+
+function endHold(e) {
+  if (!isHolding || isComplete) return;
+  isHolding = false;
+  cancelAnimationFrame(rafId);
+  animReset();
+}
+
+function paint(e) {
+  // e = eased 0–1
+  const col = lerpRgb(COLOR_BASE, targetColor, e);
+  ringCircle.style.background = rgbStr(col);
+  ringArc.setAttribute('stroke-dashoffset', CIRCUMF * (1 - e));
+  ringArc.setAttribute('stroke', rgbStr(col));
+}
+
+function complete() {
+  isHolding  = false;
+  isComplete = true;
+  paint(1);
+  const c = targetColor;
+  ringCircle.style.boxShadow = `0 0 56px 12px rgba(${c.r},${c.g},${c.b},0.22)`;
+  showReading();
+}
+
+function animReset() {
+  const startP   = heldProgress;
+  const startT   = Date.now();
+  const resetMs  = Math.max(startP * 600, 200);
+
+  function step() {
+    const t  = Math.min((Date.now() - startT) / resetMs, 1);
+    const p  = startP * (1 - t * t);
+    paint(easeInOut(p));
+    if (t < 1) { requestAnimationFrame(step); return; }
+    paint(0);
+    heldProgress = 0;
+    ringCircle.classList.add('idle');
+    instructEl.style.opacity = '1';
+  }
+  requestAnimationFrame(step);
+}
+
+// ── Reading ───────────────────────────────────────────────────────────
+
+function showReading() {
+  const lines = generateReading(userAge);
+  readingLines.innerHTML = lines
+    .map(l => `<div class="reading-line">${l}</div>`)
+    .join('');
+  readingEl.classList.add('visible');
+
+  readingLines.querySelectorAll('.reading-line').forEach((el, i) => {
+    setTimeout(() => el.classList.add('show'), 300 + i * 300);
+  });
+}
+
+resetBtn.addEventListener('click', () => {
+  isComplete   = false;
+  heldProgress = 0;
+
+  // Clear reading
+  readingEl.classList.remove('visible');
+  readingLines.querySelectorAll('.reading-line').forEach(el => el.classList.remove('show'));
+  setTimeout(() => { readingLines.innerHTML = ''; }, 400);
+
+  // Reset ring
+  ringCircle.style.boxShadow = '';
+  paint(0);
+  ringCircle.classList.add('idle');
+  instructEl.style.opacity = '1';
+
+  // Recompute in case time shifted
+  targetColor = computeColor(userAge);
+});
+
+// ── Events ────────────────────────────────────────────────────────────
+
+ringCircle.addEventListener('pointerdown',  startHold, { passive: false });
+ringCircle.addEventListener('pointerup',    endHold);
+ringCircle.addEventListener('pointercancel', endHold);
+</script>
+</body>
+</html>

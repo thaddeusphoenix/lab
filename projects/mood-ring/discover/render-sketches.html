@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mood Ring — Render Style Sketches</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #09090f;
+  color: #c8c8d8;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  padding: 48px 40px;
+  min-height: 100vh;
+}
+.page-header {
+  margin-bottom: 48px;
+}
+.label {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #3a3a55;
+}
+.note {
+  font-size: 12px;
+  color: #2e2e48;
+  line-height: 1.7;
+  margin-top: 8px;
+  max-width: 560px;
+}
+
+/* Input */
+.controls {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+  align-items: flex-end;
+}
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.control input[type=range] {
+  width: 180px;
+  accent-color: #7777bb;
+  cursor: pointer;
+}
+.control .val {
+  font-size: 14px;
+  color: #7777aa;
+  font-variant-numeric: tabular-nums;
+}
+.moment-pill {
+  font-size: 11px;
+  color: #2a2a42;
+  padding: 8px 0;
+  line-height: 1.8;
+}
+
+/* Sketches layout */
+.sketches {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.sketch {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sketch-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #3a3a55;
+}
+
+/* Phone frame: 390×540 (roughly 9:13 — wallpaper crop) */
+.phone-frame {
+  width: 260px;
+  height: 360px;
+  border-radius: 28px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 24px 64px rgba(0,0,0,0.7);
+}
+
+canvas.ring-canvas {
+  width: 260px;
+  height: 360px;
+  display: block;
+}
+
+/* Square icon variant */
+.icon-frame {
+  width: 80px;
+  height: 80px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+  flex-shrink: 0;
+}
+canvas.icon-canvas {
+  width: 80px;
+  height: 80px;
+  display: block;
+}
+
+.sketch-desc {
+  font-size: 11px;
+  color: #2a2a42;
+  line-height: 1.7;
+  max-width: 260px;
+}
+
+.sketch-question {
+  font-size: 11px;
+  color: #3a3a5a;
+  line-height: 1.6;
+  max-width: 260px;
+  font-style: italic;
+}
+
+/* Icon row */
+.icon-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 8px;
+}
+.icon-label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #252535;
+  margin-top: 6px;
+  text-align: center;
+}
+.icon-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <p class="label" style="margin-bottom:6px;">Mood Ring</p>
+  <p style="font-size:18px; color:#6666aa; font-weight:300; letter-spacing:0.02em;">Render Style Sketches</p>
+  <p class="note">Three visual directions, same four colors, same moment. Does it feel like jewellery or a diagram? Show this to someone without explaining it first.</p>
+</div>
+
+<div class="controls">
+  <div class="control">
+    <span class="label">Age</span>
+    <input type="range" id="age" min="1" max="95" value="35">
+    <span class="val" id="age-val">35</span>
+  </div>
+  <div class="moment-pill" id="moment-pill"></div>
+</div>
+
+<div class="sketches" id="sketches"></div>
+
+<script>
+// ── Utilities (same as spike) ─────────────────────────────────────────
+
+function hslToRgb(h, s, l) {
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return [Math.round(255 * f(0)), Math.round(255 * f(8)), Math.round(255 * f(4))];
+}
+
+function lerpHSL(a, b, t) {
+  let dh = b.h - a.h;
+  if (dh > 180) dh -= 360;
+  if (dh < -180) dh += 360;
+  return {
+    h: (a.h + dh * t + 360) % 360,
+    s: a.s + (b.s - a.s) * t,
+    l: a.l + (b.l - a.l) * t
+  };
+}
+
+function multiStop(stops, t) {
+  const n = stops.length - 1;
+  const pos = Math.min(t * n, n - 0.00001);
+  const i = Math.floor(pos);
+  return lerpHSL(stops[i], stops[i + 1], pos - i);
+}
+
+function getLifeT(age) {
+  let ex = 82;
+  if (age < 20) ex = 82;
+  else if (age < 40) ex = 84;
+  else if (age < 55) ex = 86;
+  else if (age < 70) ex = 89;
+  else ex = Math.max(age + 10, 92);
+  return Math.min(age / ex, 1);
+}
+
+function getMoonT(date) {
+  const knownNew = new Date('2024-01-11T11:57:00Z');
+  const lunation = 29.530588861;
+  const elapsed = (date - knownNew) / 86400000;
+  const phase = ((elapsed % lunation) + lunation) % lunation;
+  return phase / lunation;
+}
+
+function getSeasonT(date) {
+  // Filippi: cycle starts at spring equinox (Q1=Spring, Q2=Summer, Q3=Autumn, Q4=Winter)
+  const start = new Date(date.getFullYear(), 0, 0);
+  const doy = Math.floor((date - start) / 86400000);
+  return ((doy - 80 + 365) % 365) / 365;
+}
+
+function getCircadianT(date) {
+  // Filippi: cycle starts at 6am (Q1=Morning, Q2=Midday, Q3=Afternoon, Q4=Night)
+  const h = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
+  return ((h - 6 + 24) % 24) / 24;
+}
+
+// ── Shared palette — green to purple, four distinct quarters ─────────
+//   Q1 Green · Q2 Teal · Q3 Indigo · Q4 Purple
+const PALETTE = [
+  { h: 218, s: 65, l: 80 },  // Q1 — Icy Blue
+  { h: 135, s: 65, l: 42 },  // Q2 — Green
+  { h: 50,  s: 90, l: 54 },  // Q3 — Warm Yellow
+  { h: 290, s: 75, l: 28 },  // Q4 — Deep Purple
+];
+
+function cycleColor(t, loop) {
+  const stops = loop ? [...PALETTE, PALETTE[0]] : PALETTE;
+  return multiStop(stops, t);
+}
+
+// Life arc: Q1 Youth · Q2 Young adult · Q3 Midlife · Q4 Elder
+function lifeColor(t)      { return cycleColor(t, false); }
+// Moon: Q1 New moon · Q2 First quarter · Q3 Full moon · Q4 Last quarter
+function moonColor(t)      { return cycleColor(t, true);  }
+// Season: Q1 Spring · Q2 Summer · Q3 Autumn · Q4 Winter
+function seasonColor(t)    { return cycleColor(t, true);  }
+// Circadian: Q1 Morning (6am) · Q2 Midday (noon) · Q3 Afternoon (6pm) · Q4 Night (midnight)
+function circadianColor(t) { return cycleColor(t, true);  }
+
+function toRgb(c) { return hslToRgb(c.h, c.s, c.l); }
+function toRgbStr(c) { const [r,g,b] = toRgb(c); return `rgb(${r},${g},${b})`; }
+function toRgba(c, a) { const [r,g,b] = toRgb(c); return `rgba(${r},${g},${b},${a})`; }
+
+function moonLabel(t) {
+  const labels = ['New moon','Waxing crescent','First quarter','Waxing gibbous','Full moon','Waning gibbous','Last quarter','Waning crescent'];
+  return labels[Math.round(t * 7.99) % 8];
+}
+function seasonLabel(t) {
+  // t=0 = spring equinox (Filippi Q1)
+  const labels = ['Early spring','Late spring','Early summer','Late summer','Early autumn','Late autumn','Early winter','Late winter'];
+  return labels[Math.floor(t * 8) % 8];
+}
+function circLabel(t) {
+  // t=0 = 6am (Filippi Q1), offset back to clock time
+  const totalHours = ((t * 24) + 6) % 24;
+  const h = Math.floor(totalHours);
+  const ampm = h < 12 ? 'am' : 'pm';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${h12}${ampm}`;
+}
+
+// ── Render styles ─────────────────────────────────────────────────────
+
+// Style 1: Unified blend — smooth radial gradient mixing all four
+function drawUnifiedBlend(canvas, colors, w, h) {
+  const ctx = canvas.getContext('2d');
+  canvas.width = w; canvas.height = h;
+  ctx.clearRect(0, 0, w, h);
+
+  // Dark base
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, w, h);
+
+  // Four large overlapping soft radials at cardinal points, blending inward
+  const positions = [
+    { x: w * 0.3, y: h * 0.25 },
+    { x: w * 0.7, y: h * 0.3 },
+    { x: w * 0.35, y: h * 0.72 },
+    { x: w * 0.68, y: h * 0.68 },
+  ];
+  const r = Math.max(w, h) * 0.75;
+
+  ctx.globalCompositeOperation = 'lighter';
+  colors.forEach((c, i) => {
+    const p = positions[i];
+    const rgb = toRgb(c);
+    // Bring lightness down so lighter blend doesn't blow out
+    const lFactor = c.l > 60 ? 0.55 : 0.75;
+    const scaled = `rgba(${Math.round(rgb[0]*lFactor)},${Math.round(rgb[1]*lFactor)},${Math.round(rgb[2]*lFactor)}`;
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+    grad.addColorStop(0, scaled + ',0.9)');
+    grad.addColorStop(0.4, scaled + ',0.5)');
+    grad.addColorStop(1,   scaled + ',0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  });
+
+  // Vignette
+  ctx.globalCompositeOperation = 'source-over';
+  const vig = ctx.createRadialGradient(w/2, h/2, h*0.25, w/2, h/2, h*0.7);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, w, h);
+}
+
+// Style 2: Stripes — four horizontal bands with soft inner glow
+function drawStripes(canvas, colors, w, h) {
+  const ctx = canvas.getContext('2d');
+  canvas.width = w; canvas.height = h;
+  ctx.clearRect(0, 0, w, h);
+
+  const bandH = h / 4;
+  colors.forEach((c, i) => {
+    const y = i * bandH;
+    // Base color fill
+    const grad = ctx.createLinearGradient(0, y, 0, y + bandH);
+    const rgb = toRgb(c);
+    const dimmed = `rgba(${Math.round(rgb[0]*0.8)},${Math.round(rgb[1]*0.8)},${Math.round(rgb[2]*0.8)}`;
+    grad.addColorStop(0,   dimmed + ',0.9)');
+    grad.addColorStop(0.5, dimmed + ',1)');
+    grad.addColorStop(1,   dimmed + ',0.9)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, y, w, bandH);
+
+    // Subtle center highlight
+    const cGrad = ctx.createRadialGradient(w/2, y + bandH/2, 0, w/2, y + bandH/2, w * 0.6);
+    cGrad.addColorStop(0,   'rgba(255,255,255,0.12)');
+    cGrad.addColorStop(0.5, 'rgba(255,255,255,0.03)');
+    cGrad.addColorStop(1,   'rgba(255,255,255,0)');
+    ctx.fillStyle = cGrad;
+    ctx.fillRect(0, y, w, bandH);
+
+    // Soft divider
+    if (i < 3) {
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillRect(0, y + bandH - 1, w, 2);
+    }
+  });
+
+  // Vignette
+  const vig = ctx.createRadialGradient(w/2, h/2, h*0.2, w/2, h/2, h*0.65);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.4)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, w, h);
+}
+
+// Style 3: Orbital — four color sources rotating around a dark center like a gem
+function drawOrbital(canvas, colors, w, h) {
+  const ctx = canvas.getContext('2d');
+  canvas.width = w; canvas.height = h;
+  ctx.clearRect(0, 0, w, h);
+
+  // Very dark base
+  ctx.fillStyle = '#06060e';
+  ctx.fillRect(0, 0, w, h);
+
+  // Four color nodes arranged in a loose ring
+  const cx = w / 2, cy = h / 2;
+  const orbitR = Math.min(w, h) * 0.32;
+  const angles = [Math.PI * 1.35, Math.PI * 0.15, Math.PI * 0.75, Math.PI * 1.9];
+  const blobR = Math.min(w, h) * 0.78;
+
+  ctx.globalCompositeOperation = 'lighter';
+  colors.forEach((c, i) => {
+    const px = cx + Math.cos(angles[i]) * orbitR;
+    const py = cy + Math.sin(angles[i]) * orbitR;
+    const rgb = toRgb(c);
+    const lf = c.l > 65 ? 0.45 : c.l > 40 ? 0.6 : 0.8;
+    const s = `rgba(${Math.round(rgb[0]*lf)},${Math.round(rgb[1]*lf)},${Math.round(rgb[2]*lf)}`;
+    const grad = ctx.createRadialGradient(px, py, 0, px, py, blobR);
+    grad.addColorStop(0,    s + ',0.95)');
+    grad.addColorStop(0.25, s + ',0.65)');
+    grad.addColorStop(0.6,  s + ',0.25)');
+    grad.addColorStop(1,    s + ',0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  });
+
+  // Dark core — gives it depth, makes it feel like looking into a gem
+  ctx.globalCompositeOperation = 'source-over';
+  const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w,h) * 0.22);
+  core.addColorStop(0, 'rgba(0,0,0,0.72)');
+  core.addColorStop(0.5, 'rgba(0,0,0,0.3)');
+  core.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = core;
+  ctx.fillRect(0, 0, w, h);
+
+  // Outer vignette
+  const vig = ctx.createRadialGradient(cx, cy, Math.min(w,h)*0.3, cx, cy, Math.min(w,h)*0.65);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.6)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, w, h);
+}
+
+// ── Styles config ─────────────────────────────────────────────────────
+
+const styles = [
+  {
+    id: 'unified',
+    name: 'Unified Blend',
+    draw: drawUnifiedBlend,
+    desc: 'Four color sources light each other from different angles. No structure — pure atmosphere.',
+    question: 'Does this feel like looking into something, or is it just a blur?',
+  },
+  {
+    id: 'stripes',
+    name: 'Stripes',
+    draw: drawStripes,
+    desc: 'Four bands, one per cycle. Ordered. Legible. Each cycle keeps its identity.',
+    question: 'Is this too readable? Does structure kill the mystery?',
+  },
+  {
+    id: 'orbital',
+    name: 'Orbital',
+    draw: drawOrbital,
+    desc: 'Four color nodes orbit a dark center — like a gemstone from above. Colors meet at the edges.',
+    question: 'Does the dark core give it depth, or does it make it feel empty?',
+  },
+];
+
+// ── Main render ───────────────────────────────────────────────────────
+
+let currentColors = null;
+
+function buildSketches() {
+  const container = document.getElementById('sketches');
+  container.innerHTML = '';
+
+  styles.forEach(style => {
+    const sketch = document.createElement('div');
+    sketch.className = 'sketch';
+
+    // Label
+    const label = document.createElement('div');
+    label.className = 'sketch-label';
+    label.textContent = style.name;
+
+    // Phone frame
+    const frame = document.createElement('div');
+    frame.className = 'phone-frame';
+    const canvas = document.createElement('canvas');
+    canvas.className = 'ring-canvas';
+    canvas.id = `canvas-${style.id}`;
+    frame.appendChild(canvas);
+
+    // Icon size previews
+    const iconRow = document.createElement('div');
+    iconRow.className = 'icon-row';
+    [80, 48, 32].forEach(size => {
+      const block = document.createElement('div');
+      block.className = 'icon-block';
+      const iFrame = document.createElement('div');
+      iFrame.className = 'icon-frame';
+      iFrame.style.width = size + 'px';
+      iFrame.style.height = size + 'px';
+      iFrame.style.borderRadius = Math.round(size * 0.22) + 'px';
+      const iCanvas = document.createElement('canvas');
+      iCanvas.id = `icon-${style.id}-${size}`;
+      iCanvas.style.width = size + 'px';
+      iCanvas.style.height = size + 'px';
+      iFrame.appendChild(iCanvas);
+      const iLabel = document.createElement('div');
+      iLabel.className = 'icon-label';
+      iLabel.textContent = size + 'px';
+      block.appendChild(iFrame);
+      block.appendChild(iLabel);
+      iconRow.appendChild(block);
+    });
+
+    // Desc + question
+    const desc = document.createElement('p');
+    desc.className = 'sketch-desc';
+    desc.textContent = style.desc;
+
+    const q = document.createElement('p');
+    q.className = 'sketch-question';
+    q.textContent = style.question;
+
+    sketch.appendChild(label);
+    sketch.appendChild(frame);
+    sketch.appendChild(iconRow);
+    sketch.appendChild(desc);
+    sketch.appendChild(q);
+    container.appendChild(sketch);
+  });
+}
+
+function drawAll(colors) {
+  styles.forEach(style => {
+    // Phone
+    const canvas = document.getElementById(`canvas-${style.id}`);
+    if (canvas) style.draw(canvas, colors, 520, 720);
+
+    // Icons
+    [80, 48, 32].forEach(size => {
+      const ic = document.getElementById(`icon-${style.id}-${size}`);
+      if (ic) style.draw(ic, colors, size * 2, size * 2);
+    });
+  });
+}
+
+function updateAll() {
+  const age = parseInt(document.getElementById('age').value);
+  document.getElementById('age-val').textContent = age;
+
+  const now = new Date();
+  const lifeT   = getLifeT(age);
+  const moonT   = getMoonT(now);
+  const seasonT = getSeasonT(now);
+  const circT   = getCircadianT(now);
+
+  const colors = [
+    lifeColor(lifeT),
+    moonColor(moonT),
+    seasonColor(seasonT),
+    circadianColor(circT),
+  ];
+
+  const names = ['Life', 'Moon', 'Season', 'Hour'];
+  document.getElementById('moment-pill').innerHTML =
+    colors.map((c, i) =>
+      `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${toRgbStr(c)}; vertical-align:middle; margin-right:4px;"></span><span style="color:#3a3a55; margin-right:16px;">${names[i]}</span>`
+    ).join('') +
+    `<br><span style="font-size:10px;">${now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})} · ${moonLabel(moonT)} · ${seasonLabel(seasonT)}</span>`;
+
+  drawAll(colors);
+}
+
+buildSketches();
+updateAll();
+document.getElementById('age').addEventListener('input', updateAll);
+setInterval(updateAll, 10000);
+</script>
+</body>
+</html>

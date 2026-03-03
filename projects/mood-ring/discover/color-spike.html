@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mood Ring — Color System Spike</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #07070f;
+  color: #c8c8d8;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  padding: 48px 40px;
+  min-height: 100vh;
+}
+.label {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #3a3a55;
+}
+.section {
+  margin-bottom: 56px;
+}
+.section-head {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #3a3a55;
+  padding-top: 16px;
+  border-top: 1px solid #12121e;
+  margin-bottom: 24px;
+}
+.note {
+  font-size: 12px;
+  color: #2a2a42;
+  line-height: 1.7;
+  margin-top: -12px;
+  margin-bottom: 20px;
+  max-width: 480px;
+}
+.controls {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.control input[type=range] {
+  width: 180px;
+  accent-color: #7777bb;
+  cursor: pointer;
+}
+.control .val {
+  font-size: 14px;
+  color: #8888aa;
+  font-variant-numeric: tabular-nums;
+}
+.meta {
+  font-size: 11px;
+  color: #252538;
+  margin-top: -20px;
+  margin-bottom: 0;
+}
+
+/* Moment display */
+.moment {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.cycle-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.cycle-swatch {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+}
+.cycle-name {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2a2a42;
+}
+.cycle-desc {
+  font-size: 10px;
+  color: #3a3a55;
+  text-align: center;
+  max-width: 80px;
+  line-height: 1.4;
+}
+.arrow {
+  font-size: 16px;
+  color: #1e1e2e;
+  margin-top: -8px;
+}
+.blend-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.blend-swatch {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+}
+
+/* Grid */
+.grid-wrap {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.grid-y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 204px;
+  align-items: flex-end;
+  padding-right: 8px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+.grid-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.grid {
+  display: grid;
+  gap: 2px;
+}
+.cell {
+  width: 20px;
+  height: 20px;
+  border-radius: 2px;
+  cursor: crosshair;
+}
+.cell:hover {
+  outline: 1px solid rgba(255,255,255,0.3);
+  outline-offset: 1px;
+}
+.grid-x-axis {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+.axis-note {
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* Multi grid */
+.multi-grids {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+.mini-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mini-grid {
+  display: grid;
+  gap: 1px;
+}
+.mini-cell {
+  width: 16px;
+  height: 16px;
+  border-radius: 1px;
+}
+</style>
+</head>
+<body>
+
+<div class="section" style="margin-bottom:32px;">
+  <p class="label" style="margin-bottom:8px;">Mood Ring</p>
+  <p style="font-size:18px; color:#6666aa; font-weight:300; letter-spacing:0.02em;">Color System Spike</p>
+  <p style="font-size:12px; color:#2a2a42; margin-top:8px; max-width:440px; line-height:1.7;">Does blending four cycle-derived colors produce something interesting, or does everything collapse to mud? Vary age and watch the system across inputs.</p>
+</div>
+
+<div class="section">
+  <div class="section-head">Inputs</div>
+  <div class="controls">
+    <div class="control">
+      <span class="label">Age</span>
+      <input type="range" id="age" min="1" max="95" value="35">
+      <span class="val" id="age-val">35</span>
+    </div>
+  </div>
+  <p class="meta" id="meta-line">—</p>
+</div>
+
+<div class="section">
+  <div class="section-head">Current Moment — Four Cycles</div>
+  <p class="note">Each cycle produces a color from its current position (0–1). These four are then averaged.</p>
+  <div class="moment" id="moment"></div>
+</div>
+
+<div class="section">
+  <div class="section-head">Grid — Life Arc × Circadian</div>
+  <p class="note">Moon and season fixed to today. Rows: age 1→95 (bottom to top). Columns: midnight → midnight.</p>
+  <div class="grid-wrap">
+    <div class="grid-y-axis">
+      <span class="label" style="font-size:8px;">old</span>
+      <span class="label" style="font-size:8px;">↑</span>
+      <span class="label" style="font-size:8px;">young</span>
+    </div>
+    <div class="grid-column">
+      <div class="grid" id="main-grid" style="grid-template-columns: repeat(10, 20px);"></div>
+      <div class="grid-x-axis" style="width:202px;">
+        <span class="label" style="font-size:8px;">12am</span>
+        <span class="label" style="font-size:8px;">12pm</span>
+        <span class="label" style="font-size:8px;">12am</span>
+      </div>
+      <div class="axis-note"><span class="label" style="font-size:8px;">circadian →</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-head">Scenario Grids — Four Moon × Season Combinations</div>
+  <p class="note">Same life × circadian axes. Does the system produce variety, or does it converge to the same colors regardless of context?</p>
+  <div class="multi-grids" id="multi-grids"></div>
+</div>
+
+<script>
+// ── Utilities ────────────────────────────────────────────────────────
+
+function hslToRgb(h, s, l) {
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return [Math.round(255 * f(0)), Math.round(255 * f(8)), Math.round(255 * f(4))];
+}
+
+function lerpHSL(a, b, t) {
+  let dh = b.h - a.h;
+  if (dh > 180) dh -= 360;
+  if (dh < -180) dh += 360;
+  return {
+    h: (a.h + dh * t + 360) % 360,
+    s: a.s + (b.s - a.s) * t,
+    l: a.l + (b.l - a.l) * t
+  };
+}
+
+function multiStop(stops, t) {
+  const n = stops.length - 1;
+  const pos = Math.min(t * n, n - 0.00001);
+  const i = Math.floor(pos);
+  return lerpHSL(stops[i], stops[i + 1], pos - i);
+}
+
+function blendToRgbStr(colors) {
+  const rgbs = colors.map(c => hslToRgb(c.h, c.s, c.l));
+  const avg = [0, 1, 2].map(i =>
+    Math.round(rgbs.reduce((s, c) => s + c[i], 0) / rgbs.length)
+  );
+  return `rgb(${avg[0]},${avg[1]},${avg[2]})`;
+}
+
+function hslStr(c) {
+  return `hsl(${Math.round(c.h)},${Math.round(c.s)}%,${Math.round(c.l)}%)`;
+}
+
+// ── Cycle computations ───────────────────────────────────────────────
+
+function getLifeT(age) {
+  let ex = 82;
+  if (age < 20) ex = 82;
+  else if (age < 40) ex = 84;
+  else if (age < 55) ex = 86;
+  else if (age < 70) ex = 89;
+  else ex = Math.max(age + 10, 92);
+  return Math.min(age / ex, 1);
+}
+
+function getMoonT(date) {
+  const knownNew = new Date('2024-01-11T11:57:00Z');
+  const lunation = 29.530588861;
+  const elapsed = (date - knownNew) / 86400000;
+  const phase = ((elapsed % lunation) + lunation) % lunation;
+  return phase / lunation;
+}
+
+function getSeasonT(date) {
+  // Filippi: cycle starts at spring equinox (Q1=Spring, Q2=Summer, Q3=Autumn, Q4=Winter)
+  const start = new Date(date.getFullYear(), 0, 0);
+  const doy = Math.floor((date - start) / 86400000);
+  return ((doy - 80 + 365) % 365) / 365;
+}
+
+function getCircadianT(date) {
+  // Filippi: cycle starts at 6am (Q1=Morning, Q2=Midday, Q3=Afternoon, Q4=Night)
+  const h = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
+  return ((h - 6 + 24) % 24) / 24;
+}
+
+// ── Shared palette — green to purple, four distinct quarters ─────────
+//   Q1 Green · Q2 Teal · Q3 Indigo · Q4 Purple
+const PALETTE = [
+  { h: 218, s: 65, l: 80 },  // Q1 — Icy Blue
+  { h: 135, s: 65, l: 42 },  // Q2 — Green
+  { h: 50,  s: 90, l: 54 },  // Q3 — Warm Yellow
+  { h: 290, s: 75, l: 28 },  // Q4 — Deep Purple
+];
+
+function cycleColor(t, loop) {
+  const stops = loop ? [...PALETTE, PALETTE[0]] : PALETTE;
+  return multiStop(stops, t);
+}
+
+// Life arc: Q1 Youth · Q2 Young adult · Q3 Midlife · Q4 Elder
+function lifeColor(t)      { return cycleColor(t, false); }
+// Moon: Q1 New moon · Q2 First quarter · Q3 Full moon · Q4 Last quarter
+function moonColor(t)      { return cycleColor(t, true);  }
+// Season: Q1 Spring · Q2 Summer · Q3 Autumn · Q4 Winter
+function seasonColor(t)    { return cycleColor(t, true);  }
+// Circadian: Q1 Morning (6am) · Q2 Midday (noon) · Q3 Afternoon (6pm) · Q4 Night (midnight)
+function circadianColor(t) { return cycleColor(t, true);  }
+
+// ── Labels ───────────────────────────────────────────────────────────
+
+function moonLabel(t) {
+  const labels = ['New moon','Waxing crescent','First quarter','Waxing gibbous','Full moon','Waning gibbous','Last quarter','Waning crescent'];
+  return labels[Math.round(t * 7.99) % 8];
+}
+
+function seasonLabel(t) {
+  // t=0 = spring equinox (Filippi Q1)
+  const labels = ['Early spring','Late spring','Early summer','Late summer','Early autumn','Late autumn','Early winter','Late winter'];
+  return labels[Math.floor(t * 8) % 8];
+}
+
+function timeStr(t) {
+  // t=0 = 6am (Filippi Q1), so offset back to clock time
+  const totalHours = ((t * 24) + 6) % 24;
+  const h = Math.floor(totalHours);
+  const m = Math.round((totalHours - h) * 60) % 60;
+  const ampm = h < 12 ? 'am' : 'pm';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+
+// ── Render ───────────────────────────────────────────────────────────
+
+function renderGrid(el, cols, rows, colorFn, cellClass) {
+  el.innerHTML = '';
+  el.style.gridTemplateColumns = `repeat(${cols}, ${cellClass === 'mini-cell' ? 16 : 20}px)`;
+  for (let yi = rows - 1; yi >= 0; yi--) {
+    for (let xi = 0; xi < cols; xi++) {
+      const cell = document.createElement('div');
+      cell.className = cellClass || 'cell';
+      cell.style.background = colorFn(xi / (cols - 1), yi / (rows - 1));
+      el.appendChild(cell);
+    }
+  }
+}
+
+function updateAll() {
+  const age = parseInt(document.getElementById('age').value);
+  document.getElementById('age-val').textContent = age;
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const timeStr_ = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  document.getElementById('meta-line').textContent = `${dateStr} · ${timeStr_} local`;
+
+  const lifeT   = getLifeT(age);
+  const moonT   = getMoonT(now);
+  const seasonT = getSeasonT(now);
+  const circT   = getCircadianT(now);
+
+  const cycles = [
+    { name: 'Life',      t: lifeT,   color: lifeColor(lifeT),     desc: `${Math.round(lifeT * 100)}% through` },
+    { name: 'Moon',      t: moonT,   color: moonColor(moonT),     desc: moonLabel(moonT) },
+    { name: 'Season',    t: seasonT, color: seasonColor(seasonT), desc: seasonLabel(seasonT) },
+    { name: 'Circadian', t: circT,   color: circadianColor(circT),desc: timeStr(circT) },
+  ];
+
+  // Moment display
+  const momentEl = document.getElementById('moment');
+  momentEl.innerHTML = '';
+  cycles.forEach((c, i) => {
+    if (i > 0) {
+      const plus = document.createElement('span');
+      plus.className = 'arrow';
+      plus.textContent = '+';
+      momentEl.appendChild(plus);
+    }
+    const block = document.createElement('div');
+    block.className = 'cycle-block';
+    block.innerHTML = `
+      <div class="cycle-swatch" style="background:${hslStr(c.color)}"></div>
+      <div class="cycle-name">${c.name}</div>
+      <div class="cycle-desc">${c.desc}</div>
+    `;
+    momentEl.appendChild(block);
+  });
+
+  const arrowEl = document.createElement('span');
+  arrowEl.className = 'arrow';
+  arrowEl.textContent = '=';
+  momentEl.appendChild(arrowEl);
+
+  const blendEl = document.createElement('div');
+  blendEl.className = 'blend-block';
+  blendEl.innerHTML = `
+    <div class="blend-swatch" style="background:${blendToRgbStr(cycles.map(c => c.color))}"></div>
+    <div class="cycle-name">Blend</div>
+    <div class="cycle-desc">RGB average</div>
+  `;
+  momentEl.appendChild(blendEl);
+
+  // Main grid
+  const mainGrid = document.getElementById('main-grid');
+  renderGrid(mainGrid, 10, 10, (xt, yt) => {
+    const lt = getLifeT(Math.round(yt * 94) + 1);
+    return blendToRgbStr([
+      lifeColor(lt),
+      moonColor(moonT),
+      seasonColor(seasonT),
+      circadianColor(xt),
+    ]);
+  });
+
+  // Scenario grids
+  const scenarios = [
+    { title: 'New moon · Winter',  moon: 0,   season: 0 },
+    { title: 'Full moon · Summer', moon: 0.5, season: 0.5 },
+    { title: 'New moon · Autumn',  moon: 0,   season: 0.75 },
+    { title: 'Full moon · Spring', moon: 0.5, season: 0.25 },
+  ];
+
+  const multiEl = document.getElementById('multi-grids');
+  multiEl.innerHTML = '';
+  scenarios.forEach(s => {
+    const wrap = document.createElement('div');
+    wrap.className = 'mini-wrap';
+    const title = document.createElement('div');
+    title.className = 'label';
+    title.style.fontSize = '9px';
+    title.textContent = s.title;
+    const grid = document.createElement('div');
+    grid.className = 'mini-grid';
+    wrap.appendChild(title);
+    wrap.appendChild(grid);
+    multiEl.appendChild(wrap);
+
+    renderGrid(grid, 10, 10, (xt, yt) => {
+      const lt = getLifeT(Math.round(yt * 94) + 1);
+      return blendToRgbStr([
+        lifeColor(lt),
+        moonColor(s.moon),
+        seasonColor(s.season),
+        circadianColor(xt),
+      ]);
+    }, 'mini-cell');
+  });
+}
+
+document.getElementById('age').addEventListener('input', updateAll);
+updateAll();
+setInterval(updateAll, 10000);
+</script>
+</body>
+</html>
