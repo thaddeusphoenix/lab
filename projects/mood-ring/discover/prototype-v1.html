@@ -280,8 +280,56 @@ html, body {
   text-transform: uppercase;
   color: #6060a0;
 }
-.feedback.done .feedback-opts { display: none; }
+.feedback.done .feedback-opts  { display: none; }
+.feedback.done .feedback-open  { display: none; }
 .feedback.done .feedback-noted { display: block; }
+
+/* After a choice is locked in */
+.feedback.chosen .fopt               { opacity: 0.2; pointer-events: none; }
+.feedback.chosen .fopt.selected      { opacity: 1; color: #a0a0d0; }
+.feedback.chosen .fdot               { opacity: 0.2; }
+
+/* Open-ended text input */
+.feedback-open {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  width: 100%;
+  max-width: 260px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.feedback.chosen .feedback-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.feedback-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #2a2a50;
+  color: #9090c0;
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  padding: 8px 0;
+  outline: none;
+}
+.feedback-input::placeholder { color: #2a2a50; }
+.feedback-input:focus { border-bottom-color: #4040a0; }
+.feedback-send {
+  background: none;
+  border: none;
+  color: #3a3a70;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 0 8px 4px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+.feedback-send:hover { color: #8080c0; }
 </style>
 </head>
 <body>
@@ -324,6 +372,11 @@ html, body {
         <button class="fopt" data-v="somewhat">somewhat</button>
         <span class="fdot">·</span>
         <button class="fopt" data-v="no">no</button>
+      </div>
+      <div class="feedback-open" id="feedback-open">
+        <input type="text" class="feedback-input" id="feedback-input"
+               inputmode="text" placeholder="say more..." maxlength="200" autocomplete="off">
+        <button class="feedback-send" id="feedback-send">→</button>
       </div>
       <p class="feedback-noted">noted</p>
     </div>
@@ -545,6 +598,8 @@ const readingEl     = document.getElementById('reading');
 const readingLines  = document.getElementById('reading-lines');
 const resetBtn      = document.getElementById('reset-btn');
 const feedbackEl    = document.getElementById('feedback');
+const feedbackInput = document.getElementById('feedback-input');
+const feedbackSend  = document.getElementById('feedback-send');
 
 // ── Welcome ───────────────────────────────────────────────────────────
 
@@ -657,20 +712,37 @@ function showReading() {
   setTimeout(() => feedbackEl.classList.add('show'), lastLineAt + 900);
 }
 
-function submitFeedback(value) {
+let chosenValue = null;
+
+function handleChoice(value) {
+  chosenValue = value;
+  feedbackEl.classList.add('chosen');
+  feedbackEl.querySelectorAll('.fopt').forEach(b => {
+    b.classList.toggle('selected', b.dataset.v === value);
+  });
+  setTimeout(() => feedbackInput.focus(), 520);
+}
+
+function submitFeedback() {
+  if (!chosenValue) return;
   feedbackEl.classList.add('done');
   const label = (traditionalReading(targetColor).match(/reads (\w+)/) || [])[1] || 'unknown';
-  const payload = `${value} | ${label} | ${rgbStr(targetColor)}`;
+  const text  = feedbackInput.value.trim();
+  const payload = [chosenValue, label, rgbStr(targetColor), text].filter(Boolean).join(' | ');
   const body = new FormData();
   body.append(GFORM_ENTRY, payload);
   fetch(GFORM_ACTION, { method: 'POST', mode: 'no-cors', body }).catch(() => {});
+  chosenValue = null;
 }
 
 feedbackEl.addEventListener('click', e => {
   const btn = e.target.closest('.fopt');
-  if (!btn || feedbackEl.classList.contains('done')) return;
-  submitFeedback(btn.dataset.v);
+  if (!btn || feedbackEl.classList.contains('chosen')) return;
+  handleChoice(btn.dataset.v);
 });
+
+feedbackSend.addEventListener('click', submitFeedback);
+feedbackInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitFeedback(); });
 
 resetBtn.addEventListener('click', () => {
   isComplete   = false;
@@ -680,7 +752,10 @@ resetBtn.addEventListener('click', () => {
   readingLines.querySelectorAll('.reading-line').forEach(el => el.classList.remove('show'));
   setTimeout(() => { readingLines.innerHTML = ''; }, 400);
 
-  feedbackEl.classList.remove('show', 'done');
+  feedbackEl.classList.remove('show', 'done', 'chosen');
+  feedbackEl.querySelectorAll('.fopt').forEach(b => b.classList.remove('selected'));
+  feedbackInput.value = '';
+  chosenValue = null;
 
   ringCircle.style.boxShadow = '';
   paint(0);
