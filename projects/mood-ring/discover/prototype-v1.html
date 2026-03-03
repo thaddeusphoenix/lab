@@ -10,14 +10,14 @@
 html, body {
   width: 100%; height: 100%;
   background: #07070e;
-  color: #c0c0d0;
+  color: #c8c8e0;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
 }
 
-/* ── Screens ─────────────────────────────────────────────────────────── */
+/* ── Screens ──────────────────────────────────────────────────────────── */
 
 .screen {
   position: absolute;
@@ -42,7 +42,7 @@ html, body {
   font-weight: 400;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #35354e;
+  color: #7878aa;
   margin-bottom: 52px;
 }
 
@@ -56,8 +56,8 @@ html, body {
 }
 
 .welcome-desc {
-  font-size: 13px;
-  color: #28283e;
+  font-size: 14px;
+  color: #9090b8;
   line-height: 1.9;
   margin-bottom: 20px;
   align-self: center;
@@ -68,15 +68,15 @@ html, body {
   font-size: 9px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #28283e;
+  color: #6060a0;
 }
 
 #age-input {
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #14142a;
-  color: #7070a0;
+  border-bottom: 1px solid #2a2a50;
+  color: #b0b0d8;
   font-size: 36px;
   font-weight: 200;
   letter-spacing: 0.04em;
@@ -87,15 +87,15 @@ html, body {
 }
 #age-input::-webkit-outer-spin-button,
 #age-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-#age-input::placeholder { color: #181828; }
-#age-input:focus { border-bottom-color: #28284a; }
+#age-input::placeholder { color: #303058; }
+#age-input:focus { border-bottom-color: #5050a0; }
 
 #begin-btn {
   margin-top: 36px;
   align-self: stretch;
   background: transparent;
-  border: 1px solid #14142a;
-  color: #30304a;
+  border: 1px solid #2a2a50;
+  color: #8888c0;
   font-size: 9px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -104,7 +104,7 @@ html, body {
   cursor: pointer;
   transition: border-color 0.3s, color 0.3s;
 }
-#begin-btn:hover { border-color: #30304a; color: #6060a0; }
+#begin-btn:hover { border-color: #5050a0; color: #b0b0e0; }
 #begin-btn:disabled { opacity: 0.3; pointer-events: none; }
 
 /* ── Main ─────────────────────────────────────────────────────────────── */
@@ -162,7 +162,7 @@ html, body {
 
 @keyframes idle-pulse {
   0%, 100% { box-shadow: 0 0 0px 0px rgba(90, 80, 140, 0); }
-  50%       { box-shadow: 0 0 24px 4px rgba(90, 80, 140, 0.07); }
+  50%       { box-shadow: 0 0 24px 4px rgba(90, 80, 140, 0.1); }
 }
 
 /* Instruction */
@@ -170,7 +170,7 @@ html, body {
   font-size: 9px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #1e1e30;
+  color: #7070a8;
   text-align: center;
   transition: opacity 0.4s ease;
   flex-shrink: 0;
@@ -181,7 +181,7 @@ html, body {
 .reading {
   margin-top: 44px;
   text-align: center;
-  max-width: 280px;
+  max-width: 300px;
   width: 100%;
   pointer-events: none;
 }
@@ -194,10 +194,10 @@ html, body {
 }
 
 .reading-line {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 300;
   line-height: 2;
-  color: #a0a0c0;
+  color: #c8c8e8;
   letter-spacing: 0.01em;
   opacity: 0;
   transform: translateY(6px);
@@ -208,22 +208,31 @@ html, body {
   transform: translateY(0);
 }
 
+/* Fifth line — traditional reading — styled distinctly */
+.reading-line.tradition {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #9090c0;
+  margin-top: 12px;
+  font-style: italic;
+}
+
 .reset-btn {
   display: block;
   margin: 32px auto 0;
   font-size: 9px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #1e1e30;
+  color: #6868a0;
   cursor: pointer;
   border: none;
   background: none;
   padding: 8px;
   opacity: 0;
-  transition: opacity 0.4s ease 1.4s, color 0.2s;
+  transition: opacity 0.4s ease 1.8s, color 0.2s;
 }
 .reading.visible .reset-btn { opacity: 1; }
-.reset-btn:hover { color: #5050808; }
+.reset-btn:hover { color: #a0a0d0; }
 </style>
 </head>
 <body>
@@ -274,6 +283,21 @@ function hslToRgb(h, s, l) {
   return [Math.round(255 * f(0)), Math.round(255 * f(8)), Math.round(255 * f(4))];
 }
 
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = d / (1 - Math.abs(2 * l - 1));
+    if (max === r)      h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else                h = ((r - g) / d + 4) / 6;
+  }
+  return { h: h * 360, s: s * 100, l: l * 100 };
+}
+
 function lerpHSL(a, b, t) {
   let dh = b.h - a.h;
   if (dh > 180) dh -= 360;
@@ -313,13 +337,11 @@ function easeInOut(t) {
 
 // ── Cycle math ────────────────────────────────────────────────────────
 
-// Filippi palette: Q1 Icy Blue (Acetylcholine) · Q2 Green (Serotonin)
-//                 Q3 Warm Yellow (Dopamine)    · Q4 Deep Purple (Norepinephrine)
 const PALETTE = [
-  { h: 218, s: 65, l: 80 },
-  { h: 135, s: 65, l: 42 },
-  { h: 50,  s: 90, l: 54 },
-  { h: 290, s: 75, l: 28 },
+  { h: 218, s: 65, l: 80 },  // Q1 — Icy Blue      (Acetylcholine)
+  { h: 135, s: 65, l: 42 },  // Q2 — Green         (Serotonin)
+  { h: 50,  s: 90, l: 54 },  // Q3 — Warm Yellow   (Dopamine)
+  { h: 290, s: 75, l: 28 },  // Q4 — Deep Purple   (Norepinephrine)
 ];
 
 function cycleColor(t, loop) {
@@ -354,68 +376,75 @@ function getCircadianT(date) {
 function computeColor(age) {
   const now = new Date();
   return blendToRgb([
-    cycleColor(getLifeT(age),       false),
-    cycleColor(getMoonT(now),       true),
-    cycleColor(getSeasonT(now),     true),
-    cycleColor(getCircadianT(now),  true),
+    cycleColor(getLifeT(age),      false),
+    cycleColor(getMoonT(now),      true),
+    cycleColor(getSeasonT(now),    true),
+    cycleColor(getCircadianT(now), true),
   ]);
+}
+
+// ── Traditional mood ring reading ─────────────────────────────────────
+
+function traditionalReading(rgb) {
+  const { h, s, l } = rgbToHsl(rgb.r, rgb.g, rgb.b);
+
+  if (l < 16)  return "The ring reads dark — stillness, or the weight of strain.";
+  if (s < 18)  return "The ring reads pale — between states, open, uncertain.";
+
+  if      (h >= 20  && h < 60)  return "The ring reads amber — creative, alive, a little scattered.";
+  else if (h >= 60  && h < 110) return "The ring reads gold — active, seeking, restless.";
+  else if (h >= 110 && h < 160) return "The ring reads green — balanced, no strain, at rest.";
+  else if (h >= 160 && h < 200) return "The ring reads teal — focused, content, peaceful.";
+  else if (h >= 200 && h < 230) return "The ring reads blue — happy, open, emotions flowing.";
+  else if (h >= 230 && h < 265) return "The ring reads deep blue — serene, romantic, bliss.";
+  else if (h >= 265 && h < 320) return "The ring reads violet — passionate, purposeful, clear.";
+
+  return "The ring reads deep — something is moving beneath the surface.";
 }
 
 // ── Poetry ────────────────────────────────────────────────────────────
 
 const PHRASES = {
   moon: [
-    // Q1 — New moon — Acetylcholine
     ["The moon has turned its face away.", "A new cycle opens in the dark."],
-    // Q2 — First quarter — Serotonin
     ["Light returns to one side of the world.", "The moon is carving its edge."],
-    // Q3 — Full moon — Dopamine
     ["The moon holds nothing back tonight.", "Everything is illuminated."],
-    // Q4 — Last quarter — Norepinephrine
     ["Something is passing.", "The light retreats without apology."],
   ],
   season: [
-    // Q1 — Spring
     ["What was frozen is remembering how to move.", "The thaw has begun."],
-    // Q2 — Summer
     ["The long hours hold their light.", "Everything that was seeded is now working."],
-    // Q3 — Autumn
     ["The world is giving itself away.", "The harvest has no interest in hesitation."],
-    // Q4 — Winter
     ["The earth holds still beneath the cold.", "This is the stillness before the turn."],
   ],
   life: [
-    // Q1 — Youth
     ["You are still in the becoming.", "The roots are going deeper than you know."],
-    // Q2 — Young adult
     ["You are building the self that will carry you.", "The work you do now is the foundation."],
-    // Q3 — Midlife
     ["You are at the peak of your expression.", "What you have made is real."],
-    // Q4 — Elder
     ["You carry the weight of what you know.", "The knowing has become its own kind of grace."],
   ],
   circadian: [
-    // Q1 — Morning
     ["Let this moment plant something.", "Begin with the body. The mind will follow."],
-    // Q2 — Midday
     ["Make what you came here to make.", "The light is at its sharpest. Use it."],
-    // Q3 — Evening
     ["Give it away. This is what it was for.", "The evening belongs to expression."],
-    // Q4 — Night
     ["Let it rest. Let it become.", "The night is doing its own work."],
   ],
 };
 
-function generateReading(age) {
+function generateReading(age, color) {
   const now  = new Date();
   const q    = t => Math.min(Math.floor(t * 4), 3);
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-  return [
-    pick(PHRASES.moon[q(getMoonT(now))]),
-    pick(PHRASES.season[q(getSeasonT(now))]),
-    pick(PHRASES.life[q(getLifeT(age))]),
-    pick(PHRASES.circadian[q(getCircadianT(now))]),
-  ];
+
+  return {
+    lines: [
+      pick(PHRASES.moon[q(getMoonT(now))]),
+      pick(PHRASES.season[q(getSeasonT(now))]),
+      pick(PHRASES.life[q(getLifeT(age))]),
+      pick(PHRASES.circadian[q(getCircadianT(now))]),
+    ],
+    tradition: traditionalReading(color),
+  };
 }
 
 // ── State ─────────────────────────────────────────────────────────────
@@ -455,7 +484,6 @@ beginBtn.addEventListener('click', () => {
   beginBtn.disabled = true;
 
   if (navigator.geolocation) {
-    // Request location — graceful fail, not blocking
     navigator.geolocation.getCurrentPosition(
       () => transitionToMain(),
       () => transitionToMain(),
@@ -504,7 +532,6 @@ function endHold(e) {
 }
 
 function paint(e) {
-  // e = eased 0–1
   const col = lerpRgb(COLOR_BASE, targetColor, e);
   ringCircle.style.background = rgbStr(col);
   ringArc.setAttribute('stroke-dashoffset', CIRCUMF * (1 - e));
@@ -521,14 +548,13 @@ function complete() {
 }
 
 function animReset() {
-  const startP   = heldProgress;
-  const startT   = Date.now();
-  const resetMs  = Math.max(startP * 600, 200);
+  const startP  = heldProgress;
+  const startT  = Date.now();
+  const resetMs = Math.max(startP * 600, 200);
 
   function step() {
-    const t  = Math.min((Date.now() - startT) / resetMs, 1);
-    const p  = startP * (1 - t * t);
-    paint(easeInOut(p));
+    const t = Math.min((Date.now() - startT) / resetMs, 1);
+    paint(easeInOut(startP * (1 - t * t)));
     if (t < 1) { requestAnimationFrame(step); return; }
     paint(0);
     heldProgress = 0;
@@ -541,14 +567,17 @@ function animReset() {
 // ── Reading ───────────────────────────────────────────────────────────
 
 function showReading() {
-  const lines = generateReading(userAge);
-  readingLines.innerHTML = lines
-    .map(l => `<div class="reading-line">${l}</div>`)
+  const { lines, tradition } = generateReading(userAge, targetColor);
+  const all = [...lines, tradition];
+
+  readingLines.innerHTML = all
+    .map((l, i) => `<div class="reading-line${i === all.length - 1 ? ' tradition' : ''}">${l}</div>`)
     .join('');
+
   readingEl.classList.add('visible');
 
   readingLines.querySelectorAll('.reading-line').forEach((el, i) => {
-    setTimeout(() => el.classList.add('show'), 300 + i * 300);
+    setTimeout(() => el.classList.add('show'), 300 + i * 320);
   });
 }
 
@@ -556,25 +585,22 @@ resetBtn.addEventListener('click', () => {
   isComplete   = false;
   heldProgress = 0;
 
-  // Clear reading
   readingEl.classList.remove('visible');
   readingLines.querySelectorAll('.reading-line').forEach(el => el.classList.remove('show'));
   setTimeout(() => { readingLines.innerHTML = ''; }, 400);
 
-  // Reset ring
   ringCircle.style.boxShadow = '';
   paint(0);
   ringCircle.classList.add('idle');
   instructEl.style.opacity = '1';
 
-  // Recompute in case time shifted
   targetColor = computeColor(userAge);
 });
 
 // ── Events ────────────────────────────────────────────────────────────
 
-ringCircle.addEventListener('pointerdown',  startHold, { passive: false });
-ringCircle.addEventListener('pointerup',    endHold);
+ringCircle.addEventListener('pointerdown',   startHold, { passive: false });
+ringCircle.addEventListener('pointerup',     endHold);
 ringCircle.addEventListener('pointercancel', endHold);
 </script>
 </body>
