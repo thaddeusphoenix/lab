@@ -529,8 +529,8 @@ const CIRCUMF    = 2 * Math.PI * 114; // ≈ 716.3
 const COLOR_BASE = { r: 14, g: 14, b: 28 };
 
 // ── Feedback endpoint ──────────────────────────────────────────────────
-// Create a free form at formspree.io and paste your endpoint ID below.
-const FORMSPREE_ID = 'YOUR_ID_HERE';
+const GFORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSfkrirw-Ytn7o1cJgL19coLMHm9-pOmjFijJaMjZ30ZWfRPcQ/formResponse';
+const GFORM_ENTRY  = 'entry.922165712';
 
 // ── DOM ───────────────────────────────────────────────────────────────
 
@@ -659,14 +659,11 @@ function showReading() {
 
 function submitFeedback(value) {
   feedbackEl.classList.add('done');
-  if (FORMSPREE_ID !== 'YOUR_ID_HERE') {
-    const label = (traditionalReading(targetColor).match(/reads (\w+)/) || [])[1] || 'unknown';
-    fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ response: value, reading: label, color: rgbStr(targetColor) }),
-    }).catch(() => {});
-  }
+  const label = (traditionalReading(targetColor).match(/reads (\w+)/) || [])[1] || 'unknown';
+  const payload = `${value} | ${label} | ${rgbStr(targetColor)}`;
+  const body = new FormData();
+  body.append(GFORM_ENTRY, payload);
+  fetch(GFORM_ACTION, { method: 'POST', mode: 'no-cors', body }).catch(() => {});
 }
 
 feedbackEl.addEventListener('click', e => {
