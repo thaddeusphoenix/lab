@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD Generator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #333;
+    --border-accent: #555;
+    --text: #d4d4d4;
+    --text-dim: #888;
+    --text-bright: #f0f0f0;
+    --accent: #7cb8ff;
+    --accent-dim: #4a7fa8;
+    --gap-bg: #1e1a10;
+    --gap-border: #7c6a20;
+    --gap-label: #c8a840;
+    --error-bg: #1e1010;
+    --error-border: #7c2020;
+    --error-text: #e88;
+    --success: #6bcb77;
+    --mono: 'Courier New', Courier, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  header h1 {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: normal;
+    color: var(--text-bright);
+    letter-spacing: 0.05em;
+  }
+
+  header span {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  main {
+    flex: 1;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* --- Input Section --- */
+  .input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  input[type="password"], input[type="text"] {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-bright);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 3px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="password"]:focus, input[type="text"]:focus {
+    border-color: var(--accent-dim);
+  }
+
+  .api-key-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .api-key-row input {
+    flex: 1;
+  }
+
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 2px 4px;
+    font-family: var(--sans);
+    white-space: nowrap;
+  }
+
+  .link-btn:hover { color: var(--text); }
+
+  textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-bright);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 12px;
+    border-radius: 3px;
+    width: 100%;
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+    min-height: 180px;
+    transition: border-color 0.15s;
+  }
+
+  textarea:focus { border-color: var(--accent-dim); }
+  textarea:read-only { opacity: 0.6; cursor: not-allowed; }
+
+  .hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* --- Buttons --- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border-accent);
+    color: var(--text-bright);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 9px 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn:hover:not(:disabled) {
+    background: #2e2e2e;
+    border-color: var(--accent-dim);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: #1a2a3a;
+    border-color: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #1e3348;
+    border-color: var(--accent);
+  }
+
+  .btn-small {
+    font-size: 11px;
+    padding: 5px 12px;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* --- Spinner --- */
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-accent);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* --- Status messages --- */
+  .status-msg {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  /* --- Error block --- */
+  .error-block {
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    border-radius: 3px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .error-block p {
+    color: var(--error-text);
+    font-family: var(--mono);
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* --- PRD Output --- */
+  .prd-output-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .prd-output-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .prd-output-label .tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1px 7px;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .tag.draft { border-color: #555; color: #aaa; }
+  .tag.finalized { border-color: #3a6b3a; color: var(--success); }
+
+  .prd-rendered {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 28px 32px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.75;
+    overflow-x: auto;
+    color: var(--text);
+  }
+
+  /* Markdown rendering styles inside .prd-rendered */
+  .prd-rendered h1 {
+    color: var(--text-bright);
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+  }
+
+  .prd-rendered h2 {
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 28px;
+    margin-bottom: 8px;
+    font-family: var(--mono);
+  }
+
+  .prd-rendered h3 {
+    color: var(--text-bright);
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 14px;
+    margin-bottom: 4px;
+    font-family: var(--mono);
+  }
+
+  .prd-rendered p {
+    margin-bottom: 10px;
+  }
+
+  .prd-rendered ul, .prd-rendered ol {
+    margin-left: 20px;
+    margin-bottom: 10px;
+  }
+
+  .prd-rendered li { margin-bottom: 3px; }
+
+  .prd-rendered blockquote {
+    border-left: 3px solid var(--gap-border);
+    margin: 8px 0;
+    padding: 6px 12px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .prd-rendered code {
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+
+  .prd-rendered pre {
+    background: var(--surface2);
+    padding: 12px;
+    border-radius: 3px;
+    overflow-x: auto;
+    margin-bottom: 10px;
+  }
+
+  .prd-rendered pre code {
+    background: none;
+    padding: 0;
+  }
+
+  .prd-rendered strong { color: var(--text-bright); }
+
+  .prd-rendered em { color: var(--text-dim); }
+
+  .prd-rendered hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+
+  /* --- Section containers for gap injection --- */
+  .prd-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --- Gap question block --- */
+  .gap-block {
+    background: var(--gap-bg);
+    border: 1px solid var(--gap-border);
+    border-radius: 3px;
+    padding: 14px 16px;
+    margin: 10px 0 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .gap-block-label {
+    font-size: 11px;
+    color: var(--gap-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--mono);
+  }
+
+  .gap-block-question {
+    font-size: 13px;
+    color: var(--text-bright);
+    font-family: var(--mono);
+    line-height: 1.5;
+  }
+
+  .gap-block textarea {
+    min-height: 80px;
+    font-size: 12px;
+    margin: 0;
+    background: var(--surface2);
+    border-color: var(--gap-border);
+  }
+
+  .gap-block textarea:focus {
+    border-color: var(--gap-label);
+  }
+
+  .gap-block textarea:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* --- Bottom actions --- */
+  .bottom-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 8px;
+  }
+
+  .copy-flash {
+    font-size: 11px;
+    color: var(--success);
+    font-family: var(--mono);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .copy-flash.visible { opacity: 1; }
+
+  /* --- Divider --- */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 8px 0;
+  }
+
+  /* Utility: hidden */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>// PRD Generator</h1>
+  <span>client-side · claude-sonnet-4-6</span>
+</header>
+
+<main>
+
+  <!-- Input Section -->
+  <div class="input-section" id="input-section">
+
+    <div class="field-group">
+      <label for="api-key-input">Anthropic API Key</label>
+      <div class="api-key-row">
+        <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" />
+        <button class="link-btn" id="clear-key-btn" title="Clear API key from session">clear</button>
+      </div>
+      <span class="hint">Stored in sessionStorage only. Never sent anywhere except the Anthropic API.</span>
+    </div>
+
+    <div class="field-group">
+      <label for="raw-notes">Raw Discovery Input</label>
+      <textarea
+        id="raw-notes"
+        placeholder="Paste your raw notes, brief, research, meeting transcripts, or any discovery material here. The more context you provide, the more complete the PRD draft will be."
+        rows="12"
+      ></textarea>
+      <span class="hint">Supports any format: bullet points, prose, transcripts, existing docs. The generator will structure it into the 7-section PRD format.</span>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-primary" id="generate-btn">Generate PRD</button>
+      <span class="status-msg hidden" id="gen-status"></span>
+    </div>
+
+  </div>
+
+  <!-- Error Block -->
+  <div class="error-block hidden" id="error-block">
+    <p id="error-text"></p>
+    <div>
+      <button class="btn btn-small" id="retry-btn">Retry</button>
+    </div>
+  </div>
+
+  <!-- PRD Output Area -->
+  <div class="prd-output-wrapper hidden" id="prd-output-wrapper">
+
+    <div class="prd-output-label">
+      PRD Draft
+      <span class="tag draft" id="prd-tag">draft</span>
+    </div>
+
+    <div class="prd-rendered" id="prd-rendered">
+      <!-- Rendered PRD content injected here -->
+    </div>
+
+    <div class="bottom-actions" id="bottom-actions">
+      <!-- Finalize row (shown when gaps exist) -->
+      <div class="action-row hidden" id="finalize-row">
+        <button class="btn btn-primary" id="finalize-btn" disabled>Incorporate Answers</button>
+        <span class="status-msg hidden" id="finalize-status"></span>
+      </div>
+      <!-- Download row (shown when no gaps or after finalize) -->
+      <div class="action-row hidden" id="download-row">
+        <button class="btn" id="copy-btn">Copy Markdown</button>
+        <button class="btn" id="download-btn">Download .md</button>
+        <span class="copy-flash" id="copy-flash">Copied!</span>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- Anthropic SDK via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.36.3/dist/index.global.js"></script>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+const state = {
+  phase: 'idle',      // idle | generating | draft-gaps | draft-complete | incorporating | finalized | error
+  rawMarkdown: '',    // current PRD markdown string
+  gapAnswers: {},     // { sectionKey: { question, answer } }
+  lastError: null,
+};
+
+// ─── DOM refs ─────────────────────────────────────────────────────────────────
+const apiKeyInput   = document.getElementById('api-key-input');
+const clearKeyBtn   = document.getElementById('clear-key-btn');
+const rawNotes      = document.getElementById('raw-notes');
+const generateBtn   = document.getElementById('generate-btn');
+const genStatus     = document.getElementById('gen-status');
+const errorBlock    = document.getElementById('error-block');
+const errorText     = document.getElementById('error-text');
+const retryBtn      = document.getElementById('retry-btn');
+const prdOutputWrap = document.getElementById('prd-output-wrapper');
+const prdRendered   = document.getElementById('prd-rendered');
+const prdTag        = document.getElementById('prd-tag');
+const finalizeRow   = document.getElementById('finalize-row');
+const finalizeBtn   = document.getElementById('finalize-btn');
+const finalizeStatus= document.getElementById('finalize-status');
+const downloadRow   = document.getElementById('download-row');
+const copyBtn       = document.getElementById('copy-btn');
+const downloadBtn   = document.getElementById('download-btn');
+const copyFlash     = document.getElementById('copy-flash');
+
+// ─── Session storage for API key ──────────────────────────────────────────────
+(function initApiKey() {
+  const saved = sessionStorage.getItem('prd_gen_api_key');
+  if (saved) apiKeyInput.value = saved;
+})();
+
+apiKeyInput.addEventListener('change', () => {
+  if (apiKeyInput.value.trim()) {
+    sessionStorage.setItem('prd_gen_api_key', apiKeyInput.value.trim());
+  }
+});
+
+clearKeyBtn.addEventListener('click', () => {
+  apiKeyInput.value = '';
+  sessionStorage.removeItem('prd_gen_api_key');
+});
+
+// ─── System Prompts ───────────────────────────────────────────────────────────
+
+const STAGE1_SYSTEM = `You are a PRD writer for an internal AI product lab. Your task is to produce a structured Product Requirements Document (PRD) draft from raw discovery material provided by the user.
+
+OUTPUT FORMAT
+You must output ONLY the PRD markdown. No preamble, no explanation, no closing remarks, no meta-commentary. Start directly with the document title line.
+
+DOCUMENT STRUCTURE
+The document must begin with:
+# AI Product Requirements Document: [Product Name]
+
+Then include EXACTLY these 7 sections in this order, with these exact headers verbatim:
+
+## 1. Strategic Context
+## 2. Data Specifications
+## 3. Reasoning Architecture
+## 4. Functional Requirements
+## 5. Evaluation & Performance Standards
+## 6. Non-Functional Requirements & Guardrails
+## 7. Lifecycle & Maintenance
+
+SECTION GUIDANCE
+
+### 1. Strategic Context
+Cover: the problem being solved, who the user is, why this matters now, the proposed solution, and how success will be measured at a business/outcome level.
+
+### 2. Data Specifications
+Cover: input data types and sources, data volume/velocity, labeling requirements, data quality standards, privacy/compliance considerations, dataset splits if applicable.
+SKIP RULE: If the input material contains no reference to AI models, ML systems, retrieval pipelines, training data, embeddings, or agentic behavior, output the header followed by:
+> _Not applicable. [One sentence explaining why this section does not apply, derived from the actual input material.]_
+
+### 3. Reasoning Architecture
+Cover: model selection rationale, inference approach, prompt architecture, context management, tool use or agentic loops, retrieval integration if any.
+SKIP RULE: Same condition as section 2 — if no AI/ML/model components are described in the input, output the header followed by:
+> _Not applicable. [One sentence explaining why this section does not apply, derived from the actual input material.]_
+
+### 4. Functional Requirements
+Cover: specific capabilities the system must have, user-facing behaviors, API behaviors, edge case handling, explicit non-goals. Use numbered or bulleted lists for clarity.
+
+### 5. Evaluation & Performance Standards
+Cover: how the system's outputs will be measured, benchmarks, acceptance thresholds, regression testing approach, human eval criteria.
+SKIP RULE: Same condition as sections 2 and 3 — if no AI/ML/model components are described, output the header followed by:
+> _Not applicable. [One sentence explaining why this section does not apply, derived from the actual input material.]_
+
+### 6. Non-Functional Requirements & Guardrails
+Cover: latency targets, availability/reliability, security constraints, rate limits, cost ceilings, safety/content guardrails if applicable, accessibility requirements.
+
+### 7. Lifecycle & Maintenance
+Cover: deployment approach, monitoring strategy, update cadence, deprecation policy, owner/on-call responsibilities, documentation requirements.
+
+GAP HANDLING RULES
+- NEVER invent personas, metrics, targets, or technical constraints that are not present or clearly implied in the input.
+- If a critical section has insufficient source material to fill meaningfully, output the section header, then what you CAN fill from the input, then one or more gap placeholders in this EXACT format:
+  > _[Gap: {specific description of what is missing} — {one sentence explaining why this matters for the PRD}. Follow-up question: {a specific, targeted question to elicit this information from the PM}]_
+- Gap questions must be SPECIFIC to the product described — not generic boilerplate like "tell me more." Reference the actual product context in the question.
+- A gap placeholder is warranted when: a required sub-field for a critical section is entirely absent from the input material.
+- Thin content (partial information) should be written up as-is without a gap unless a key sub-field is completely missing.
+
+CRITICAL SECTIONS (gap placeholders are especially important here): Strategic Context (success metrics), Functional Requirements (scope of non-goals), Non-Functional Requirements (latency/availability targets).`;
+
+const STAGE2_SYSTEM = `You are updating a PRD draft by incorporating answers to gap questions. 
+
+RULES:
+1. Place each answer into the correct section — not appended at the bottom, not in a new section.
+2. If an answer resolves a gap placeholder (lines beginning with "> _[Gap:"), replace that placeholder with properly formatted content derived from the answer. Write it as real PRD content, not as a quote or note.
+3. If an answer is incomplete or vague, incorporate what was provided and remove the gap placeholder anyway (the PM has chosen to address it).
+4. Preserve all content that was not addressed by gap answers.
+5. Do not add new sections. Do not change section headers.
+6. Output ONLY the updated PRD markdown. No preamble, no explanation, no closing remarks.`;
+
+// ─── Minimal Markdown Renderer ────────────────────────────────────────────────
+// Renders markdown to HTML. Handles: h1/h2/h3, bold, italic, code blocks,
+// inline code, blockquotes, unordered/ordered lists, horizontal rules, paragraphs.
+// Gap placeholders (blockquotes starting with _[Gap:) are given a special class.
+
+function renderMarkdown(md) {
+  // We process line by line, building HTML.
+  const lines = md.split('\n');
+  let html = '';
+  let i = 0;
+
+  function escapeHtml(s) {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function inlineFormat(s) {
+    // Bold
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // Italic
+    s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    s = s.replace(/_([^_]+)_/g, '<em>$1</em>');
+    // Inline code
+    s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Links
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:var(--accent)">$1</a>');
+    return s;
+  }
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Fenced code block
+    if (line.startsWith('```')) {
+      const lang = line.slice(3).trim();
+      let codeLines = [];
+      i++;
+      while (i < lines.length && !lines[i].startsWith('```')) {
+        codeLines.push(escapeHtml(lines[i]));
+        i++;
+      }
+      html += `<pre><code>${codeLines.join('\n')}</code></pre>\n`;
+      i++;
+      continue;
+    }
+
+    // Headings
+    const h1 = line.match(/^# (.+)/);
+    const h2 = line.match(/^## (.+)/);
+    const h3 = line.match(/^### (.+)/);
+    if (h1) { html += `<h1>${inlineFormat(escapeHtml(h1[1]))}</h1>\n`; i++; continue; }
+    if (h2) { html += `<h2>${inlineFormat(escapeHtml(h2[1]))}</h2>\n`; i++; continue; }
+    if (h3) { html += `<h3>${inlineFormat(escapeHtml(h3[1]))}</h3>\n`; i++; continue; }
+
+    // Horizontal rule
+    if (/^---+$/.test(line.trim()) || /^\*\*\*+$/.test(line.trim())) {
+      html += '<hr>\n'; i++; continue;
+    }
+
+    // Blockquote
+    if (line.startsWith('>')) {
+      let bqLines = [];
+      while (i < lines.length && lines[i].startsWith('>')) {
+        bqLines.push(lines[i].slice(1).trim());
+        i++;
+      }
+      const inner = bqLines.map(l => inlineFormat(escapeHtml(l))).join(' ');
+      html += `<blockquote>${inner}</blockquote>\n`;
+      continue;
+    }
+
+    // Unordered list
+    if (/^[\-\*\+] /.test(line)) {
+      html += '<ul>\n';
+      while (i < lines.length && /^[\-\*\+] /.test(lines[i])) {
+        const item = lines[i].replace(/^[\-\*\+] /, '');
+        html += `<li>${inlineFormat(escapeHtml(item))}</li>\n`;
+        i++;
+      }
+      html += '</ul>\n';
+      continue;
+    }
+
+    // Ordered list
+    if (/^\d+\. /.test(line)) {
+      html += '<ol>\n';
+      while (i < lines.length && /^\d+\. /.test(lines[i])) {
+        const item = lines[i].replace(/^\d+\. /, '');
+        html += `<li>${inlineFormat(escapeHtml(item))}</li>\n`;
+        i++;
+      }
+      html += '</ol>\n';
+      continue;
+    }
+
+    // Empty line
+    if (line.trim() === '') { html += '\n'; i++; continue; }
+
+    // Paragraph
+    html += `<p>${inlineFormat(escapeHtml(line))}</p>\n`;
+    i++;
+  }
+
+  return html;
+}
+
+// ─── Gap detection ─────────────────────────────────────────────────────────────
+// Parses gap placeholders from markdown. Returns array of gap objects.
+// Each gap: { id, sectionHeader, question, rawPlaceholder }
+
+function detectGaps(markdown) {
+  const gaps = [];
+  // Match lines: > _[Gap: ... Follow-up question: ...]_
+  const gapRegex = /> _\[Gap: ([\s\S]*?)\]_/g;
+  let match;
+  let gapIndex = 0;
+
+  // We also need to know which section each gap belongs to.
+  // We'll parse section by section.
+  const lines = markdown.split('\n');
+  let currentSection = 'General';
+
+  for (let i = 0; i < lines.length; i++) {
+    const h2match = lines[i].match(/^## (.+)/);
+    if (h2match) currentSection = h2match[1].trim();
+
+    // Check if this line starts a gap blockquote
+    if (lines[i].match(/^> _\[Gap:/)) {
+      // Collect full gap (may span multiple > lines)
+      let gapLines = [];
+      let j = i;
+      while (j < lines.length && lines[j].startsWith('>')) {
+        gapLines.push(lines[j].slice(1).trim());
+        j++;
+      }
+      const gapText = gapLines.join(' ').replace(/^_\[Gap: /, '').replace(/\]_$/, '').trim();
+
+      // Extract the follow-up question
+      let question = gapText;
+      let questionMatch = gapText.match(/Follow-up question:\s*(.+)$/i);
+      if (questionMatch) {
+        question = questionMatch[1].trim();
+      } else {
+        // Use the whole text as question if no explicit follow-up
+        question = 'Please provide more detail: ' + gapText;
+      }
+
+      // The full raw placeholder for later replacement
+      const rawPlaceholder = lines.slice(i, j).join('\n');
+
+      gaps.push({
+        id: 'gap_' + gapIndex++,
+        sectionHeader: currentSection,
+        question: question,
+        rawPlaceholder: rawPlaceholder,
+      });
+    }
+  }
+
+  return gaps;
+}
+
+// ─── PRD Rendering with inline gap blocks ─────────────────────────────────────
+// Takes markdown + gaps array, renders into #prd-rendered with gap textareas
+// injected inline within the correct sections.
+
+function renderPRDWithGaps(markdown, gaps, locked) {
+  prdRendered.innerHTML = '';
+
+  if (gaps.length === 0) {
+    // No gaps — just render the full markdown
+    prdRendered.innerHTML = renderMarkdown(markdown);
+    return;
+  }
+
+  // We need to inject gap blocks inside sections.
+  // Strategy: split markdown into sections, render each, then inject gap block(s) for that section
+  // immediately after the section heading.
+
+  // Build a map: sectionHeader -> [

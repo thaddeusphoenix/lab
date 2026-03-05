@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD Generator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0d0d; --surface: #1a1a1a; --border: #2e2e2e; --accent: #4a9eff;
+    --text: #e0e0e0; --muted: #888; --gap-bg: #1e1a0a; --gap-border: #5a4a00;
+    --error-bg: #1e0a0a; --error-border: #5a0000; --mono: 'Courier New', Courier, monospace;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 14px; line-height: 1.6; padding: 2rem; min-height: 100vh; }
+  h1 { font-size: 1.2rem; color: var(--accent); margin-bottom: 0.25rem; letter-spacing: 0.05em; }
+  .subtitle { color: var(--muted); font-size: 0.8rem; margin-bottom: 2rem; }
+  .field-group { margin-bottom: 1.25rem; }
+  label { display: block; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+  .key-row { display: flex; gap: 0.5rem; align-items: center; }
+  input[type="password"], textarea {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 13px; padding: 0.6rem 0.75rem; border-radius: 3px;
+    outline: none; transition: border-color 0.15s;
+  }
+  input[type="password"]:focus, textarea:focus { border-color: var(--accent); }
+  input[type="password"] { flex: 1; }
+  .btn-link { background: none; border: none; color: var(--muted); font-family: var(--mono); font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 0; }
+  .btn-link:hover { color: var(--text); }
+  #notes-input { min-height: 180px; resize: vertical; }
+  .instructions { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; }
+  .btn-primary {
+    background: var(--accent); color: #000; border: none; font-family: var(--mono);
+    font-size: 0.85rem; font-weight: bold; padding: 0.6rem 1.4rem; border-radius: 3px;
+    cursor: pointer; letter-spacing: 0.04em; transition: opacity 0.15s;
+  }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-primary:not(:disabled):hover { opacity: 0.85; }
+  .btn-secondary {
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    font-family: var(--mono); font-size: 0.8rem; padding: 0.5rem 1rem; border-radius: 3px;
+    cursor: pointer; transition: border-color 0.15s;
+  }
+  .btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-secondary:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
+  #spinner { display: none; align-items: center; gap: 0.75rem; color: var(--muted); font-size: 0.85rem; margin-top: 1rem; }
+  #spinner.visible { display: flex; }
+  .spin { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #error-area { display: none; background: var(--error-bg); border: 1px solid var(--error-border); border-radius: 3px; padding: 1rem; margin-top: 1rem; }
+  #error-area.visible { display: block; }
+  #error-area p { color: #ff6b6b; font-size: 0.85rem; white-space: pre-wrap; word-break: break-word; }
+  #error-area button { margin-top: 0.75rem; }
+  #prd-area { margin-top: 2rem; display: none; }
+  #prd-area.visible { display: block; }
+  #prd-title { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+  #prd-content {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 3px;
+    padding: 1.5rem; max-height: 70vh; overflow-y: auto; font-family: var(--mono); font-size: 13px;
+  }
+  /* Markdown rendering styles */
+  #prd-content h1 { font-size: 1.1rem; color: var(--accent); margin: 0 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  #prd-content h2 { font-size: 0.95rem; color: var(--text); margin: 1.5rem 0 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+  #prd-content h3 { font-size: 0.85rem; color: var(--muted); margin: 1rem 0 0.35rem; }
+  #prd-content p { margin: 0.5rem 0; color: var(--text); }
+  #prd-content ul, #prd-content ol { margin: 0.5rem 0 0.5rem 1.5rem; }
+  #prd-content li { margin: 0.2rem 0; }
+  #prd-content blockquote { border-left: 3px solid var(--border); margin: 0.5rem 0; padding: 0.4rem 0.75rem; color: var(--muted); font-style: italic; }
+  #prd-content code { background: #222; padding: 0.1em 0.3em; border-radius: 2px; font-size: 0.9em; }
+  #prd-content pre { background: #111; border: 1px solid var(--border); border-radius: 3px; padding: 0.75rem; overflow-x: auto; margin: 0.75rem 0; }
+  #prd-content pre code { background: none; padding: 0; }
+  #prd-content hr { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+  #prd-content strong { color: #fff; }
+  /* Gap block */
+  .gap-block {
+    background: var(--gap-bg); border: 1px solid var(--gap-border); border-radius: 3px;
+    padding: 0.75rem 1rem; margin: 0.75rem 0 1rem;
+  }
+  .gap-block .gap-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #b8960c; margin-bottom: 0.4rem; }
+  .gap-block .gap-question { font-size: 0.82rem; color: #d4b84a; margin-bottom: 0.5rem; }
+  .gap-block textarea {
+    width: 100%; min-height: 70px; resize: vertical; background: #14110a;
+    border: 1px solid var(--gap-border); color: var(--text); font-family: var(--mono);
+    font-size: 12px; padding: 0.5rem; border-radius: 2px;
+  }
+  .gap-block textarea:focus { border-color: #b8960c; outline: none; }
+  .gap-block textarea:disabled { opacity: 0.5; }
+  #actions { margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+</style>
+</head>
+<body>
+<!-- API key stored in sessionStorage only; never sent anywhere except api.anthropic.com -->
+<!-- Model: claude-sonnet-4-6 per spec -->
+
+<h1>// PRD GENERATOR</h1>
+<p class="subtitle">Paste raw discovery inputs → structured 7-section PRD draft</p>
+
+<div class="field-group">
+  <label for="api-key">Anthropic API Key</label>
+  <div class="key-row">
+    <input type="password" id="api-key" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+    <button class="btn-link" id="clear-key-btn">clear</button>
+  </div>
+</div>
+
+<div class="field-group">
+  <label for="notes-input">Raw Discovery Input</label>
+  <textarea id="notes-input" placeholder="Paste your raw notes, brief, research, interview transcripts, or any discovery material here…" spellcheck="false"></textarea>
+  <p class="instructions">Include any user pain, evidence, proposed solution, constraints, or success criteria you have. The tool will identify gaps and ask follow-up questions for thin or missing sections.</p>
+</div>
+
+<button class="btn-primary" id="generate-btn">Generate PRD</button>
+
+<div id="spinner"><div class="spin"></div><span id="spinner-text">Generating draft…</span></div>
+
+<div id="error-area">
+  <p id="error-msg"></p>
+  <button class="btn-secondary" id="retry-btn">Retry</button>
+</div>
+
+<div id="prd-area">
+  <div id="prd-title">PRD DRAFT</div>
+  <div id="prd-content"></div>
+  <div id="actions">
+    <button class="btn-primary" id="finalize-btn" style="display:none">Incorporate Answers → Finalize</button>
+    <button class="btn-secondary" id="copy-btn" style="display:none">Copy Markdown</button>
+    <button class="btn-secondary" id="download-btn" style="display:none">Download .md</button>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let state = 'idle'; // idle | generating | draft-gaps | draft-complete | incorporating | finalized | error
+let currentMarkdown = '';
+let lastError = null;
+
+const SECTION_HEADERS = [
+  '## 1. Strategic Context',
+  '## 2. Data Specifications',
+  '## 3. Reasoning Architecture',
+  '## 4. Functional Requirements',
+  '## 5. Evaluation & Performance Standards',
+  '## 6. Non-Functional Requirements & Guardrails',
+  '## 7. Lifecycle & Maintenance'
+];
+
+const STAGE1_SYSTEM = `You are a PRD writer for an internal AI product lab. Your job is to convert raw discovery inputs into a structured Product Requirements Document (PRD) in the exact format specified below.
+
+OUTPUT FORMAT: Output only the PRD markdown. No preamble, no explanation, no closing remarks. Begin immediately with the title line.
+
+TITLE LINE: The document must begin with exactly:
+# AI Product Requirements Document: [Product Name]
+(Infer the product name from the input. If unclear, use a short descriptive name.)
+
+REQUIRED SECTIONS: Produce exactly these 7 sections in this order, with these exact headers verbatim:
+
+## 1. Strategic Context
+Cover: problem statement, user/stakeholder, evidence/motivation, why now, success criteria. Do not invent metrics or targets not present in the input.
+
+## 2. Data Specifications
+Cover: data sources, data types, volume/velocity, labeling, privacy constraints, data pipeline. SKIP RULE: If the input contains no reference to AI models, ML systems, retrieval pipelines, training data, embeddings, or agentic behavior, output this header followed by exactly:
+> _Not applicable. [One sentence reason derived from the input.]_
+
+## 3. Reasoning Architecture
+Cover: model choices, inference approach, prompting strategy, retrieval/RAG design, agentic loops. SKIP RULE: Same as section 2 — if no AI/ML components are described, output:
+> _Not applicable. [One sentence reason derived from the input.]_
+
+## 4. Functional Requirements
+Cover: core features, user flows, inputs/outputs, integrations, UI/UX requirements. Be specific about what the system must do.
+
+## 5. Evaluation & Performance Standards
+Cover: success metrics, benchmarks, latency targets, quality thresholds, evaluation methodology. SKIP RULE: Same as sections 2 and 3 — if no AI/ML components are described, output:
+> _Not applicable. [One sentence reason derived from the input.]_
+
+## 6. Non-Functional Requirements & Guardrails
+Cover: performance, security, privacy, compliance, accessibility, deployment constraints, content guardrails.
+
+## 7. Lifecycle & Maintenance
+Cover: versioning, monitoring, rollback plan, deprecation, team ownership, update cadence.
+
+GAP RULES — CRITICAL:
+- Never invent personas, metrics, targets, or technical constraints not present in the input.
+- If a critical section has insufficient source material, output the section header then a gap placeholder in this exact format:
+  > _[Gap: describe specifically what information is missing and why it matters for this product]_
+- After each gap placeholder, immediately add a targeted follow-up question on a new line in this exact format:
+  > **Gap Question:** [A specific, contextual question — not generic. Reference the product and situation. Ask for the exact information needed to fill the gap.]
+- Gap questions must be specific to the product context — NOT generic "tell me more" prompts. For example: "What is the expected weekly volume of PRDs this tool needs to handle, and is there a latency target for the generation step?" rather than "What are the performance requirements?"
+- A section can have multiple gap placeholders and questions if multiple pieces of information are missing.
+- Sections 2, 3, and 5: apply the SKIP RULE before checking for gaps.`;
+
+const STAGE2_SYSTEM = `You are updating a PRD draft by incorporating answers to gap questions.
+
+RULES:
+1. Place each answer's content into the correct section of the PRD — not appended at the bottom or listed separately.
+2. If an answer resolves a gap placeholder (lines beginning with "> _[Gap:"), replace that placeholder and its associated Gap Question line with naturally integrated prose, bullet points, or structured content as appropriate.
+3. If an answer is vague or partial, incorporate what is useful and retain any remaining gap placeholder for information still missing.
+4. Do not change sections that have no corresponding gap answers.
+5. Output only the updated PRD markdown. No preamble, no explanation, no commentary. Begin immediately with the title line.`;
+
+// ── DOM refs ───────────────────────────────────────────────────────────────
+const apiKeyEl = document.getElementById('api-key');
+const notesEl = document.getElementById('notes-input');
+const generateBtn = document.getElementById('generate-btn');
+const spinner = document.getElementById('spinner');
+const spinnerText = document.getElementById('spinner-text');
+const errorArea = document.getElementById('error-area');
+const errorMsg = document.getElementById('error-msg');
+const retryBtn = document.getElementById('retry-btn');
+const prdArea = document.getElementById('prd-area');
+const prdTitle = document.getElementById('prd-title');
+const prdContent = document.getElementById('prd-content');
+const finalizeBtn = document.getElementById('finalize-btn');
+const copyBtn = document.getElementById('copy-btn');
+const downloadBtn = document.getElementById('download-btn');
+const clearKeyBtn = document.getElementById('clear-key-btn');
+
+// ── Session storage for API key ────────────────────────────────────────────
+(function initKey() {
+  const saved = sessionStorage.getItem('prd_api_key');
+  if (saved) apiKeyEl.value = saved;
+})();
+
+apiKeyEl.addEventListener('input', () => {
+  sessionStorage.setItem('prd_api_key', apiKeyEl.value.trim());
+});
+
+clearKeyBtn.addEventListener('click', () => {
+  apiKeyEl.value = '';
+  sessionStorage.removeItem('prd_api_key');
+});
+
+// ── Minimal markdown → HTML renderer ──────────────────────────────────────
+function renderMarkdown(md) {
+  // We render to HTML for display; raw md is kept separately for copy/download
+  const lines = md.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = '';
+  let inPre = false;
+  let preBuffer = '';
+
+  function closeList() {
+    if (inList) { html += listType === 'ul' ? '</ul>' : '</ol>'; inList = false; listType = ''; }
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+
+    // Code block
+    if (line.startsWith('```')) {
+      if (!inPre) { closeList(); inPre = true; preBuffer = ''; continue; }
+      else { html += `<pre><code>${escHtml(preBuffer.replace(/\n$/, ''))}</code></pre>`; inPre = false; preBuffer = ''; continue; }
+    }
+    if (inPre) { preBuffer += line + '\n'; continue; }
+
+    // Headings
+    if (line.startsWith('### ')) { closeList(); html += `<h3>${inlineRender(line.slice(4))}</h3>`; continue; }
+    if (line.startsWith('## ')) { closeList(); html += `<h2>${inlineRender(line.slice(3))}</h2>`; continue; }
+    if (line.startsWith('# ')) { closeList(); html += `<h1>${inlineRender(line.slice(2))}</h1>`; continue; }
+
+    // HR
+    if (/^---+$/.test(line.trim())) { closeList(); html += '<hr>'; continue; }
+
+    // Blockquote
+    if (line.startsWith('> ')) {
+      closeList();
+      html += `<blockquote>${inlineRender(line.slice(2))}</blockquote>`;
+      continue;
+    }
+    if (line === '>') { closeList(); html += `<blockquote></blockquote>`; continue; }
+
+    // Unordered list
+    if (/^[\*\-] /.test(line)) {
+      if (!inList || listType !== 'ul') { closeList(); html += '<ul>'; inList = true; listType = 'ul'; }
+      html += `<li>${inlineRender(line.slice(2))}</li>`;
+      continue;
+    }
+    // Ordered list
+    if (/^\d+\. /.test(line)) {
+      if (!inList || listType !== 'ol') { closeList(); html += '<ol>'; inList = true; listType = 'ol'; }
+      html += `<li>${inlineRender(line.replace(/^\d+\. /, ''))}</li>`;
+      continue;
+    }
+
+    closeList();
+
+    // Empty line
+    if (line.trim() === '') { html += ''; continue; }
+
+    // Paragraph
+    html += `<p>${inlineRender(line)}</p>`;
+  }
+  closeList();
+  if (inPre) html += `<pre><code>${escHtml(preBuffer)}</code></pre>`;
+  return html;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function inlineRender(s) {
+  // Escape HTML first, then apply inline markdown
+  s = escHtml(s);
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/`(.+?)`/g, '<code>$1</code>');
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/_([^_]+)_/g, '<em>$1</em>');
+  return s;
+}
+
+// ── Gap detection & injection ──────────────────────────────────────────────
+// Gap pattern: lines that contain "> _[Gap:" and the following "> **Gap Question:**" line
+function hasGaps(md) {
+  return />\s*_\[Gap:/i.test(md);
+}
+
+// Parse gaps from markdown: returns array of {sectionHeader, gapText, questionText, id}
+function parseGaps(md) {
+  const gaps = [];
+  const lines = md.split('\n');
+  let gapId = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const gapMatch = lines[i].match(/^>\s*_\[Gap:\s*(.*?)(?:\]_?)?$/i);
+    if (gapMatch) {
+      // Look ahead for question line
+      let questionText = '';
+      if (i + 1 < lines.length) {
+        const qMatch = lines[i+1].match(/^>\s*\*\*Gap Question:\*\*\s*(.*)$/i);
+        if (qMatch) { questionText = qMatch[1]; }
+      }
+      // Find nearest preceding section header
+      let sectionHeader = '';
+      for (let j = i - 1; j >= 0; j--) {
+        if (/^##\s/.test(lines[j])) { sectionHeader = lines[j]; break; }
+      }
+      gaps.push({ id: 'gap_' + (gapId++), sectionHeader, gapText: gapMatch[1], questionText });
+    }
+  }
+  return gaps;
+}
+
+// Render PRD markdown to HTML, injecting gap input blocks inline within sections
+function renderPRDWithGaps(md, gaps, locked) {
+  // Split markdown by section headers, inject gap blocks after each section heading
+  // Strategy: build HTML section by section
+
+  // First, split the markdown into chunks by h2 boundaries
+  const lines = md.split('\n');
+  let chunks = []; // [{header: string|null, lines: string[]}]
+  let currentChunk = { header: null, lines: [] };
+
+  for (const line of lines) {
+    if (/^## /.test(line)) {
+      chunks.push(currentChunk);
+      currentChunk = { header: line, lines: [] };
+    } else {
+      currentChunk.lines.push(line);
+    }
+  }
+  chunks.push(currentChunk);
+
+  // Build gapsBySection map
+  const gapsBySection = {};
+  for (const g of gaps) {
+    if (!gapsBySection[g.sectionHeader]) gapsBySection[g.sectionHeader] = [];
+    gapsBySection[g.sectionHeader].push(g);
+  }
+
+  let html = '';
+  for (const chunk of chunks) {
+    if (chunk.header) {
+      html += `<h2>${inlineRender(chunk.header.slice(3))}</h2>`;
+    }
+
+    // Render lines of this chunk but intercept gap lines to inject input blocks
+    const chunkLines = chunk.lines;
+    let gapBuffer = { active: false, gapLine: '', questionLine: '', lineIdx: -1 };
+    let renderedChunkMd = '';
+    let pendingGapBlocks = [];
+
+    for (let i = 0; i < chunkLines.length; i++) {
+      const line = chunkLines[i];
+      const gapMatch = line.match(/^>\s*_\[Gap:\s*(.*?)(?:\]_?)?$/i);
+      if (gapMatch) {
+        // Check next line for question
+        let questionText = '';
+        let skipNext = false;
+        if (i + 1 < chunkLines.length) {
+          const qMatch = chunkLines[i+1].match(/^>\s*\*\*Gap Question:\*\*\s*(.*)$/i);
+          if (qMatch) { questionText = qMatch[1]; skipNext = true; }
+        }
+        // Find the corresponding gap object by matching question or gapText
+        const sectionGaps = gapsBySection[chunk.header] || [];
+        let matchedGap = sectionGaps.find(g => g.questionText === questionText && !g._rendered);
+        if (!matchedGap) matchedGap = sectionGaps.find(g => !g._rendered);
+        if (matchedGap) matchedGap._rendered = true;
+
+        const gapId = matchedGap ? matchedGap.id : ('gap_anon_' + i);
+        const displayQ = questionText || (matchedGap ? matchedGap.gapText : gapMatch[1]);
+
+        pendingGapBlocks.push({ gapId, displayQ, insertAfterRenderedMd: renderedChunkMd });
+
+        if (skipNext) i++;
+        continue;
+      }
+      renderedChunkMd += line + '\n';
+    }
+
+    // Render the chunk md in one pass, inserting gap blocks at right positions
+    // Since we're injecting at specific points, we'll render the whole chunk
+    // but splice in gap block HTML. Simplest: render full chunk, then insert gaps at end of section.
+    // Per spec, gaps go IMMEDIATELY below section heading — so they go at the top of the chunk.
+    // Actually spec says "immediately below the section heading". So all gap blocks for a section
+    // go right after the h2, before the section body.
+
+    const sectionGapBlocks = gapsBySection[chunk.header] || [];
+    for (const g of sectionGapBlocks) {
+      html += buildGapBlock(g, locked);
+    }
+
+    // Render remaining content (strip gap lines since we've handled them)
+    const cleanLines = [];
+    for (let i = 0; i < chunkLines.length; i++) {
+      const line = chunkLines[i];
+      if (/^>\s*_\[Gap:/i.test(line)) {
+        if (i + 1 < chunkLines.length && /^>\s*\*\*Gap Question:\*\*/i.test(chunkLines[i+1])) i++;
+        continue;
+      }
+      cleanLines.push(line);
+    }
+    html += renderMarkdown(cleanLines.join('\n'));
+  }
+
+  // Reset _rendered flags
+  for (const g of gaps) delete g._rendered;
+
+  return html;
+}
+
+function buildGapBlock(gap, locked) {
+  const placeholder = gap.questionText
+    ? `Answer: ${gap.questionText}`
+    : `Provide information about: ${gap.gapText}`;
+  const disabledAttr = locked ? 'disabled' : '';
+  return `<div class="gap-block" data-gap-id="${escHtml(gap.id)}">
+    <div class="gap-label">⚠ Gap Detected</div>
+    <div class="gap-question">${escHtml(gap.questionText || gap.gapText)}</div>
+    <textarea id="${escHtml(gap.id)}" placeholder="${escHtml(placeholder)}" ${disabledAttr}></textarea>
+  </div>`;
+}
+
+// ── API call ───────────────────────────────────────────────────────────────
+async function callClaude(apiKey, systemPrompt, userMessage) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMessage }]
+    })
+  });
+
+  if (!resp.ok) {
+    let detail = '';
+    try { const j = await resp.json(); detail = j.error?.message || JSON.stringify(j); } catch(e) { detail = await resp.text(); }
+    throw new Error(`API error ${resp.status}: ${detail}`);
+  }
+
+  const data = await resp.json();
+  if (!data.content || !data.content[0] || !data.content[0].text) throw new Error('Unexpected API response shape');
+  return data.content[0].text.trim();
+}
+
+// ── State transitions ──────────────────────────────────────────────────────
+function setState(s) {
+  state = s;
+  // Reset visibility
+  spinner.classList.remove('visible');
+  errorArea.classList.remove('visible');
+  generateBtn.disabled = false;
+  notesEl.readOnly = false;
+  finalizeBtn.style.display = 'none';
+  copyBtn.style.display = 'none';
+  downloadBtn.style.display = 'none';
+  finalizeBtn.disabled = false;
+
+  if (s === 'idle') {
+    prdArea.style.display = 'none';
+    prdArea.classList.remove('visible');
+  }
+  if (s === 'generating') {
+    spinner.classList.add('visible');
+    spinnerText.textContent = 'Generating draft…';
+    generateBtn.disabled = true;
+    notesEl.readOnly = true;
+    errorArea.classList.remove('visible');
+  }
+  if (s === 'draft-gaps') {
+    prdArea.style.display = 'block';
+    prdArea.classList.add('visible');
+    prdTitle.textContent = 'PRD DRAFT — GAP QUESTIONS DETECTED';
+    finalizeBtn.style.display = 'inline-block';
+    finalizeBtn.disabled = true; // enabled when at least one gap answer filled
+  }
+  if (s === 'draft-complete') {
+    prdArea.style.display = 'block';
+    prdArea.classList.add('visible');
+    prdTitle.textContent = 'PRD DRAFT';
+    copyBtn.style.display = 'inline-block';
+    downloadBtn.style.display = 'inline-block';
+  }
+  if (s === 'incorporating') {
+    spinner.classList.add('visible');
+    spinnerText.textContent = 'Incorporating answers…';
+    generateBtn.disabled = true;
+    notesEl.readOnly = true;
+    finalizeBtn.style.display = 'inline-block';
+    finalizeBtn.disabled = true;
+    // Lock gap textareas
+    document.querySelectorAll('.gap-block textarea').forEach(ta => ta.disabled = true);
+  }
+  if (s === 'finalized') {
+    prdArea.style.display = 'block';
+    prdArea.classList.add('visible');
+    prdTitle.textContent = 'PRD — FINALIZED';
+    copyBtn.style.display = 'inline-block';
+    downloadBtn.style.display = 'inline-block';
+  }
+  if (s === 'error') {
+    errorArea.classList.add('visible');

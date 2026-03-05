@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD Generator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#c9c9c9;font-family:monospace;font-size:14px;min-height:100vh;padding:24px}
+h1{color:#e0e0e0;font-size:18px;margin-bottom:24px;letter-spacing:0.05em}
+label{display:block;color:#888;font-size:12px;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em}
+input[type=text],textarea{width:100%;background:#1a1a1a;border:1px solid #333;color:#c9c9c9;font-family:monospace;font-size:13px;padding:10px;border-radius:3px;outline:none;resize:vertical}
+input[type=text]:focus,textarea:focus{border-color:#555}
+.row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.row input{flex:1}
+button{background:#2a2a2a;border:1px solid #444;color:#c9c9c9;font-family:monospace;font-size:13px;padding:8px 16px;border-radius:3px;cursor:pointer}
+button:hover:not(:disabled){background:#333;border-color:#666}
+button:disabled{opacity:0.4;cursor:not-allowed}
+button.primary{background:#1a3a2a;border-color:#2a6a4a;color:#7de0a0}
+button.primary:hover:not(:disabled){background:#1f4a34}
+#notes-area{min-height:160px;margin-bottom:8px}
+.hint{color:#555;font-size:11px;margin-bottom:16px}
+#spinner{display:none;color:#555;font-size:12px;margin:12px 0}
+#prd-output{display:none;margin-top:28px}
+#prd-content{background:#111;border:1px solid #2a2a2a;border-radius:3px;padding:20px;white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.7;overflow-x:auto}
+.section-block{margin-bottom:24px}
+.section-block h2{color:#7de0a0;font-size:15px;margin-bottom:10px;border-bottom:1px solid #222;padding-bottom:6px}
+.section-block h1{color:#e0e0e0;font-size:17px;margin-bottom:16px}
+.section-block p,.section-block li{color:#c9c9c9;line-height:1.7;margin-bottom:6px}
+.section-block ul,.section-block ol{padding-left:20px;margin-bottom:8px}
+.section-block blockquote{border-left:3px solid #444;padding-left:12px;color:#888;font-style:italic;margin:8px 0}
+.section-block strong{color:#e0e0e0}
+.section-block code{background:#1e1e1e;padding:2px 5px;border-radius:2px;color:#a0d0ff}
+.gap-block{border:1px solid #4a3a1a;background:#1a1200;border-radius:3px;padding:14px;margin:12px 0}
+.gap-block label{color:#c8a84a;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.gap-block textarea{min-height:70px;background:#0f0c00;border-color:#4a3a1a;font-size:13px}
+.gap-block textarea:focus{border-color:#8a6a2a}
+#action-bar{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
+#error-box{display:none;background:#1a0000;border:1px solid #5a2222;border-radius:3px;padding:14px;margin-top:16px;color:#e08080;font-size:13px}
+#error-box pre{margin-top:8px;white-space:pre-wrap;font-size:11px;color:#a06060}
+a.clear-link{color:#555;font-size:11px;cursor:pointer;text-decoration:underline;white-space:nowrap}
+a.clear-link:hover{color:#888}
+</style>
+</head>
+<body>
+<h1>PRD Generator</h1>
+
+<div>
+  <label for="notes-area">Raw Notes / Discovery Input</label>
+  <textarea id="notes-area" placeholder="Paste your raw notes, brief, research, or discovery material here..."></textarea>
+  <div class="hint">Include user problems, goals, constraints, technical context, and any metrics or personas mentioned in your research.</div>
+</div>
+
+<button class="primary" id="generate-btn">Generate PRD</button>
+
+<div id="spinner">⟳ Working…</div>
+
+<div id="error-box">
+  <strong>Error</strong>
+  <pre id="error-detail"></pre>
+  <button id="retry-btn" style="margin-top:10px">Retry</button>
+</div>
+
+<div id="prd-output">
+  <div id="prd-content"></div>
+  <div id="action-bar">
+    <button id="finalize-btn" style="display:none" disabled>Finalize with Answers</button>
+    <button id="copy-btn" style="display:none">Copy Markdown</button>
+    <button id="download-btn" style="display:none">Download .md</button>
+  </div>
+</div>
+
+<script>
+// calls the API directly via fetch — no external SDK needed
+
+const MODEL = 'claude-sonnet-4-6';
+const API_URL = 'https://api.anthropic.com/v1/messages';
+
+const STAGE1_SYSTEM = `You are a PRD writer for an internal AI lab. Given raw discovery notes, produce a structured Product Requirements Document in plain markdown.
+
+Use EXACTLY these 7 section headers in this order, verbatim:
+## 1. Strategic Context
+## 2. Data Specifications
+## 3. Reasoning Architecture
+## 4. Functional Requirements
+## 5. Evaluation & Performance Standards
+## 6. Non-Functional Requirements & Guardrails
+## 7. Lifecycle & Maintenance
+
+Begin the document with: # AI Product Requirements Document: [Product Name]
+
+SKIP RULE: For sections 2, 3, and 5 — if the input describes no AI models, ML pipelines, training data, retrieval systems, or agentic behavior — output the section header followed by:
+> _Not applicable. [One sentence reason derived from the input.]_
+
+GAP RULE: Never invent personas, metrics, targets, or technical constraints not present in the input. If a critical section has no source material, output the header followed by a gap placeholder:
+> _[Gap: describe specifically what information is missing and why it matters for this product]_
+
+Gap placeholders must be specific and contextual — not generic. For example: "> _[Gap: No success metrics defined. Without measurable targets for X, the team cannot evaluate whether Y is working.]_"
+
+Output only the PRD markdown — no preamble, no explanation, no closing remarks.`;
+
+const STAGE2_SYSTEM = `You are a PRD writer. You will receive a PRD draft and a set of gap question/answer pairs. Update the PRD by incorporating each answer into the correct section. Place content inline within the relevant section — do not append answers at the bottom or create new sections. If an answer resolves a gap placeholder, replace the placeholder with the incorporated content written in proper PRD style. Output only the updated PRD markdown — no explanation, no commentary.`;
+
+let currentMarkdown = '';
+let currentState = 'idle';
+let lastNotes = '';
+
+const notesEl = document.getElementById('notes-area');
+const generateBtn = document.getElementById('generate-btn');
+const finalizeBtn = document.getElementById('finalize-btn');
+const copyBtn = document.getElementById('copy-btn');
+const downloadBtn = document.getElementById('download-btn');
+const retryBtn = document.getElementById('retry-btn');
+const spinnerEl = document.getElementById('spinner');
+const errorBox = document.getElementById('error-box');
+const errorDetail = document.getElementById('error-detail');
+const prdOutput = document.getElementById('prd-output');
+const prdContent = document.getElementById('prd-content');
+
+const API_KEY = 'YOUR_ANTHROPIC_API_KEY_HERE';
+
+function setState(s) {
+  currentState = s;
+  spinnerEl.style.display = ['generating','incorporating'].includes(s) ? 'block' : 'none';
+  errorBox.style.display = s === 'error' ? 'block' : 'none';
+  generateBtn.disabled = ['generating','incorporating'].includes(s);
+  notesEl.readOnly = ['generating','incorporating'].includes(s);
+  prdOutput.style.display = ['draft-gaps','draft-complete','incorporating','finalized'].includes(s) ? 'block' : 'none';
+  finalizeBtn.style.display = s === 'draft-gaps' ? 'inline-block' : 'none';
+  finalizeBtn.disabled = true;
+  copyBtn.style.display = ['draft-complete','finalized'].includes(s) ? 'inline-block' : 'none';
+  downloadBtn.style.display = ['draft-complete','finalized'].includes(s) ? 'inline-block' : 'none';
+  if (s === 'incorporating') {
+    finalizeBtn.style.display = 'inline-block';
+    finalizeBtn.disabled = true;
+    document.querySelectorAll('.gap-block textarea').forEach(t => t.disabled = true);
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderMarkdownSection(text) {
+  let html = escapeHtml(text);
+  html = html.replace(/^#{1}\s+(.+)$/gm, '<h1>$1</h1>');
+  html = html.replace(/^#{2}\s+(.+)$/gm, '<h2>$2</h2>'.replace('$2','$1'));
+  html = html.replace(/^#{3}\s+(.+)$/gm, '<strong>$1</strong>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  html = html.replace(/^&gt;\s*_(.+)_\s*$/gm, '<blockquote><em>$1</em></blockquote>');
+  html = html.replace(/^&gt;\s*(.+)$/gm, '<blockquote>$1</blockquote>');
+  html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, s => '<ul>' + s + '</ul>');
+  html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+  html = html.replace(/\n\n+/g, '</p><p>');
+  html = html.replace(/^(?!<[a-z])(.+)$/gm, (m,p1) => p1.trim() ? '<p>'+p1+'</p>' : '');
+  return html;
+}
+
+function detectGaps(markdown) {
+  const gaps = [];
+  const sectionRe = /^## \d+\..+$/gm;
+  const sections = [];
+  let m;
+  while ((m = sectionRe.exec(markdown)) !== null) {
+    sections.push({header: m[0], index: m.index});
+  }
+  for (let i = 0; i < sections.length; i++) {
+    const start = sections[i].index;
+    const end = i + 1 < sections.length ? sections[i+1].index : markdown.length;
+    const body = markdown.slice(start + sections[i].header.length, end).trim();
+    const hasGap = /\[Gap:/i.test(body);
+    const isThin = body.length < 80 && !/not applicable/i.test(body);
+    if (hasGap || isThin) {
+      const gapMatch = body.match(/\[Gap:\s*([^\]]+)\]/i);
+      const question = gapMatch ? gapMatch[1].trim() : `What information can you provide for "${sections[i].header.replace(/^##\s*/,'')}"?`;
+      gaps.push({sectionHeader: sections[i].header, question, sectionIndex: i});
+    }
+  }
+  return gaps;
+}
+
+function renderPRDWithGaps(markdown, gaps) {
+  const sectionRe = /^(## \d+\..+)$/gm;
+  const parts = markdown.split(sectionRe);
+  let html = '';
+  let sectionHeaders = [];
+  let inBody = false;
+  let pendingHeader = null;
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (/^## \d+\..+$/.test(part)) {
+      if (pendingHeader !== null) {
+        html += buildSectionHtml(pendingHeader, '', gaps, sectionHeaders.length - 1);
+      }
+      pendingHeader = part;
+      sectionHeaders.push(part);
+    } else if (pendingHeader !== null) {
+      const idx = sectionHeaders.length - 1;
+      html += buildSectionHtml(pendingHeader, part, gaps, idx);
+      pendingHeader = null;
+    } else {
+      html += '<div class="section-block">' + renderMarkdownSection(part) + '</div>';
+    }
+  }
+  if (pendingHeader !== null) {
+    html += buildSectionHtml(pendingHeader, '', gaps, sectionHeaders.length - 1);
+  }
+  prdContent.innerHTML = html;
+  attachGapListeners();
+}
+
+function buildSectionHtml(header, body, gaps, idx) {
+  const gap = gaps.find(g => g.sectionHeader === header);
+  let inner = '<h2>' + escapeHtml(header.replace(/^##\s*/, '')) + '</h2>';
+  inner += renderMarkdownSection(body);
+  if (gap) {
+    const safeQ = escapeHtml(gap.question);
+    const safeH = escapeHtml(gap.sectionHeader);
+    inner += `<div class="gap-block" data-section="${safeH}">
+      <label>Gap — ${safeQ}</label>
+      <textarea class="gap-answer" placeholder="Provide the missing information here…" data-section="${safeH}"></textarea>
+    </div>`;
+  }
+  return '<div class="section-block">' + inner + '</div>';
+}
+
+function attachGapListeners() {
+  document.querySelectorAll('.gap-answer').forEach(ta => {
+    ta.addEventListener('input', checkFinalizeEnable);
+  });
+}
+
+function checkFinalizeEnable() {
+  const any = Array.from(document.querySelectorAll('.gap-answer')).some(t => t.value.trim().length > 0);
+  finalizeBtn.disabled = !any;
+}
+
+async function callClaude(system, userMsg, key) {
+  const resp = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 4096,
+      system,
+      messages: [{role: 'user', content: userMsg}]
+    })
+  });
+  if (!resp.ok) {
+    const txt = await resp.text();
+    throw new Error(`API error ${resp.status}: ${txt}`);
+  }
+  const data = await resp.json();
+  return data.content[0].text;
+}
+
+generateBtn.addEventListener('click', async () => {
+  const key = API_KEY;
+  const notes = notesEl.value.trim();
+  if (!notes) { alert('Paste some raw notes first.'); return; }
+  lastNotes = notes;
+  setState('generating');
+  try {
+    const md = await callClaude(STAGE1_SYSTEM, notes, key);
+    currentMarkdown = md;
+    const gaps = detectGaps(md);
+    if (gaps.length > 0) {
+      renderPRDWithGaps(md, gaps);
+      setState('draft-gaps');
+    } else {
+      renderPRDWithGaps(md, []);
+      setState('draft-complete');
+    }
+  } catch(e) {
+    errorDetail.textContent = e.message;
+    setState('error');
+  }
+});
+
+finalizeBtn.addEventListener('click', async () => {
+  const key = API_KEY;
+  const pairs = [];
+  document.querySelectorAll('.gap-block').forEach(block => {
+    const section = block.dataset.section;
+    const labelEl = block.querySelector('label');
+    const answer = block.querySelector('textarea').value.trim();
+    if (answer) {
+      const question = labelEl ? labelEl.textContent.replace(/^Gap — /, '') : '';
+      pairs.push(`Section: ${section}\nQuestion: ${question}\nAnswer: ${answer}`);
+    }
+  });
+  if (!pairs.length) return;
+  setState('incorporating');
+  const userMsg = `PRD Draft:\n\n${currentMarkdown}\n\n---\nGap Q&A Pairs:\n\n${pairs.join('\n\n---\n\n')}`;
+  try {
+    const md = await callClaude(STAGE2_SYSTEM, userMsg, key);
+    currentMarkdown = md;
+    renderPRDWithGaps(md, []);
+    setState('finalized');
+  } catch(e) {
+    errorDetail.textContent = e.message;
+    setState('error');
+  }
+});
+
+copyBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(currentMarkdown).then(() => {
+    copyBtn.textContent = 'Copied!';
+    setTimeout(() => { copyBtn.textContent = 'Copy Markdown'; }, 2000);
+  }).catch(e => alert('Copy failed: ' + e.message));
+});
+
+downloadBtn.addEventListener('click', () => {
+  const blob = new Blob([currentMarkdown], {type: 'text/markdown'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'prd-draft.md';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+retryBtn.addEventListener('click', () => {
+  setState('idle');
+  prdOutput.style.display = 'none';
+});
+
+</script>
+</body>
+</html>

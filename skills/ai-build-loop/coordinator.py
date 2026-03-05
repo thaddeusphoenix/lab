@@ -25,13 +25,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import anthropic
+from dotenv import load_dotenv
+
+# Load .env from the repo root (two levels up from this file)
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
 MODEL            = "claude-sonnet-4-6"
 MAX_ITERATIONS   = 5
 MAX_TOKENS_WRITER = 8192
-MAX_TOKENS_TESTER = 4096
+MAX_TOKENS_TESTER = 8192
 
 # Strings that must not appear in the brief.
 # Their presence indicates scenarios content has leaked into the Writer's input.
@@ -80,6 +84,32 @@ def strip_fences(text: str) -> str:
     """Remove markdown code fences wrapping the entire response."""
     match = re.match(r"^```[a-zA-Z]*\n?(.*?)\n?```\s*$", text.strip(), re.DOTALL)
     return match.group(1).strip() if match else text.strip()
+
+
+def extract_json(text: str) -> str:
+    """
+    Extract the first complete JSON object from text that may contain surrounding prose.
+    Tries direct parse first; falls back to brace-matching extraction.
+    """
+    stripped = strip_fences(text)
+    try:
+        json.loads(stripped)
+        return stripped
+    except json.JSONDecodeError:
+        pass
+    # Brace-matching: find the outermost { } pair in the raw text
+    depth = 0
+    start = None
+    for i, ch in enumerate(text):
+        if ch == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0 and start is not None:
+                return text[start : i + 1]
+    return stripped  # will fail json.loads and surface the real error
 
 
 def contamination_check(brief: str) -> list[str]:
@@ -133,7 +163,7 @@ def run_tester(
         system=TESTER_SYSTEM,
         messages=[{"role": "user", "content": prompt}],
     )
-    raw = strip_fences(resp.content[0].text)
+    raw = extract_json(resp.content[0].text)
 
     try:
         verdict = json.loads(raw)
