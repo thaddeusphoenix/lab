@@ -1541,3 +1541,103 @@ function openSheet(programId) {
       <label class="form-label" for="sf-fee">Program fee ($) <span class="optional">optional</span></label>
       <input class="form-input" type="number" id="sf-fee" value="${escHtml(s.fee ? String(s.fee) : '')}" placeholder="0" min="0" step="1" inputmode="numeric">
     </div>
+    <div class="form-group">
+      <label class="form-label" for="sf-candeadline">Cancellation deadline <span class="optional">optional</span></label>
+      <input class="form-input" type="date" id="sf-candeadline" value="${escHtml(s.cancellationDeadline || '')}">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sf-canfee">Cancellation fee ($) <span class="optional">optional</span></label>
+      <input class="form-input" type="number" id="sf-canfee" value="${escHtml(s.cancellationFee ? String(s.cancellationFee) : '')}" placeholder="0" min="0" step="1" inputmode="numeric">
+    </div>
+    <button type="button" class="sheet-save-btn" onclick="saveProgram()">Save Program</button>
+    ${deleteHtml}
+  `;
+
+  document.getElementById('sheet-overlay').classList.add('visible');
+  setTimeout(() => document.getElementById('sf-name').focus(), 300);
+}
+
+function setSheetStatus(opt) {
+  document.querySelectorAll('.seg-option').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === opt);
+  });
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('sheet-overlay')) {
+    document.getElementById('sheet-overlay').classList.remove('visible');
+  }
+}
+
+function saveProgram() {
+  const name = document.getElementById('sf-name').value.trim();
+  const startDate = document.getElementById('sf-start').value;
+  const endDate = document.getElementById('sf-end').value;
+  const registrationDeadline = document.getElementById('sf-regdeadline').value;
+
+  if (!name || !startDate || !endDate || !registrationDeadline) {
+    alert('Please fill in Program name, Start date, End date, and Registration deadline.');
+    return;
+  }
+
+  const activeStatus = document.querySelector('.seg-option.active');
+  const status = activeStatus ? activeStatus.textContent : 'Considering';
+
+  const registrationUrl = document.getElementById('sf-url').value.trim();
+  const feeRaw = document.getElementById('sf-fee').value;
+  const fee = feeRaw ? parseFloat(feeRaw) : null;
+  const canDeadline = document.getElementById('sf-candeadline').value || null;
+  const canFeeRaw = document.getElementById('sf-canfee').value;
+  const cancellationFee = canFeeRaw ? parseFloat(canFeeRaw) : null;
+
+  if (editingProgramId) {
+    const idx = state.programs.findIndex(p => p.id === editingProgramId);
+    if (idx > -1) {
+      state.programs[idx] = {
+        ...state.programs[idx],
+        name, startDate, endDate, registrationDeadline,
+        registrationUrl, fee, status,
+        cancellationDeadline: canDeadline, cancellationFee
+      };
+    }
+  } else {
+    state.programs.push({
+      id: uid(),
+      name, startDate, endDate, registrationDeadline,
+      registrationUrl, fee, status,
+      cancellationDeadline: canDeadline, cancellationFee,
+      notes: ''
+    });
+  }
+
+  savePrograms();
+  document.getElementById('sheet-overlay').classList.remove('visible');
+  renderPrograms();
+  renderCoverage();
+  renderDecisions();
+}
+
+function deleteProgram(programId) {
+  if (!confirm('Delete this program?')) return;
+  state.programs = state.programs.filter(p => p.id !== programId);
+  savePrograms();
+  document.getElementById('sheet-overlay').classList.remove('visible');
+  renderPrograms();
+  renderCoverage();
+  renderDecisions();
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init() {
+  loadState();
+  renderPrograms();
+  renderCoverage();
+  renderDecisions();
+}
+
+init();
+</script>
+</body>
+</html>
