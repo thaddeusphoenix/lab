@@ -35,7 +35,7 @@ load_dotenv(Path(__file__).parent.parent.parent.parent.parent / ".env")
 
 MODEL            = "claude-sonnet-4-6"
 MAX_ITERATIONS   = 5
-MAX_TOKENS_WRITER = 8192
+MAX_TOKENS_WRITER = 16000
 MAX_TOKENS_TESTER = 8192
 
 # Strings that must not appear in the brief.

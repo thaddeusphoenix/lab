@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2563EB">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Camp Planner">
+  <title>Camp Planner</title>
+
+  <script>
+    // Generate PWA manifest as a data URI and inject link tag
+    const manifest = {
+      name: "Camp Planner",
+      short_name: "Camps",
+      display: "standalone",
+      background_color: "#ffffff",
+      theme_color: "#2563EB",
+      start_url: ".",
+      icons: [
+        {
+          src: "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192"><circle cx="96" cy="96" r="96" fill="#2563EB"/><text x="96" y="130" font-size="110" font-family="system-ui,sans-serif" text-anchor="middle" fill="white">C</text></svg>`),
+          sizes: "192x192",
+          type: "image/svg+xml"
+        },
+        {
+          src: "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><circle cx="256" cy="256" r="256" fill="#2563EB"/><text x="256" y="345" font-size="295" font-family="system-ui,sans-serif" text-anchor="middle" fill="white">C</text></svg>`),
+          sizes: "512x512",
+          type: "image/svg+xml"
+        }
+      ]
+    };
+    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    const manifestURL = URL.createObjectURL(manifestBlob);
+    const linkEl = document.createElement('link');
+    linkEl.rel = 'manifest';
+    linkEl.href = manifestURL;
+    document.head.appendChild(linkEl);
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:     #2563EB;
+      --blue-50:  #EFF6FF;
+      --green:    #16A34A;
+      --green-50: #F0FDF4;
+      --amber:    #D97706;
+      --amber-50: #FFFBEB;
+      --red:      #DC2626;
+      --red-50:   #FEF2F2;
+      --gray-50:  #F9FAFB;
+      --gray-100: #F3F4F6;
+      --gray-200: #E5E7EB;
+      --gray-400: #9CA3AF;
+      --gray-500: #6B7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --tab-height: 64px;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-900);
+      font-size: 16px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Tab bar ── */
+    #tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      background: #fff;
+      border-top: 1px solid var(--gray-200);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .tab-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      min-height: var(--tab-height);
+      min-width: 44px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--gray-400);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 8px 4px;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.15s;
+    }
+
+    .tab-btn.active {
+      color: var(--blue);
+    }
+
+    .tab-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* ── Content area ── */
+    #app {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .tab-panel {
+      display: none;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: calc(var(--tab-height) + env(safe-area-inset-bottom) + 80px);
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      padding: 20px 16px 12px;
+      background: #fff;
+      border-bottom: 1px solid var(--gray-200);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .page-header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    /* ── Budget Card ── */
+    .budget-card {
+      background: #fff;
+      margin: 16px;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--gray-200);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .budget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .budget-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .budget-edit-btn {
+      background: none;
+      border: none;
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      min-height: 44px;
+      min-width: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .budget-total-display {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 12px;
+    }
+
+    .budget-edit-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .budget-edit-row input {
+      flex: 1;
+      border: 1.5px solid var(--blue);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gray-900);
+      outline: none;
+      font-family: inherit;
+    }
+
+    .budget-save-btn {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+      min-width: 60px;
+      font-family: inherit;
+    }
+
+    /* Progress bar */
+    .progress-bar-track {
+      height: 10px;
+      border-radius: 99px;
+      background: var(--gray-100);
+      overflow: hidden;
+      display: flex;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar-committed {
+      background: var(--green);
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-bar-potential {
+      background: var(--amber);
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .budget-stats {
+      display: flex;
+      gap: 0;
+    }
+
+    .budget-stat {
+      flex: 1;
+      text-align: center;
+    }
+
+    .budget-stat:first-child { text-align: left; }
+    .budget-stat:last-child { text-align: right; }
+
+    .budget-stat-label {
+      font-size: 11px;
+      color: var(--gray-500);
+      margin-bottom: 2px;
+    }
+
+    .budget-stat-value {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .stat-committed { color: var(--green); }
+    .stat-potential  { color: var(--amber); }
+    .stat-remaining  { color: var(--gray-700); }
+    .stat-overage    { color: var(--red); }
+
+    /* ── Section headers ── */
+    .section-header {
+      padding: 16px 16px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Program cards ── */
+    .program-card {
+      background: #fff;
+      margin: 0 16px 10px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--gray-200);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.1s;
+      min-height: 44px;
+    }
+
+    .program-card:active { transform: scale(0.98); }
+
+    .program-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .program-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gray-900);
+      flex: 1;
+    }
+
+    .status-badge {
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 99px;
+      padding: 3px 9px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .badge-registered  { background: var(--green-50); color: var(--green); }
+    .badge-considering { background: var(--amber-50); color: var(--amber); }
+    .badge-waitlisted  { background: var(--blue-50);  color: var(--blue); }
+    .badge-cancelled   { background: var(--gray-100); color: var(--gray-500); }
+
+    .program-card-meta {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: 6px;
+    }
+
+    .deadline-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      padding: 3px 8px;
+    }
+
+    .deadline-urgent  { background: var(--red-50);   color: var(--red); }
+    .deadline-soon    { background: var(--amber-50); color: var(--amber); }
+    .deadline-normal  { background: var(--gray-100); color: var(--gray-500); }
+    .deadline-passed  { background: var(--gray-100); color: var(--gray-400); text-decoration: line-through; }
+
+    /* ── FAB ── */
+    #fab {
+      position: fixed;
+      bottom: calc(var(--tab-height) + env(safe-area-inset-bottom) + 16px);
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 50;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    #fab:active { transform: scale(0.93); box-shadow: 0 2px 6px rgba(37,99,235,0.3); }
+
+    #fab svg { width: 28px; height: 28px; }
+
+    /* ── Bottom Sheet ── */
+    #sheet-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    #sheet-overlay.visible {
+      display: flex;
+      align-items: flex-end;
+    }
+
+    #sheet-overlay.shown { opacity: 1; }
+
+    #sheet {
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-height: 92vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 0 calc(24px + env(safe-area-inset-bottom));
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    #sheet-overlay.shown #sheet {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--gray-200);
+      border-radius: 99px;
+      margin: 12px auto 0;
+    }
+
+    .sheet-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gray-900);
+      padding: 16px 20px 4px;
+    }
+
+    .sheet-body {
+      padding: 8px 20px 0;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+    }
+
+    .form-label .optional {
+      font-weight: 400;
+      color: var(--gray-400);
+      margin-left: 4px;
+    }
+
+    .form-input {
+      width: 100%;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 16px;
+      color: var(--gray-900);
+      font-family: inherit;
+      background: #fff;
+      outline: none;
+      min-height: 44px;
+      -webkit-appearance: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--blue);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-row .form-group { flex: 1; }
+
+    /* Segmented control for Status */
+    .seg-control {
+      display: flex;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .seg-option {
+      flex: 1;
+      text-align: center;
+      padding: 10px 4px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-500);
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: inherit;
+      min-height: 44px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .seg-option:not(:last-child) {
+      border-right: 1.5px solid var(--gray-200);
+    }
+
+    .seg-option.active {
+      background: var(--blue);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .sheet-save-btn {
+      width: 100%;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      min-height: 52px;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+    }
+
+    .sheet-save-btn:active { opacity: 0.85; }
+
+    .sheet-cancel-link {
+      display: block;
+      text-align: center;
+      padding: 14px;
+      color: var(--gray-500);
+      font-size: 15px;
+      cursor: pointer;
+      min-height: 44px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .sheet-delete-link {
+      display: block;
+      text-align: center;
+      padding: 14px;
+      color: var(--red);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Coverage Tab ── */
+    .coverage-summary {
+      background: #fff;
+      margin: 16px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--gray-200);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--gray-700);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .coverage-summary span {
+      color: var(--blue);
+    }
+
+    .week-row {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      margin: 0 16px 8px;
+      border-radius: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--gray-200);
+      gap: 10px;
+      min-height: 56px;
+    }
+
+    .week-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-700);
+      width: 72px;
+      flex-shrink: 0;
+    }
+
+    .week-pill {
+      flex: 1;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .week-pill-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .week-covered-registered { background: var(--green-50); color: var(--green); }
+    .week-covered-considering { background: var(--amber-50); color: var(--amber); }
+    .week-uncovered { background: var(--gray-100); color: var(--gray-400); font-weight: 500; }
+
+    /* ── Decisions Tab ── */
+    .decisions-content {
+      padding: 0 0 8px;
+    }
+
+    .prep-card {
+      background: var(--blue-50);
+      border-left: 4px solid var(--blue);
+      border-radius: 12px;
+      margin: 16px 16px 12px;
+      padding: 16px;
+      border-top: 1px solid #BFDBFE;
+      border-right: 1px solid #BFDBFE;
+      border-bottom: 1px solid #BFDBFE;
+    }
+
+    .prep-card-urgency {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--red);
+      margin-bottom: 6px;
+    }
+
+    .prep-card-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .prep-card-meta {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: 4px;
+    }
+
+    .prep-card-fee {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 14px;
+    }
+
+    .reg-link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      min-height: 48px;
+      margin-bottom: 14px;
+      text-align: center;
+      gap: 6px;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+    }
+
+    .reg-link-btn:active { opacity: 0.8; }
+
+    .reg-link-active {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+    }
+
+    .reg-link-disabled {
+      background: var(--gray-100);
+      color: var(--gray-400);
+      border: 1.5px solid var(--gray-200);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      min-height: 44px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .checklist-item input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
+    .checklist-item label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-700);
+      cursor: pointer;
+      line-height: 1.3;
+    }
+
+    .checklist-item.checked label {
+      text-decoration: line-through;
+      color: var(--gray-400);
+    }
+
+    /* Decisions — upcoming / cancellation */
+    .decision-card {
+      background: #fff;
+      border-radius: 12px;
+      margin: 0 16px 10px;
+      padding: 14px 16px;
+      border: 1px solid var(--gray-200);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .decision-card-warn {
+      background: var(--amber-50);
+      border: 1.5px solid #FCD34D;
+    }
+
+    .decision-card-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .decision-card-meta {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: 6px;
+    }
+
+    .decision-card-deadline {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .deadline-red  { color: var(--red); }
+    .deadline-amber{ color: var(--amber); }
+    .deadline-gray { color: var(--gray-500); }
+
+    .warn-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--amber);
+      margin-bottom: 4px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 32px;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gray-700);
+      margin-bottom: 8px;
+    }
+
+    .empty-state-body {
+      font-size: 14px;
+      color: var(--gray-500);
+      line-height: 1.5;
+    }
+
+    /* ── Misc ── */
+    .divider {
+      height: 1px;
+      background: var(--gray-200);
+      margin: 8px 0;
+    }
+
+    /* no-programs empty */
+    .programs-empty {
+      text-align: center;
+      padding: 40px 32px;
+    }
+
+    .programs-empty-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .programs-empty-text {
+      font-size: 14px;
+      color: var(--gray-500);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Programs Tab -->
+  <div id="tab-programs" class="tab-panel active">
+    <div class="page-header">
+      <h1>Programs</h1>
+    </div>
+    <div id="budget-card-container"></div>
+    <div id="programs-list"></div>
+  </div>
+
+  <!-- Coverage Tab -->
+  <div id="tab-coverage" class="tab-panel">
+    <div class="page-header">
+      <h1>Coverage</h1>
+    </div>
+    <div id="coverage-content"></div>
+  </div>
+
+  <!-- Decisions Tab -->
+  <div id="tab-decisions" class="tab-panel">
+    <div class="page-header">
+      <h1>Decisions</h1>
+    </div>
+    <div id="decisions-content" class="decisions-content"></div>
+  </div>
+</div>
+
+<!-- Bottom Tab Bar -->
+<nav id="tab-bar">
+  <button class="tab-btn active" data-tab="programs" onclick="switchTab('programs')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    Programs
+  </button>
+  <button class="tab-btn" data-tab="coverage" onclick="switchTab('coverage')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    Coverage
+  </button>
+  <button class="tab-btn" data-tab="decisions" onclick="switchTab('decisions')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+    Decisions
+  </button>
+</nav>
+
+<!-- FAB -->
+<button id="fab" onclick="openSheet(null)" aria-label="Add program">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+    <line x1="12" y1="5" x2="12" y2="19"/>
+    <line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+</button>
+
+<!-- Bottom Sheet Overlay -->
+<div id="sheet-overlay" onclick="handleOverlayClick(event)">
+  <div id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-title">Add Program</div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONSTANTS & KEYS
+// ─────────────────────────────────────────────
+const KEYS = {
+  programs: 'campplanner_programs',
+  budget: 'campplanner_budget',
+  checklist: 'campplanner_checklist'
+};
+
+const SAMPLE_PROGRAMS = [
+  {
+    id: 'sample-1',
+    name: 'Galileo Innovation Camp',
+    startDate: '2026-07-06',
+    endDate: '2026-07-10',
+    registrationDeadline: '2026-03-25',
+    registrationUrl: 'https://galileo-camps.com',
+    cancellationDeadline: '2026-04-15',
+    cancellationFee: 75,
+    fee: 650,
+    status: 'Considering',
+    notes: ''
+  },
+  {
+    id: 'sample-2',
+    name: 'YMCA Summer Day Camp',
+    startDate: '2026-06-15',
+    endDate: '2026-06-26',
+    registrationDeadline: '2026-05-01',
+    registrationUrl: 'https://ymca.org/summer',
+    cancellationDeadline: null,
+    cancellationFee: null,
+    fee: 420,
+    status: 'Registered',
+    notes: ''
+  },
+  {
+    id: 'sample-3',
+    name: 'City Arts Summer Intensive',
+    startDate: '2026-07-27',
+    endDate: '2026-08-07',
+    registrationDeadline: '2026-04-30',
+    registrationUrl: '',
+    cancellationDeadline: null,
+    cancellationFee: null,
+    fee: 890,
+    status: 'Considering',
+    notes: ''
+  }
+];
+
+const WEEKS = [
+  { label: 'Jun 8',  mon: '2026-06-08', fri: '2026-06-12' },
+  { label: 'Jun 15', mon: '2026-06-15', fri: '2026-06-19' },
+  { label: 'Jun 22', mon: '2026-06-22', fri: '2026-06-26' },
+  { label: 'Jun 29', mon: '2026-06-29', fri: '2026-07-03' },
+  { label: 'Jul 6',  mon: '2026-07-06', fri: '2026-07-10' },
+  { label: 'Jul 13', mon: '2026-07-13', fri: '2026-07-17' },
+  { label: 'Jul 20', mon: '2026-07-20', fri: '2026-07-24' },
+  { label: 'Jul 27', mon: '2026-07-27', fri: '2026-07-31' },
+  { label: 'Aug 3',  mon: '2026-08-03', fri: '2026-08-07' },
+  { label: 'Aug 10', mon: '2026-08-10', fri: '2026-08-14' },
+  { label: 'Aug 17', mon: '2026-08-17', fri: '2026-08-21' }
+];
+
+const STATUS_OPTIONS = ['Considering', 'Registered', 'Waitlisted', 'Cancelled'];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let state = {
+  programs: [],
+  budget: { total: 2500 },
+  checklist: {}
+};
+
+let editingBudget = false;
+let editingProgramId = null; // null = new program
+let currentTab = 'programs';
+
+// ─────────────────────────────────────────────
+// PERSISTENCE
+// ─────────────────────────────────────────────
+function loadState() {
+  const raw = localStorage.getItem(KEYS.programs);
+  if (raw === null) {
+    state.programs = SAMPLE_PROGRAMS.map(p => ({ ...p }));
+    savePrograms();
+  } else {
+    try { state.programs = JSON.parse(raw); } catch(e) { state.programs = []; }
+  }
+
+  const rawBudget = localStorage.getItem(KEYS.budget);
+  if (rawBudget) {
+    try { state.budget = JSON.parse(rawBudget); } catch(e) { state.budget = { total: 2500 }; }
+  } else {
+    savebudget();
+  }
+
+  const rawChecklist = localStorage.getItem(KEYS.checklist);
+  if (rawChecklist) {
+    try { state.checklist = JSON.parse(rawChecklist); } catch(e) { state.checklist = {}; }
+  }
+}
+
+function savePrograms() {
+  localStorage.setItem(KEYS.programs, JSON.stringify(state.programs));
+}
+
+function savebudget() {
+  localStorage.setItem(KEYS.budget, JSON.stringify(state.budget));
+}
+
+function saveChecklist() {
+  localStorage.setItem(KEYS.checklist, JSON.stringify(state.checklist));
+}
+
+// ─────────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────────
+function today() {
+  // Returns today as YYYY-MM-DD string (local time)
+  const d = new Date();
+  return toYMD(d);
+}
+
+function toYMD(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function parseDate(str) {
+  // Parse YYYY-MM-DD as local date (avoid UTC offset issues)
+  if (!str) return null;
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function daysBetween(dateStrA, dateStrB) {
+  // Days from A to B (positive = B is in future relative to A)
+  const a = parseDate(dateStrA);
+  const b = parseDate(dateStrB);
+  if (!a || !b) return null;
+  return Math.round((b - a) / (1000 * 60 * 60 * 24));
+}
+
+function formatDate(str) {
+  if (!str) return '';
+  const d = parseDate(str);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatDateShort(str) {
+  if (!str) return '';
+  const d = parseDate(str);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function formatMoney(val) {
+  if (val === null || val === undefined || val === '') return '';
+  return '$' + Number(val).toLocaleString('en-US', { minimumFractionDigits: 0 });
+}
+
+function uid() {
+  return 'p-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function truncate(str, n) {
+  if (!str) return '';
+  return str.length > n ? str.slice(0, n) + '…' : str;
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ─────────────────────────────────────────────
+// TAB SWITCHING
+// ─────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
+
+  // FAB only visible on Programs tab
+  document.getElementById('fab').style.display = tab === 'programs' ? 'flex' : 'none';
+
+  if (tab === 'coverage') renderCoverage();
+  if (tab === 'decisions') renderDecisions();
+}
+
+// ─────────────────────────────────────────────
+// RENDER: PROGRAMS TAB
+// ─────────────────────────────────────────────
+function renderPrograms() {
+  renderBudgetCard();
+  renderProgramList();
+}
+
+function renderBudgetCard() {
+  const container = document.getElementById('budget-card-container');
+
+  const committed = state.programs
+    .filter(p => p.status === 'Registered')
+    .reduce((s, p) => s + (Number(p.fee) || 0), 0);
+
+  const potential = state.programs
+    .filter(p => p.status === 'Considering' || p.status === 'Waitlisted')
+    .reduce((s, p) => s + (Number(p.fee) || 0), 0);
+
+  const total = state.budget.total || 0;
+  const remaining = total - committed - potential;
+  const isOver = remaining < 0;
+
+  const committedPct = total > 0 ? Math.min(100, (committed / total) * 100) : 0;
+  const potentialPct = total > 0 ? Math.min(100 - committedPct, (potential / total) * 100) : 0;
+
+  const remainingClass = isOver ? 'stat-overage' : 'stat-remaining';
+
+  let budgetEditHtml = '';
+  if (editingBudget) {
+    budgetEditHtml = `
+      <div class="budget-edit-row">
+        <input class="form-input" type="number" id="budget-input" value="${escHtml(String(total))}" min="0" step="100" inputmode="numeric">
+        <button class="budget-save-btn" onclick="saveBudget()">Save</button>
+      </div>
+    `;
+  } else {
+    budgetEditHtml = `<div class="budget-total-display">${formatMoney(total)} budget</div>`;
+  }
+
+  container.innerHTML = `
+    <div class="budget-card">
+      <div class="budget-header">
+        <span class="budget-title">Summer Budget</span>
+        <button class="budget-edit-btn" onclick="toggleBudgetEdit()">${editingBudget ? 'Cancel' : 'Edit'}</button>
+      </div>
+      ${budgetEditHtml}
+      <div class="progress-bar-track">
+        <div class="progress-bar-committed" style="width:${committedPct}%"></div>
+        <div class="progress-bar-potential" style="width:${potentialPct}%"></div>
+      </div>
+      <div class="budget-stats">
+        <div class="budget-stat">
+          <div class="budget-stat-label">Committed</div>
+          <div class="budget-stat-value stat-committed">${formatMoney(committed)}</div>
+        </div>
+        <div class="budget-stat" style="text-align:center">
+          <div class="budget-stat-label">Potential</div>
+          <div class="budget-stat-value stat-potential">${formatMoney(potential)}</div>
+        </div>
+        <div class="budget-stat">
+          <div class="budget-stat-label">Remaining</div>
+          <div class="budget-stat-value ${remainingClass}">${isOver ? '−' + formatMoney(Math.abs(remaining)) : formatMoney(remaining)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleBudgetEdit() {
+  editingBudget = !editingBudget;
+  renderBudgetCard();
+  if (editingBudget) {
+    document.getElementById('budget-input').focus();
+  }
+}
+
+function saveBudget() {
+  const val = parseFloat(document.getElementById('budget-input').value);
+  if (!isNaN(val) && val >= 0) {
+    state.budget.total = val;
+    savebudget();
+  }
+  editingBudget = false;
+  renderBudgetCard();
+}
+
+function renderProgramList() {
+  const container = document.getElementById('programs-list');
+  const todayStr = today();
+
+  // Separate programs
+  const actionRequired = state.programs.filter(p =>
+    (p.status === 'Considering' || p.status === 'Waitlisted') &&
+    p.registrationDeadline &&
+    p.registrationDeadline >= todayStr
+  ).sort((a, b) => a.registrationDeadline < b.registrationDeadline ? -1 : 1);
+
+  const registered = state.programs.filter(p => p.status === 'Registered')
+    .sort((a, b) => a.startDate < b.startDate ? -1 : 1);
+
+  const other = state.programs.filter(p =>
+    p.status === 'Cancelled' ||
+    ((p.status === 'Considering' || p.status === 'Waitlisted') && (!p.registrationDeadline || p.registrationDeadline < todayStr))
+  ).sort((a, b) => a.startDate < b.startDate ? -1 : 1);
+
+  if (state.programs.length === 0) {
+    container.innerHTML = `
+      <div class="programs-empty">
+        <div class="programs-empty-icon">🏕️</div>
+        <div class="programs-empty-text">No programs yet.<br>Tap + to add your first summer program.</div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+
+  if (actionRequired.length > 0) {
+    html += `<div class="section-header">Action required</div>`;
+    actionRequired.forEach(p => {
+      html += programCardHtml(p, todayStr);
+    });
+  }
+
+  if (registered.length > 0) {
+    html += `<div class="section-header">Registered</div>`;
+    registered.forEach(p => {
+      html += programCardHtml(p, todayStr);
+    });
+  }
+
+  if (other.length > 0) {
+    html += `<div class="section-header">Other</div>`;
+    other.forEach(p => {
+      html += programCardHtml(p, todayStr);
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+function programCardHtml(p, todayStr) {
+  const badgeClass = {
+    'Registered': 'badge-registered',
+    'Considering': 'badge-considering',
+    'Waitlisted': 'badge-waitlisted',
+    'Cancelled': 'badge-cancelled'
+  }[p.status] || 'badge-considering';
+
+  let deadlineHtml = '';
+  if (p.registrationDeadline) {
+    const days = daysBetween(todayStr, p.registrationDeadline);
+    if (days < 0) {
+      deadlineHtml = `<span class="deadline-tag deadline-passed">Deadline passed</span>`;
+    } else if (days === 0) {
+      deadlineHtml = `<span class="deadline-tag deadline-urgent">⚡ Register TODAY</span>`;
+    } else if (days <= 7) {
+      deadlineHtml = `<span class="deadline-tag deadline-urgent">⚡ ${days}d to register</span>`;
+    } else if (days <= 14) {
+      deadlineHtml = `<span class="deadline-tag deadline-soon">⏰ ${days}d to register</span>`;
+    } else {
+      deadlineHtml = `<span class="deadline-tag deadline-normal">${days}d to register</span>`;
+    }
+  }
+
+  const dateRange = p.startDate ? `${formatDateShort(p.startDate)} – ${formatDateShort(p.endDate)}` : '';
+  const feeStr = p.fee ? formatMoney(p.fee) : '';
+
+  return `
+    <div class="program-card" onclick="openSheet('${escHtml(p.id)}')">
+      <div class="program-card-top">
+        <span class="program-name">${escHtml(p.name)}</span>
+        <span class="status-badge ${badgeClass}">${escHtml(p.status)}</span>
+      </div>
+      <div class="program-card-meta">${escHtml(dateRange)}${feeStr ? ' · ' + feeStr : ''}</div>
+      ${deadlineHtml}
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// RENDER: COVERAGE TAB
+// ─────────────────────────────────────────────
+function renderCoverage() {
+  const container = document.getElementById('coverage-content');
+
+  let coveredCount = 0;
+  let html = '';
+
+  WEEKS.forEach(week => {
+    const coveringPrograms = state.programs.filter(p => {
+      if (!p.startDate || !p.endDate) return false;
+      if (p.status === 'Cancelled') return false;
+      return p.startDate <= week.fri && p.endDate >= week.mon;
+    });
+
+    const registeredCovering = coveringPrograms.filter(p => p.status === 'Registered');
+    const consideringCovering = coveringPrograms.filter(p => p.status === 'Considering' || p.status === 'Waitlisted');
+
+    let pillClass, pillText;
+    if (registeredCovering.length > 0) {
+      pillClass = 'week-covered-registered';
+      if (registeredCovering.length > 1) {
+        pillText = `${registeredCovering.length} programs`;
+      } else {
+        pillText = truncate(registeredCovering[0].name, 18);
+      }
+      coveredCount++;
+    } else if (consideringCovering.length > 0) {
+      pillClass = 'week-covered-considering';
+      if (consideringCovering.length > 1) {
+        pillText = `${consideringCovering.length} programs`;
+      } else {
+        pillText = truncate(consideringCovering[0].name, 18);
+      }
+      coveredCount++;
+    } else {
+      pillClass = 'week-uncovered';
+      pillText = 'No coverage';
+    }
+
+    html += `
+      <div class="week-row">
+        <span class="week-label">${escHtml(week.label)}</span>
+        <div class="week-pill ${pillClass}">
+          <span class="week-pill-text">${escHtml(pillText)}</span>
+        </div>
+      </div>
+    `;
+  });
+
+  const summaryColor = coveredCount === 11 ? 'var(--green)' : coveredCount === 0 ? 'var(--red)' : 'var(--amber)';
+  container.innerHTML = `
+    <div class="coverage-summary">
+      <span style="color:${summaryColor}">${coveredCount} of 11 weeks</span> covered this summer
+    </div>
+    ${html}
+  `;
+}
+
+// ─────────────────────────────────────────────
+// RENDER: DECISIONS TAB
+// ─────────────────────────────────────────────
+function renderDecisions() {
+  const container = document.getElementById('decisions-content');
+  const todayStr = today();
+
+  const prepCards = state.programs.filter(p =>
+    p.status === 'Considering' &&
+    p.registrationDeadline &&
+    daysBetween(todayStr, p.registrationDeadline) !== null &&
+    daysBetween(todayStr, p.registrationDeadline) >= 0 &&
+    daysBetween(todayStr, p.registrationDeadline) <= 14
+  ).sort((a, b) => a.registrationDeadline < b.registrationDeadline ? -1 : 1);
+
+  const upcomingDeadlines = state.programs.filter(p =>
+    p.status === 'Considering' &&
+    p.registrationDeadline &&
+    daysBetween(todayStr, p.registrationDeadline) !== null &&
+    daysBetween(todayStr, p.registrationDeadline) > 14
+  ).sort((a, b) => a.registrationDeadline < b.registrationDeadline ? -1 : 1);
+
+  const cancellationWarnings = state.programs.filter(p =>
+    p.status === 'Registered' &&
+    p.cancellationDeadline &&
+    daysBetween(todayStr, p.cancellationDeadline) !== null &&
+    daysBetween(todayStr, p.cancellationDeadline) >= 0 &&
+    daysBetween(todayStr, p.cancellationDeadline) <= 14
+  ).sort((a, b) => a.cancellationDeadline < b.cancellationDeadline ? -1 : 1);
+
+  const hasAnything = prepCards.length > 0 || upcomingDeadlines.length > 0 || cancellationWarnings.length > 0;
+
+  if (!hasAnything) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-state-icon">✅</span>
+        <div class="empty-state-title">You're all caught up.</div>
+        <div class="empty-state-body">Nothing needs attention right now.</div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+
+  // Prep cards
+  if (prepCards.length > 0) {
+    html += `<div class="section-header">Enrollment prep</div>`;
+    prepCards.forEach(p => {
+      html += buildPrepCard(p, todayStr);
+    });
+  }
+
+  // Cancellation warnings
+  if (cancellationWarnings.length > 0) {
+    html += `<div class="section-header">Cancellation deadlines</div>`;
+    cancellationWarnings.forEach(p => {
+      const days = daysBetween(todayStr, p.cancellationDeadline);
+      const feeStr = p.cancellationFee ? ` or pay ${formatMoney(p.cancellationFee)}` : '';
+      let linkHtml = '';
+      if (p.registrationUrl) {
+        linkHtml = `<a href="${escHtml(p.registrationUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--amber);font-size:13px;font-weight:600;text-decoration:none;">Open program page →</a>`;
+      }
+      html += `
+        <div class="decision-card decision-card-warn">
+          <div class="warn-label">⚠️ Cancellation deadline</div>
+          <div class="decision-card-name">${escHtml(p.name)}</div>
+          <div class="decision-card-meta">${formatDateShort(p.startDate)} – ${formatDateShort(p.endDate)}</div>
+          <div class="decision-card-deadline deadline-amber">Cancel by ${formatDate(p.cancellationDeadline)}${feeStr} · ${days === 0 ? 'TODAY' : days + 'd left'}</div>
+          ${linkHtml ? '<div style="margin-top:8px">' + linkHtml + '</div>' : ''}
+        </div>
+      `;
+    });
+  }
+
+  // Upcoming deadlines (>14 days)
+  if (upcomingDeadlines.length > 0) {
+    html += `<div class="section-header">Upcoming deadlines</div>`;
+    upcomingDeadlines.forEach(p => {
+      const days = daysBetween(todayStr, p.registrationDeadline);
+      const feeStr = p.fee ? ' · ' + formatMoney(p.fee) : '';
+      html += `
+        <div class="decision-card">
+          <div class="decision-card-name">${escHtml(p.name)}</div>
+          <div class="decision-card-meta">${formatDateShort(p.startDate)} – ${formatDateShort(p.endDate)}${feeStr}</div>
+          <div class="decision-card-deadline deadline-gray">Register by ${formatDate(p.registrationDeadline)} · ${days}d</div>
+        </div>
+      `;
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+function buildPrepCard(p, todayStr) {
+  const days = daysBetween(todayStr, p.registrationDeadline);
+  const urgencyText = days === 0 ? '⚡ Register TODAY' : `⚡ Register by ${formatDate(p.registrationDeadline)}`;
+  const dateRange = `${formatDateShort(p.startDate)} – ${formatDateShort(p.endDate)}`;
+  const feeStr = p.fee ? formatMoney(p.fee) : '';
+
+  // Checklist state
+  const cl = state.checklist[p.id] || { item1: false, item2: false, item3: false };
+
+  const items = [
+    { key: 'item1', label: 'Account logged in' },
+    { key: 'item2', label: 'Payment method ready' },
+    { key: 'item3', label: 'Dates and session confirmed' }
+  ];
+
+  const checklistHtml = items.map(item => {
+    const checked = cl[item.key] ? 'checked' : '';
+    const checkedClass = cl[item.key] ? 'checked' : '';
+    const inputId = `cl-${p.id}-${item.key}`;
+    return `
+      <div class="checklist-item ${checkedClass}" onclick="toggleChecklist('${escHtml(p.id)}', '${item.key}')">
+        <input type="checkbox" id="${inputId}" ${checked} onclick="event.stopPropagation(); toggleChecklist('${escHtml(p.id)}', '${item.key}')">
+        <label for="${inputId}">${escHtml(item.label)}</label>
+      </div>
+    `;
+  }).join('');
+
+  let linkBtn = '';
+  if (p.registrationUrl) {
+    linkBtn = `<a href="${escHtml(p.registrationUrl)}" target="_blank" rel="noopener noreferrer" class="reg-link-btn reg-link-active">Open Registration Page →</a>`;
+  } else {
+    linkBtn = `<span class="reg-link-btn reg-link-disabled" onclick="openSheet('${escHtml(p.id)}')">No link saved — tap to add one</span>`;
+  }
+
+  return `
+    <div class="prep-card">
+      <div class="prep-card-urgency">${urgencyText}</div>
+      <div class="prep-card-name">${escHtml(p.name)}</div>
+      <div class="prep-card-meta">${escHtml(dateRange)}</div>
+      ${feeStr ? `<div class="prep-card-fee">${escHtml(feeStr)}</div>` : '<div style="margin-bottom:14px"></div>'}
+      ${linkBtn}
+      <div class="checklist">${checklistHtml}</div>
+    </div>
+  `;
+}
+
+function toggleChecklist(programId, itemKey) {
+  if (!state.checklist[programId]) {
+    state.checklist[programId] = { item1: false, item2: false, item3: false };
+  }
+  state.checklist[programId][itemKey] = !state.checklist[programId][itemKey];
+  saveChecklist();
+  renderDecisions();
+}
+
+// ─────────────────────────────────────────────
+// BOTTOM SHEET
+// ─────────────────────────────────────────────
+function openSheet(programId) {
+  editingProgramId = programId; // null = new, string = edit
+
+  const program = programId ? state.programs.find(p => p.id === programId) : null;
+  const isNew = !program;
+
+  document.getElementById('sheet-title').textContent = isNew ? 'Add Program' : 'Edit Program';
+
+  const s = program || {
+    name: '', startDate: '', endDate: '', registrationDeadline: '',
+    registrationUrl: '', fee: '', status: 'Considering',
+    cancellationDeadline: '', cancellationFee: '', notes: ''
+  };
+
+  const statusButtons = STATUS_OPTIONS.map(opt => {
+    const active = (s.status === opt || (!s.status && opt === 'Considering')) ? 'active' : '';
+    return `<button type="button" class="seg-option ${active}" onclick="setSheetStatus('${opt}')">${opt}</button>`;
+  }).join('');
+
+  const deleteHtml = !isNew ? `<span class="sheet-delete-link" onclick="deleteProgram('${escHtml(programId)}')">Delete program</span>` : '';
+
+  document.getElementById('sheet-body').innerHTML = `
+    <div class="form-group">
+      <label class="form-label" for="sf-name">Program name</label>
+      <input class="form-input" type="text" id="sf-name" value="${escHtml(s.name)}" placeholder="e.g. Galileo Innovation Camp" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="sf-start">Start date</label>
+        <input class="form-input" type="date" id="sf-start" value="${escHtml(s.startDate || '')}">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="sf-end">End date</label>
+        <input class="form-input" type="date" id="sf-end" value="${escHtml(s.endDate || '')}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sf-regdeadline">Registration deadline</label>
+      <input class="form-input" type="date" id="sf-regdeadline" value="${escHtml(s.registrationDeadline || '')}">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sf-status">Status</label>
+      <div class="seg-control">${statusButtons}</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sf-url">Registration URL <span class="optional">optional</span></label>
+      <input class="form-input" type="url" id="sf-url" value="${escHtml(s.registrationUrl || '')}" placeholder="https://" inputmode="url" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sf-fee">Program fee ($) <span class="optional">optional</span></label>
+      <input class="form-input" type="number" id="sf-fee" value="${escHtml(s.fee ? String(s.fee) : '')}" placeholder="0" min="0" step="1" inputmode="numeric">
+    </div>

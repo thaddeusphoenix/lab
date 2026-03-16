@@ -1,0 +1,91 @@
+{
+  "brief": "/Users/nathanstankowski/lab/projects/camp-planner/briefs/feature-brief-core-planning.md",
+  "scenarios": "/Users/nathanstankowski/lab/projects/camp-planner/briefs/feature-brief-core-planning-scenarios.md",
+  "started": "2026-03-16T12:57:41.051817+00:00",
+  "max_iterations": 5,
+  "runs": [
+    {
+      "run": 1,
+      "timestamp": "2026-03-16T13:01:09.715363+00:00",
+      "result": "PASS",
+      "scenarios": [
+        {
+          "id": "S1",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "All required PWA meta tags are present with correct values: viewport with viewport-fit=cover, theme-color #2563EB, apple-mobile-web-app-capable yes, apple-mobile-web-app-status-bar-style default, apple-mobile-web-app-title Camp Planner. A manifest link element is injected dynamically via script with a blob URL."
+        },
+        {
+          "id": "S2",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "Bottom nav has id='tab-bar' with position:fixed and bottom:0 in CSS. Three tab buttons with labels Programs, Coverage, and Decisions are present. Tab bar CSS includes padding-bottom: env(safe-area-inset-bottom). Each tab has min-height: var(--tab-height) which resolves to 64px."
+        },
+        {
+          "id": "S3",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "tab-programs has class 'tab-panel active' on initial load. tab-coverage and tab-decisions have class 'tab-panel' without active. The Programs tab button has class 'tab-btn active'. CSS shows active panels as display:block and non-active as display:none."
+        },
+        {
+          "id": "S4",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "SAMPLE_PROGRAMS array contains all three programs: Galileo Innovation Camp, YMCA Summer Day Camp, City Arts Summer Intensive. When localStorage key campplanner_programs is absent, these are seeded and rendered. renderProgramList() iterates state.programs and produces program cards with program names."
+        },
+        {
+          "id": "S5",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "FAB button with id='fab' is present and calls openSheet(null) on click. openSheet() populates the sheet-body with a form containing inputs for sf-name (Name), sf-start (Start date), sf-end (End date), sf-regdeadline (Registration deadline) \u2014 all four required fields are present. The sheet overlay becomes visible via the visible/shown CSS classes."
+        },
+        {
+          "id": "S6",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "WEEKS array contains exactly 11 entries spanning Jun 8 through Aug 17 (with Friday Aug 21). renderCoverage() generates one .week-row per entry. Summary text reads 'X of 11 weeks covered this summer'. Week labels include 'Jun 8' and 'Aug 17'."
+        },
+        {
+          "id": "S7",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "renderDecisions() filters programs with status=Considering, registrationDeadline within 0-14 days. Galileo (deadline 2026-03-25) is 9 days from 2026-03-16 and passes the filter. buildPrepCard() produces a .prep-card containing the program name, a registration link button (reg-link-active with href=https://galileo-camps.com), and three .checklist-item elements with checkboxes for 'Account logged in', 'Payment method ready', 'Dates and session confirmed'."
+        },
+        {
+          "id": "S8",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "renderBudgetCard() computes committed=$420 (YMCA Registered), potential=$1540 (Galileo $650 + City Arts $890, both Considering), total=$2500 from seeded budget. DOM shows budget-total-display with $2,500, stat-committed with $420, stat-potential with $1,540, stat-remaining with remaining value. All values correctly labeled Committed, Potential, Remaining."
+        },
+        {
+          "id": "S9",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "CSS establishes a fixed bottom tab bar with flex column layout per tab (icon SVG above text label), white background, border-top. Program cards use white background, border-radius:12px, box-shadow, and color-coded status badge pills (badge-registered green, badge-considering amber, etc.). Typography uses -apple-system font stack, body 16px, program names 16px bold, headings 20px. The overall composition \u2014 fixed bottom nav, card-based list with shadows, color badges, mobile spacing of 16px gutters \u2014 reads as a native-app-like mobile UI, not a desktop page."
+        },
+        {
+          "id": "S10",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "The Galileo prep card contains: (1) urgency signal \u2014 '\u26a1 Register by [date]' in red (prep-card-urgency with --red color); (2) specific deadline date via formatDate(); (3) fee amount $650 in prep-card-fee; (4) 'Open Registration Page \u2192' anchor linking to https://galileo-camps.com in a new tab with reg-link-active blue button styling; (5) three checkboxes labeled 'Account logged in', 'Payment method ready', 'Dates and session confirmed'. Card has blue left border (4px solid --blue) and blue-50 background tint, visually distinct from regular program cards."
+        },
+        {
+          "id": "S11",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "Coverage grid uses three distinct visual states: week-covered-registered (green-50 background, green text), week-covered-considering (amber-50 background, amber text), week-uncovered (gray-100 background, gray-400 text reading 'No coverage'). With sample data: Jun 15 and Jun 22 show green (YMCA Registered), Jul 6 shows amber (Galileo Considering), Jul 27\u2013Aug 7 weeks show amber (City Arts Considering). Gap weeks (Jun 8, Jun 29, Jul 13, Jul 20, Aug 10, Aug 17) visually contrast with covered weeks. Summary 'X of 11 weeks covered' is at the top in a prominent card. The grid is scannable without reading every label."
+        },
+        {
+          "id": "S12",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "openSheet() renders as a bottom sheet modal via #sheet-overlay (position:fixed, inset:0, dark overlay) with #sheet sliding up from translateY(100%) to translateY(0). All required fields present (sf-name, sf-start, sf-end, sf-regdeadline). Registration URL field (sf-url, type=url) is present. Status segmented control, Fee, Cancellation Deadline fields are present. Save button is full-width blue. Cancel link and Delete link (for edits) are present. Overlay click calls handleOverlayClick(). Input min-height is 44px via .form-input."
+        }
+      ],
+      "spec_amendment": null
+    }
+  ],
+  "finished": "2026-03-16T13:01:09.716360+00:00",
+  "final_result": "PASS",
+  "total_runs": 1
+}

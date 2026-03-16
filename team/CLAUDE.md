@@ -17,6 +17,7 @@
 | Marketing Manager | `marketing-manager.md` | Positioning, messaging, go-to-market planning |
 | Sales Engineering Lead | `sales-engineering-lead.md` | Technical sales enablement, demo readiness, integration concerns |
 | Customer Success Manager | `customer-success-manager.md` | Adoption, retention, customer feedback loops |
+| Public Relations Expert | `public-relations-expert.md` | LinkedIn content, Nathan's professional brand, lab narrative |
 
 ## Lifecycle Focus
 
@@ -24,8 +25,8 @@
 |---|---|---|
 | **Discover** | Product Manager | Product Designer, Tech Lead, User Researcher, Data Analyst |
 | **Build** | Tech Lead | Product Designer, QA Engineer, Delivery Manager, Data Analyst |
-| **Launch** | Delivery Manager | QA Engineer, Marketing Manager, Sales Engineering Lead |
-| **Grow** | Customer Success Manager | Data Analyst, Marketing Manager, Sales Engineering Lead |
+| **Launch** | Delivery Manager | QA Engineer, Marketing Manager, Sales Engineering Lead, Public Relations Expert |
+| **Grow** | Customer Success Manager | Data Analyst, Marketing Manager, Sales Engineering Lead, Public Relations Expert |
 
 ## Prototyping Bias
 
