@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivilGrid Layer Picker — Product Strategy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080d1a;
+  --bg2: #0d1426;
+  --bg3: #111d35;
+  --border: #1a2744;
+  --border2: #243358;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #475569;
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --green: #10b981;
+  --green-dim: rgba(16,185,129,0.1);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.1);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.1);
+  --yellow: #facc15;
+  --orange: #f97316;
+  --pink: #f472b6;
+  --cyan: #38bdf8;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'Syne', system-ui, sans-serif;
+  color: var(--text);
+}
+
+/* ── SLIDE ENGINE ── */
+.deck { width: 100vw; height: 100vh; position: relative; }
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 56px 72px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateY(20px);
+  overflow: hidden;
+}
+
+.slide.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+.slide.exit {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
+
+/* ── BACKGROUNDS ── */
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+.bg-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+/* ── NAVIGATION ── */
+.nav {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+  background: rgba(8,13,26,0.85);
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  padding: 8px 16px;
+  backdrop-filter: blur(12px);
+}
+
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.nav-btn:hover { background: var(--border2); color: var(--text); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+.nav-counter {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  min-width: 48px;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.nav-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.nav-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--border2);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.nav-dot.active {
+  background: var(--blue);
+  width: 16px;
+  border-radius: 2px;
+}
+
+/* ── SLIDE NUMBER ── */
+.slide-num {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+}
+
+/* ── COMMON ELEMENTS ── */
+.eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 1px;
+  background: var(--blue);
+}
+
+.h1 { font-size: 56px; font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; }
+.h2 { font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+.h3 { font-size: 24px; font-weight: 700; line-height: 1.2; }
+.h4 { font-size: 16px; font-weight: 700; letter-spacing: 0.01em; }
+
+.body { font-size: 16px; line-height: 1.65; color: var(--text2); }
+.body-sm { font-size: 13px; line-height: 1.6; color: var(--text2); }
+.mono { font-family: 'DM Mono', monospace; }
+
+.accent-blue { color: var(--blue); }
+.accent-green { color: var(--green); }
+.accent-amber { color: var(--amber); }
+.accent-purple { color: var(--purple); }
+.accent-yellow { color: var(--yellow); }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.tag-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(59,130,246,0.2); }
+.tag-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.tag-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+.tag-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.card-sm {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
+
+.col { display: flex; flex-direction: column; gap: 12px; }
+
+/* ── SLIDE 1: TITLE ── */
+#s1 { justify-content: center; }
+#s1 .bg-glow { width: 600px; height: 600px; background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%); top: -100px; left: -100px; }
+#s1 .bg-glow-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%); bottom: 0; right: 0; }
+
+.title-kicker {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-kicker::after {
+  content: '';
+  flex: 1;
+  max-width: 80px;
+  height: 1px;
+  background: var(--border2);
+}
+
+.title-main { margin-bottom: 8px; }
+
+.title-sub {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--blue);
+  margin-bottom: 32px;
+}
+
+.title-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.05em;
+}
+
+/* ── SLIDE 2: THE PROBLEM ── */
+.problem-stat {
+  text-align: center;
+  padding: 32px 24px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-num {
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+/* ── PHASE BADGE ── */
+.phase-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.phase-1 { background: rgba(59,130,246,0.1); color: var(--blue); border-color: rgba(59,130,246,0.25); }
+.phase-2 { background: rgba(16,185,129,0.1); color: var(--green); border-color: rgba(16,185,129,0.25); }
+.phase-3 { background: rgba(167,139,250,0.1); color: var(--purple); border-color: rgba(167,139,250,0.25); }
+.phase-future { background: rgba(71,85,105,0.2); color: var(--text3); border-color: rgba(71,85,105,0.3); }
+
+/* ── KPI CARD ── */
+.kpi-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 3px solid;
+}
+
+/* ── ROADMAP ── */
+.roadmap-track {
+  display: flex;
+  gap: 0;
+  position: relative;
+}
+
+.roadmap-track::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: var(--border);
+}
+
+.roadmap-node {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.roadmap-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.roadmap-dot.active {
+  border-color: var(--blue);
+  background: var(--blue-dim);
+}
+
+.roadmap-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── OPTION CARDS ── */
+.option-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+}
+
+.option-card.recommended {
+  border-color: var(--blue);
+  background: linear-gradient(135deg, rgba(59,130,246,0.06) 0%, var(--bg2) 60%);
+}
+
+.recommended-badge {
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  background: var(--blue);
+  color: white;
+  border-radius: 10px;
+}
+
+/* ── GTM ── */
+.gtm-phase {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  border-left: 3px solid;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── PERSONA ── */
+.persona-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.persona-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+}
+
+/* ── PROTOTYPE FRAME ── */
+.proto-frame {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.proto-bar {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.proto-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+.proto-url {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  margin-left: 8px;
+}
+
+.proto-content {
+  flex: 1;
+  display: flex;
+  padding: 20px;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* ── TWO-COL LAYOUT ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  flex: 1;
+  align-items: start;
+}
+
+.two-col-60-40 {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 32px;
+  flex: 1;
+}
+
+/* ── CHECKMARK LIST ── */
+.check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.4;
+}
+
+.check-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.check-icon.yes { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.check-icon.no { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+
+/* ── CAUSAL CHAIN ── */
+.chain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chain-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.chain-arrow {
+  font-size: 10px;
+  color: var(--text3);
+  margin-left: 16px;
+}
+
+/* ── PHILOSOPHY ── */
+.philosophy-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.philosophy-half {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.philosophy-half.bad {
+  background: rgba(239,68,68,0.05);
+  border-right: 1px solid var(--border);
+}
+
+.philosophy-half.good {
+  background: rgba(16,185,129,0.05);
+}
+
+.philosophy-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.philosophy-label.bad-label { color: #ef4444; }
+.philosophy-label.good-label { color: var(--green); }
+
+.philosophy-quote {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ── METRICS TABLE ── */
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.metrics-table th {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.metrics-table td {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text2);
+  border-bottom: 1px solid rgba(26,39,68,0.5);
+  vertical-align: top;
+  line-height: 1.4;
+}
+
+.metrics-table td:first-child {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 13px;
+}
+
+/* ── CLOSING SLIDE ── */
+#s14 { justify-content: center; align-items: center; text-align: center; }
+
+.closing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 40px;
+  max-width: 640px;
+}
+
+.closing-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ── SLIDE 1: TITLE ── -->
+  <div class="slide active" id="s1">
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="slide-num">01 / 14</div>
+
+    <div style="max-width: 680px; margin-top: 80px;">
+      <div class="title-kicker">PM Take-Home · CivilGrid</div>
+      <div class="h1 title-main">Layer Picker</div>
+      <div class="title-sub">Product Strategy &amp; Launch Plan</div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 40px;">
+        <span class="tag tag-blue">Strategy</span>
+        <span class="tag tag-green">Discovery</span>
+        <span class="tag tag-amber">Roadmap</span>
+        <span class="tag tag-purple">GTM</span>
+      </div>
+      <div class="title-meta" style="color: var(--text3);">Nathan Stankowski · 2026-03-24</div>
+    </div>
+
+    <!-- decorative map element -->
+    <div style="position: absolute; right: 72px; top: 50%; transform: translateY(-50%); opacity: 0.35; pointer-events: none;">
+      <svg width="280" height="280" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="280" height="280" fill="none"/>
+        <!-- grid -->
+        <line x1="0" y1="60" x2="280" y2="60" stroke="#1a2744" stroke-width="1"/>
+        <line x1="0" y1="120" x2="280" y2="120" stroke="#1a2744" stroke-width="1"/>
+        <line x1="0" y1="180" x2="280" y2="180" stroke="#1a2744" stroke-width="1"/>
+        <line x1="0" y1="240" x2="280" y2="240" stroke="#1a2744" stroke-width="1"/>
+        <line x1="60" y1="0" x2="60" y2="280" stroke="#1a2744" stroke-width="1"/>
+        <line x1="120" y1="0" x2="120" y2="280" stroke="#1a2744" stroke-width="1"/>
+        <line x1="180" y1="0" x2="180" y2="280" stroke="#1a2744" stroke-width="1"/>
+        <line x1="240" y1="0" x2="240" y2="280" stroke="#1a2744" stroke-width="1"/>
+        <!-- parcel -->
+        <rect x="60" y="60" width="120" height="100" stroke="#10b981" stroke-width="1.5" stroke-dasharray="6 3" fill="rgba(16,185,129,0.05)"/>
+        <!-- road -->
+        <line x1="0" y1="180" x2="280" y2="180" stroke="#2d3f5a" stroke-width="3"/>
+        <line x1="180" y1="0" x2="180" y2="280" stroke="#2d3f5a" stroke-width="3"/>
+        <!-- transmission -->
+        <path d="M 0 30 Q 100 20 160 40 Q 220 55 280 35" stroke="#facc15" stroke-width="1.5" stroke-dasharray="10 4" fill="none" opacity="0.8"/>
+        <!-- fault line -->
+        <path d="M 0 255 Q 80 240 140 250 Q 200 255 280 245" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+        <!-- towers -->
+        <rect x="58" y="33" width="5" height="8" fill="#facc15"/>
+        <rect x="158" y="36" width="5" height="8" fill="#facc15"/>
+        <rect x="248" y="28" width="5" height="8" fill="#facc15"/>
+        <!-- compass -->
+        <circle cx="248" cy="240" r="18" stroke="#243358" stroke-width="1" fill="none"/>
+        <line x1="248" y1="226" x2="248" y2="254" stroke="#475569" stroke-width="0.8"/>
+        <line x1="234" y1="240" x2="262" y2="240" stroke="#475569" stroke-width="0.8"/>
+        <polygon points="248,226 244,234 248,230 252,234" fill="#64748b"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 2: THE PROBLEM ── -->
+  <div class="slide" id="s2">
+    <div class="bg-grid"></div>
+    <div class="slide-num">02 / 14</div>
+    <div class="eyebrow">The Problem</div>
+    <div class="h2" style="margin-bottom: 8px;">150+ datasets.<br>Zero guidance.</div>
+    <div class="body" style="max-width: 560px; margin-bottom: 36px;">Infrastructure developers and engineers open CivilGrid to evaluate a specific site — not to browse data. Every session, they manually reconstruct the same map configuration from memory. Irrelevant layers add noise. Relevant layers get missed.</div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; margin-bottom: 32px;">
+      <div class="problem-stat">
+        <div class="stat-num" style="color: var(--yellow);">150+</div>
+        <div class="stat-label">GIS datasets available</div>
+      </div>
+      <div class="problem-stat">
+        <div class="stat-num" style="color: var(--orange);">0</div>
+        <div class="stat-label">Geography-aware filters</div>
+      </div>
+      <div class="problem-stat">
+        <div class="stat-num" style="color: var(--blue);">0</div>
+        <div class="stat-label">Role-based defaults</div>
+      </div>
+      <div class="problem-stat">
+        <div class="stat-num" style="color: var(--pink);">0</div>
+        <div class="stat-label">Session persistence</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--amber);">
+      <div style="font-family: 'DM Mono', monospace; font-size: 10px; color: var(--amber); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">The Core Pain</div>
+      <div class="body">"NY State Parks appears on every project — even when I'm evaluating a site in Phoenix. I spend the first 10 minutes of every session cleaning up the map before I can do any actual analysis."</div>
+      <div style="margin-top: 8px; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3);">— Composite from customer interview signals</div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 3: ABOUT ME ── -->
+  <div class="slide" id="s3">
+    <div class="bg-grid"></div>
+    <div class="slide-num">03 / 14</div>
+    <div class="eyebrow">Background</div>
+    <div class="h2" style="margin-bottom: 32px;">PM Background</div>
+
+    <div class="two-col" style="align-items: stretch;">
+      <div class="col">
+        <div class="card" style="border-top: 3px solid var(--blue);">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px;">Experience</div>
+          <div class="check-list">
+            <div class="check-item">
+              <div class="check-icon yes">✓</div>
+              <span>B2B SaaS product — from 0→1 through growth</span>
+            </div>
+            <div class="check-item">
+              <div class="check-icon yes">✓</div>
+              <span>Cross-functional delivery across eng, design, data, sales</span>
+            </div>
+            <div class="check-item">
+              <div class="check-icon yes">✓</div>
+              <span>Platform and infrastructure tooling for technical users</span>
+            </div>
+            <div class="check-item">
+              <div class="check-icon yes">✓</div>
+              <span>Data products and visualization — translating complex datasets into user workflows</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="border-top: 3px solid var(--green);">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px;">What I bring to CivilGrid</div>
+          <div class="check-list">
+            <div class="check-item">
+              <div class="check-icon yes">✓</div>
+              <span>Pattern matching from tools that serve technical, project-based workflows</span>
+            </div>
+            <div class="check-item">
+              <div class="check-icon yes">✓</div>
+              <span>Deep respect for the user's time — due diligence is high stakes, not exploratory</span>
+            </div>
+            <div class="check-item">
+              <div class="check-icon yes">✓</div>
+              <span>Experience building features that become upsell foundations</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="card" style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 12px; border-style: dashed; opacity: 0.6;">
+          <div style="font-size: 32px;">👤</div>
+          <div style="font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase;">Your photo / bio here</div>
+          <div class="body-sm">2–3 lines of personal context:<br>past company, role, domain focus</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 4: PM PHILOSOPHY ── -->
+  <div class="slide" id="s4">
+    <div class="bg-grid"></div>
+    <div class="slide-num">04 / 14</div>
+    <div class="eyebrow">Philosophy</div>
+    <div class="h2" style="margin-bottom: 32px;">How I think about product work</div>
+
+    <div class="philosophy-split" style="margin-bottom: 24px;">
+      <div class="philosophy-half bad">
+        <div class="philosophy-label bad-label">✕ &nbsp;Output Thinking</div>
+        <div class="philosophy-quote" style="color: var(--text2);">"We shipped the layer picker."</div>
+        <div class="body-sm" style="margin-top: 4px;">Measures features delivered. Misses whether those features changed anything for the customer or the business.</div>
+      </div>
+      <div class="philosophy-half good">
+        <div class="philosophy-label good-label">✓ &nbsp;Outcome Thinking</div>
+        <div class="philosophy-quote" style="color: var(--text);">"Time-to-first-meaningful-<br>configuration dropped 42%."</div>
+        <div class="body-sm" style="margin-top: 4px;">Measures the impact on real user behavior. Connects features to business results.</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+      <div class="card-sm" style="border-top: 3px solid var(--blue);">
+        <div class="h4" style="margin-bottom: 6px; font-size: 14px;">Continuous Discovery</div>
+        <div class="body-sm">Ship small, learn fast. Every sprint generates evidence — interviews, usage data, or a test. Never build on assumptions alone.</div>
+      </div>
+      <div class="card-sm" style="border-top: 3px solid var(--green);">
+        <div class="h4" style="margin-bottom: 6px; font-size: 14px;">Strong Opinions, Loosely Held</div>
+        <div class="body-sm">Arrive with a recommendation. Leave room to be wrong. The best PM ideas get stress-tested before they get built.</div>
+      </div>
+      <div class="card-sm" style="border-top: 3px solid var(--purple);">
+        <div class="h4" style="margin-bottom: 6px; font-size: 14px;">Ships Are Not Goals</div>
+        <div class="body-sm">A feature that ships but doesn't move a metric is a bet that lost. Post-launch analysis is not optional — it's how we improve the next bet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 5: WHY THIS FEATURE ── -->
+  <div class="slide" id="s5">
+    <div class="bg-grid"></div>
+    <div class="slide-num">05 / 14</div>
+    <div class="eyebrow">Strategy</div>
+    <div class="h2" style="margin-bottom: 8px;">Why the layer picker, why now?</div>
+    <div class="body" style="max-width: 560px; margin-bottom: 28px;">The layer picker is the front door to everything CivilGrid's data catalog can offer. Fix the front door and every downstream metric improves.</div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1;">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="card" style="border-left: 3px solid var(--blue); flex: 1;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); margin-bottom: 10px;">Activation</div>
+          <div class="h4" style="margin-bottom: 8px; font-size: 15px;">New users can't find value</div>
+          <div class="body-sm">Without role defaults or geography filtering, a new user lands on a wall of 150+ datasets with no starting point. Time-to-first-value is too long. Trials end before the product proves itself.</div>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green); flex: 1;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); margin-bottom: 10px;">Retention</div>
+          <div class="h4" style="margin-bottom: 8px; font-size: 15px;">Existing users repeat wasted setup</div>
+          <div class="body-sm">Layer state resets every session. Every returning user re-configures the same map they built last week. This friction is invisible in aggregate but real in every session.</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="card" style="border-left: 3px solid var(--amber); flex: 1;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); margin-bottom: 10px;">Expansion</div>
+          <div class="h4" style="margin-bottom: 8px; font-size: 15px;">The upsell has no UI home</div>
+          <div class="body-sm">Proprietary layer upload — the planned premium capability — needs a UI paradigm to live in. The layer picker is that foundation. Ship it now; the upsell slots in without re-architecture.</div>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--purple); flex: 1;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--purple); margin-bottom: 10px;">Sales</div>
+          <div class="h4" style="margin-bottom: 8px; font-size: 15px;">Demos don't land on day one</div>
+          <div class="body-sm">A generic layer list in a demo doesn't prove relevance. A geography-aware panel configured for a prospect's exact project state and role does. The layer picker is a sales tool.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 6: ICP ── -->
+  <div class="slide" id="s6">
+    <div class="bg-grid"></div>
+    <div class="slide-num">06 / 14</div>
+    <div class="eyebrow">Ideal Customer Profile</div>
+    <div class="h2" style="margin-bottom: 28px;">Who we're building for</div>
+
+    <div class="grid-3" style="flex: 1; align-items: stretch; margin-bottom: 20px;">
+      <div class="persona-card" style="border-top: 3px solid var(--yellow);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="persona-avatar">🏗️</div>
+          <div>
+            <div class="h4" style="font-size: 14px;">Infrastructure Developer</div>
+            <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); margin-top: 2px;">PRIMARY</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="body-sm" style="margin-bottom: 4px;"><strong>Job to be done:</strong> Quickly assess whether a site has deal-breakers before committing capital.</div>
+        <div class="check-list">
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Land rights, utility conflicts, seismic risk</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Evaluating multiple sites in parallel</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span>Doesn't need sub-distribution routing detail</span></div>
+        </div>
+      </div>
+
+      <div class="persona-card" style="border-top: 3px solid var(--cyan);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="persona-avatar">📐</div>
+          <div>
+            <div class="h4" style="font-size: 14px;">Civil / Environmental Engineer</div>
+            <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); margin-top: 2px;">PRIMARY</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="body-sm" style="margin-bottom: 4px;"><strong>Job to be done:</strong> Find and document precise underground/geotechnical data that informs design and permitting.</div>
+        <div class="check-list">
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Distribution lines, vaults, seismic specifics</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Single-site, deep analysis</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span>Doesn't need high-level transmission context</span></div>
+        </div>
+      </div>
+
+      <div class="persona-card" style="border-top: 3px solid var(--purple);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="persona-avatar">🌿</div>
+          <div>
+            <div class="h4" style="font-size: 14px;">Environmental Consultant</div>
+            <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); margin-top: 2px;">SECONDARY</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="body-sm" style="margin-bottom: 4px;"><strong>Job to be done:</strong> Characterize site-specific environmental and geotechnical risk for permitting.</div>
+        <div class="check-list">
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Fault lines, landslide areas, park boundaries</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Regulatory constraints and land designations</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span>Doesn't need utility routing detail</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="border-color: var(--border2); background: var(--bg3);">
+      <div class="body-sm"><strong style="color: var(--text);">Key insight:</strong> All three personas are <strong>project-centric, not exploratory</strong>. They open CivilGrid with a specific site and objective. This drives the entire design — per-project persistence over global preferences, role-based defaults over blank slates.</div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 7: BUSINESS KPIs ── -->
+  <div class="slide" id="s7">
+    <div class="bg-grid"></div>
+    <div class="slide-num">07 / 14</div>
+    <div class="eyebrow">Business KPIs</div>
+    <div class="h2" style="margin-bottom: 8px;">What this feature should move</div>
+    <div class="body" style="max-width: 600px; margin-bottom: 28px;">Not DAU/MAU — this is project-based B2B software. Engineers don't open CivilGrid daily. We measure value per project session and business-level stickiness.</div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1;">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3);">Feature-Level KPIs</div>
+        <div class="kpi-card" style="border-top-color: var(--blue);">
+          <div class="h4" style="font-size: 13px;">Time to First Meaningful Layer Config</div>
+          <div class="body-sm">How long until a new user reaches a layer state that reflects their actual use case. Role defaults should compress this significantly.</div>
+        </div>
+        <div class="kpi-card" style="border-top-color: var(--green);">
+          <div class="h4" style="font-size: 13px;">Layer Engagement Depth per Session</div>
+          <div class="body-sm">Avg distinct layers interacted per session, by role. Breadth of exploration = data catalog value realized.</div>
+        </div>
+        <div class="kpi-card" style="border-top-color: var(--purple);">
+          <div class="h4" style="font-size: 13px;">Layer Config Retention Rate</div>
+          <div class="body-sm">% of returning users whose saved state is intact on next project open. Confirms persistence is valued.</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3);">Business-Level KPIs</div>
+        <div class="card" style="flex: 1; display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <div class="h4" style="font-size: 13px; margin-bottom: 6px; color: var(--yellow);">Net Revenue Retention (NRR)</div>
+            <div class="chain">
+              <div class="chain-item">Confusing map → high time-to-value per project</div>
+              <div class="chain-arrow">↓</div>
+              <div class="chain-item">Product feels less capable than it is</div>
+              <div class="chain-arrow">↓</div>
+              <div class="chain-item">Renewals start from weak perceived value</div>
+              <div class="chain-arrow">↓</div>
+              <div class="chain-item" style="color: var(--green);">Layer picker → CS has concrete win for QBR</div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div>
+            <div class="h4" style="font-size: 13px; margin-bottom: 6px; color: var(--cyan);">Trial-to-Paid Conversion</div>
+            <div class="body-sm">Geography-aware demo shows a prospect their exact project state in 30 seconds. Shortens the "prove you're relevant" phase.</div>
+          </div>
+          <div class="divider"></div>
+          <div>
+            <div class="h4" style="font-size: 13px; margin-bottom: 6px; color: var(--purple);">Expansion Revenue (Proprietary Layers)</div>
+            <div class="body-sm">Layer picker establishes the UI pattern. When custom upload ships, adoption is near-zero learning curve.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 8: CONTINUOUS DISCOVERY ── -->
+  <div class="slide" id="s8">
+    <div class="bg-grid"></div>
+    <div class="slide-num">08 / 14</div>
+    <div class="eyebrow">Discovery</div>
+    <div class="h2" style="margin-bottom: 8px;">What I'd want to know first</div>
+    <div class="body" style="max-width: 560px; margin-bottom: 28px;">Before finalizing any design, four evidence streams would shape the solution — or change it entirely.</div>
+
+    <div class="grid-2" style="flex: 1; align-items: stretch;">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="card" style="border-left: 3px solid var(--blue); flex: 1;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--blue); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">Usage Analytics</div>
+          <div class="body-sm" style="margin-bottom: 8px;">Which layers are active in 80% of sessions? If 12 layers do the heavy lifting across all users, defaults are obvious and role segmentation may be simpler than assumed.</div>
+          <div class="tag tag-blue">Would inform: default layer sets</div>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green); flex: 1;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--green); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">5–8 Customer Interviews</div>
+          <div class="body-sm" style="margin-bottom: 8px;">"Walk me through your last due diligence session, start to finish." Listen for confusion, repetition, and workarounds — not feature wishlists. Behavior &gt; stated preference.</div>
+          <div class="tag tag-green">Would inform: persistence vs. search priority</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="card" style="border-left: 3px solid var(--amber); flex: 1;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--amber); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">Support Ticket Analysis</div>
+          <div class="body-sm" style="margin-bottom: 8px;">Map configuration complaints, "I can't find X layer" requests, and "why is this showing in [wrong state]" tickets reveal what's actually causing pain at scale.</div>
+          <div class="tag tag-amber">Would inform: MVP scope prioritization</div>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--purple); flex: 1;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--purple); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">Sales Call Recordings</div>
+          <div class="body-sm" style="margin-bottom: 8px;">Where does the map experience cause friction or enthusiasm in demos? Which layers do prospects ask about that aren't surfaced? Sales signals reveal unmet demand.</div>
+          <div class="tag tag-purple">Would inform: demo script + Coming Soon roadmap</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 9: THREE APPROACHES ── -->
+  <div class="slide" id="s9">
+    <div class="bg-grid"></div>
+    <div class="slide-num">09 / 14</div>
+    <div class="eyebrow">Design</div>
+    <div class="h2" style="margin-bottom: 24px;">Three approaches considered</div>
+
+    <div class="grid-3" style="flex: 1; align-items: stretch;">
+      <div class="option-card">
+        <div>
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">Option A</div>
+          <div class="h4" style="font-size: 15px; margin-bottom: 8px;">Simple Checkbox Panel</div>
+          <div class="body-sm" style="margin-bottom: 12px;">Static sidebar, all 150+ layers, grouped by category. Manual toggles, no geography filter, no persistence.</div>
+        </div>
+        <div class="divider"></div>
+        <div class="check-list">
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Fastest to build</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span>Irrelevant layers still visible</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span>No memory — resets every session</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span>Ships a UI, not a solution</span></div>
+        </div>
+      </div>
+
+      <div class="option-card recommended">
+        <div class="recommended-badge">MVP Recommendation</div>
+        <div>
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--blue); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">Option B</div>
+          <div class="h4" style="font-size: 15px; margin-bottom: 8px;">Context-Aware Filtered Panel</div>
+          <div class="body-sm" style="margin-bottom: 12px;">Geography filtering + role defaults + per-project persistence. Solves the three core pain points without over-building.</div>
+        </div>
+        <div class="divider"></div>
+        <div class="check-list">
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Geography-aware: no irrelevant layers</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Role defaults: right start, every session</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Persistence: config survives session close</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Builds data model for presets + upsell</span></div>
+        </div>
+      </div>
+
+      <div class="option-card">
+        <div>
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">Option C</div>
+          <div class="h4" style="font-size: 15px; margin-bottom: 8px;">Full Smart Picker + Presets</div>
+          <div class="body-sm" style="margin-bottom: 12px;">Option B plus named presets, team sharing, full-text search, and data density previews.</div>
+        </div>
+        <div class="divider"></div>
+        <div class="check-list">
+          <div class="check-item"><div class="check-icon yes">✓</div><span>Highest long-term value</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span>Requires team/org data model</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span>Pre-bets on unvalidated usage patterns</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span>Risk of over-build before learning</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 10: MVP ── -->
+  <div class="slide" id="s10">
+    <div class="bg-grid"></div>
+    <div class="slide-num">10 / 14</div>
+    <div class="eyebrow">MVP Scope</div>
+    <div class="h2" style="margin-bottom: 24px;">What's in. What's out. Why.</div>
+
+    <div class="grid-2" style="flex: 1; align-items: stretch;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 2px;">In MVP</div>
+        <div class="check-list">
+          <div class="check-item"><div class="check-icon yes">✓</div><span><strong>Hierarchical panel</strong> — category → subcategory → layer</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span><strong>Geography-aware filtering</strong> — layers shown only if they have coverage in the project state</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span><strong>Three layer states</strong> — Active, Available, Coming Soon (with interest signal)</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span><strong>Role-based defaults</strong> — Infrastructure Developer / Civil Engineer / Environmental Consultant</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span><strong>Per-project persistence</strong> — layer state saves server-side per project, not session</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span><strong>Layer metadata on hover</strong> — source, last updated, coverage</span></div>
+          <div class="check-item"><div class="check-icon yes">✓</div><span><strong>Keyword search</strong> — real-time filter within the panel</span></div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 2px;">Explicitly Out</div>
+        <div class="check-list">
+          <div class="check-item"><div class="check-icon no">✗</div><span><strong>Named presets</strong> — defer until usage data confirms cross-project reuse</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span><strong>Team/org sharing</strong> — requires org data model, separate scope</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span><strong>Proprietary layer upload</strong> — separate product build; MVP must not block it</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span><strong>Layer z-index / opacity controls</strong> — power user feature, validate demand first</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span><strong>ML recommendations</strong> — need usage baseline before training signal exists</span></div>
+        </div>
+
+        <div class="card" style="margin-top: 8px; border-color: var(--border2); background: rgba(59,130,246,0.05);">
+          <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--blue); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">Engineering constraint</div>
+          <div class="body-sm">Layer state must be saved <strong>server-side</strong> per project — not localStorage. Layer coverage matrix must be updatable by Data team without a code deploy. These are architectural decisions, not UI decisions. Flag for eng scoping early.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 11: PROTOTYPE ── -->
+  <div class="slide" id="s11">
+    <div class="bg-grid"></div>
+    <div class="slide-num">11 / 14</div>
+    <div class="eyebrow">Prototype</div>
+    <div class="h2" style="margin-bottom: 16px;">Cardboard prototype — interactive</div>
+
+    <div class="proto-frame" style="flex: 1;">
+      <div class="proto-bar">
+        <div class="proto-dot" style="background: #ef4444;"></div>
+        <div class="proto-dot" style="background: #f59e0b;"></div>
+        <div class="proto-dot" style="background: #22c55e;"></div>
+        <div class="proto-url">prototype-v1.html · Phoenix, AZ · Camelback Corridor</div>
+      </div>
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 24px; padding: 32px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; width: 100%; max-width: 700px;">
+          <div class="card-sm" style="text-align: center; border-top: 2px solid var(--green);">
+            <div style="font-size: 24px; margin-bottom: 6px;">🗺️</div>
+            <div class="h4" style="font-size: 12px; margin-bottom: 4px;">Map + Panel</div>
+            <div class="body-sm">Two-panel layout with GIS map placeholder and full sidebar</div>
+          </div>
+          <div class="card-sm" style="text-align: center; border-top: 2px solid var(--blue);">
+            <div style="font-size: 24px; margin-bottom: 6px;">⚙️</div>
+            <div class="h4" style="font-size: 12px; margin-bottom: 4px;">All States Live</div>
+            <div class="body-sm">Active, Available, Coming Soon — all interactive and functional</div>
+          </div>
+          <div class="card-sm" style="text-align: center; border-top: 2px solid var(--purple);">
+            <div style="font-size: 24px; margin-bottom: 6px;">👤</div>
+            <div class="h4" style="font-size: 12px; margin-bottom: 4px;">Role Switcher</div>
+            <div class="body-sm">3 personas with distinct default layer sets</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3);">Open alongside this deck to demo</div>
+          <div class="tag tag-amber" style="font-size: 11px; padding: 5px 16px;">discover/prototype-v1.html</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 12: ROADMAP ── -->
+  <div class="slide" id="s12">
+    <div class="bg-grid"></div>
+    <div class="slide-num">12 / 14</div>
+    <div class="eyebrow">Roadmap</div>
+    <div class="h2" style="margin-bottom: 28px;">MVP → upsell, one coherent arc</div>
+
+    <div class="roadmap-track" style="margin-bottom: 32px;">
+      <div class="roadmap-node">
+        <div class="roadmap-dot active">📍</div>
+        <div class="roadmap-content">
+          <span class="phase-badge phase-1">Q2 2026</span>
+          <div class="h4" style="font-size: 14px; margin-top: 6px;">MVP</div>
+          <div class="body-sm" style="text-align: center;">Geo filter<br>Role defaults<br>Persistence<br>Search + metadata</div>
+        </div>
+      </div>
+      <div class="roadmap-node">
+        <div class="roadmap-dot">💾</div>
+        <div class="roadmap-content">
+          <span class="phase-badge phase-2">Q3 2026</span>
+          <div class="h4" style="font-size: 14px; margin-top: 6px;">Iteration 1</div>
+          <div class="body-sm" style="text-align: center;">Named presets<br>Cross-project reuse<br>Save + load UI</div>
+        </div>
+      </div>
+      <div class="roadmap-node">
+        <div class="roadmap-dot">👥</div>
+        <div class="roadmap-content">
+          <span class="phase-badge phase-3">Q4 2026</span>
+          <div class="h4" style="font-size: 14px; margin-top: 6px;">Iteration 2</div>
+          <div class="body-sm" style="text-align: center;">Team preset sharing<br>Org-level defaults<br>Admin controls</div>
+        </div>
+      </div>
+      <div class="roadmap-node">
+        <div class="roadmap-dot">🔒</div>
+        <div class="roadmap-content">
+          <span class="phase-badge phase-future">2027+</span>
+          <div class="h4" style="font-size: 14px; margin-top: 6px;">Premium Tier</div>
+          <div class="body-sm" style="text-align: center;">Proprietary layer upload<br>Custom data in same panel<br>Expansion revenue</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <div style="display: flex; gap: 32px;">
+        <div style="flex: 1;">
+          <div class="h4" style="font-size: 13px; margin-bottom: 6px; color: var(--purple);">Why this sequence?</div>
+          <div class="body-sm">Each iteration validates the usage pattern needed to justify the next. Presets only make sense once we confirm per-project state is valued. Team sharing only makes sense once preset creation is high. Proprietary upload only converts if users already have a habit of managing layers.</div>
+        </div>
+        <div style="flex: 1;">
+          <div class="h4" style="font-size: 13px; margin-bottom: 6px; color: var(--amber);">Trigger for each iteration</div>
+          <div class="check-list">
+            <div class="check-item"><div class="check-icon yes">→</div><span>Iter 1: users reconfiguring layers when starting similar projects</span></div>
+            <div class="check-item"><div class="check-icon yes">→</div><span>Iter 2: preset creation high + requests for cross-team consistency</span></div>
+            <div class="check-item"><div class="check-icon yes">→</div><span>Premium: team sharing active + enterprise sales requesting custom data</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 13: GTM ── -->
+  <div class="slide" id="s13">
+    <div class="bg-grid"></div>
+    <div class="slide-num">13 / 14</div>
+    <div class="eyebrow">Go-to-Market</div>
+    <div class="h2" style="margin-bottom: 24px;">Launch carefully. Let the product talk.</div>
+
+    <div class="grid-2" style="flex: 1; align-items: start; gap: 24px;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 2px;">Customer Rollout</div>
+        <div class="gtm-phase" style="border-left-color: var(--blue);">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="h4" style="font-size: 13px;">Phase 1 — Private Beta</div>
+            <span class="tag tag-blue">Weeks 1–4</span>
+          </div>
+          <div class="body-sm">8–12 power users from top accounts who have flagged layer friction. Loom + 30-min onboarding call. Goal: surface geography filtering bugs and wrong role defaults before broad rollout.</div>
+        </div>
+        <div class="gtm-phase" style="border-left-color: var(--green);">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="h4" style="font-size: 13px;">Phase 2 — Expanded Beta</div>
+            <span class="tag tag-green">Weeks 5–8</span>
+          </div>
+          <div class="body-sm">Open to active accounts (5+ sessions / 90 days). CS email — not marketing. In-app tooltip sequence: 3 key behaviors, dismissible. Collect structured NPS feedback.</div>
+        </div>
+        <div class="gtm-phase" style="border-left-color: var(--purple);">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="h4" style="font-size: 13px;">Phase 3 — General Availability</div>
+            <span class="tag tag-purple">Week 9+</span>
+          </div>
+          <div class="body-sm">Two-sentence modal on next login. Plain-text email from CEO or Head of Product — not a newsletter. No press release.</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: -4px;">Sales Enablement</div>
+        <div class="card-sm" style="border-left: 3px solid var(--yellow);">
+          <div class="h4" style="font-size: 13px; margin-bottom: 6px;">Updated Demo Path</div>
+          <div class="body-sm">Rep inputs prospect's actual project location + role. Panel loads geography-filtered + role-appropriate in real time. This is the moment: "here's CivilGrid for <em>your</em> Phoenix project" before showing any data.</div>
+        </div>
+        <div class="card-sm">
+          <div class="h4" style="font-size: 13px; margin-bottom: 4px;">One-Liner</div>
+          <div style="font-style: italic; font-size: 13px; color: var(--text); line-height: 1.5; padding: 8px 12px; background: var(--bg3); border-radius: 6px; margin-top: 4px;">"CivilGrid surfaces only the data relevant to your project — filtered by geography, configured for your role — so your team spends time on analysis, not managing the map."</div>
+        </div>
+        <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: -4px;">Marketing Channels</div>
+        <div class="check-list">
+          <div class="check-item"><div class="check-icon yes">→</div><span><strong>LinkedIn:</strong> before/after UI post — infrastructure pros respond to concrete product changes</span></div>
+          <div class="check-item"><div class="check-icon yes">→</div><span><strong>Email:</strong> plain text, from leadership — "we fixed something that was bothering you"</span></div>
+          <div class="check-item"><div class="check-icon no">✗</div><span><strong>Avoid:</strong> press releases, paid ads, feature videos. This audience is skeptical of marketing.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 14: SUCCESS METRICS ── -->
+  <div class="slide" id="s14" style="justify-content: flex-start;">
+    <div class="bg-grid"></div>
+    <div class="slide-num">14 / 14</div>
+    <div class="eyebrow">Post-Launch Success</div>
+    <div class="h2" style="margin-bottom: 24px;">How we know it worked</div>
+
+    <div style="flex: 1; overflow: hidden;">
+      <table class="metrics-table" style="width: 100%;">
+        <thead>
+          <tr>
+            <th style="width: 100px;">Window</th>
+            <th>Signal</th>
+            <th>What we're looking for</th>
+            <th style="width: 110px;">Decision</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-blue" style="font-size: 9px;">Week 1–2</span></td>
+            <td>Layer state save error rate<br><span style="font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3);">+ geography filtering QA</span></td>
+            <td>Alert if &gt;1% saves fail. QA check: are layers correctly filtered for project state? Any mismatch is P1.</td>
+            <td style="color: var(--blue); font-size: 11px;">Ship / rollback</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-green" style="font-size: 9px;">Month 1</span></td>
+            <td>Layer picker activation rate<br><span style="font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3);">+ default modification rate</span></td>
+            <td>Target: &gt;60% of active users open and interact with panel. Default mod rate 30–60%: too low = defaults sticky; too high = defaults wrong.</td>
+            <td style="color: var(--green); font-size: 11px;">Tune defaults</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-purple" style="font-size: 9px;">Month 2–3</span></td>
+            <td>Session depth vs. baseline<br><span style="font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3);">+ support ticket deflection</span></td>
+            <td>Avg layers interacted per session should increase. Layer-related support tickets should decrease. If neither moves, feature didn't solve the right problem.</td>
+            <td style="color: var(--purple); font-size: 11px;">Iter 1 / pivot</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-amber" style="font-size: 9px;">Month 3+</span></td>
+            <td>NRR cohort split<br><span style="font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3);">+ expansion signals</span></td>
+            <td>Active layer picker users should show higher NRR trajectory than non-users. Expansion signals (seat growth, proprietary layer interest) confirm business thesis.</td>
+            <td style="color: var(--amber); font-size: 11px;">Roadmap bet</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 20px;">
+      <div class="card-sm" style="text-align: center; border-top: 2px solid var(--blue);">
+        <div style="font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--blue); margin-bottom: 4px;">&gt;60%</div>
+        <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase;">Activation target<br>within 30 days</div>
+      </div>
+      <div class="card-sm" style="text-align: center; border-top: 2px solid var(--green);">
+        <div style="font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--green); margin-bottom: 4px;">&gt;5pp</div>
+        <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase;">NRR improvement<br>active vs. non-users</div>
+      </div>
+      <div class="card-sm" style="text-align: center; border-top: 2px solid var(--purple);">
+        <div style="font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--purple); margin-bottom: 4px;">↓ support</div>
+        <div style="font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase;">Layer discovery tickets<br>month 1 vs. baseline</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <button class="nav-btn" id="prevBtn" onclick="goSlide(-1)" disabled>‹</button>
+  <div class="nav-dots" id="navDots"></div>
+  <span class="nav-counter" id="navCounter">1 / 14</span>
+  <button class="nav-btn" id="nextBtn" onclick="goSlide(1)">›</button>
+</nav>
+
+<script>
+const TOTAL = 14;
+let current = 1;
+
+function goSlide(dir) {
+  const next = current + dir;
+  if (next < 1 || next > TOTAL) return;
+  const prev = document.getElementById('s' + current);
+  prev.classList.remove('active');
+  prev.classList.add('exit');
+  setTimeout(() => prev.classList.remove('exit'), 400);
+  current = next;
+  document.getElementById('s' + current).classList.add('active');
+  updateNav();
+}
+
+function goToSlide(n) {
+  if (n === current) return;
+  const dir = n > current ? 1 : -1;
+  const prev = document.getElementById('s' + current);
+  prev.classList.remove('active');
+  prev.classList.add('exit');
+  setTimeout(() => prev.classList.remove('exit'), 400);
+  current = n;
+  document.getElementById('s' + current).classList.add('active');
+  updateNav();
+}
+
+function updateNav() {
+  document.getElementById('prevBtn').disabled = current === 1;
+  document.getElementById('nextBtn').disabled = current === TOTAL;
+  document.getElementById('navCounter').textContent = current + ' / ' + TOTAL;
+  document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i + 1 === current);
+  });
+}
+
+// Build dots
+const dotsEl = document.getElementById('navDots');
+for (let i = 1; i <= TOTAL; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'nav-dot' + (i === 1 ? ' active' : '');
+  dot.onclick = () => goToSlide(i);
+  dotsEl.appendChild(dot);
+}
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goSlide(1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goSlide(-1); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivilGrid — Layer Picker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sidebar-bg: #0a0f1e;
+    --sidebar-border: #1a2744;
+    --map-bg: #111827;
+    --header-bg: #060c18;
+    --text-primary: #e2e8f0;
+    --text-secondary: #64748b;
+    --text-muted: #334155;
+    --accent-blue: #3b82f6;
+    --accent-blue-glow: rgba(59,130,246,0.15);
+    --accent-amber: #f59e0b;
+    --accent-amber-glow: rgba(245,158,11,0.12);
+    --electric-color: #facc15;
+    --gas-color: #f97316;
+    --land-color: #10b981;
+    --geo-color: #a78bfa;
+    --transport-color: #38bdf8;
+    --boundary-color: #f472b6;
+    --toggle-off: #1e3a5f;
+    --toggle-on: #3b82f6;
+    --sidebar-width: 308px;
+    --header-height: 48px;
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: 'Syne', system-ui, sans-serif;
+    background: var(--map-bg);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── TOP HEADER ─── */
+  .app-header {
+    height: var(--header-height);
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--sidebar-border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-mark {
+    width: 22px;
+    height: 22px;
+    background: var(--accent-blue);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0;
+  }
+
+  .header-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--sidebar-border);
+    margin: 0 14px;
+  }
+
+  .project-breadcrumb {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .project-breadcrumb .project-name {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .active-count-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent-blue);
+    background: var(--accent-blue-glow);
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 20px;
+    padding: 3px 10px;
+    letter-spacing: 0.03em;
+  }
+
+  /* ─── MAIN LAYOUT ─── */
+  .app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ─── MAP ─── */
+  .map-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: var(--map-bg);
+  }
+
+  .map-svg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+  }
+
+  .active-chips {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    z-index: 5;
+  }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px 4px 8px;
+    background: rgba(10, 15, 30, 0.92);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-primary);
+    backdrop-filter: blur(8px);
+    cursor: default;
+    transition: border-color 0.15s;
+  }
+
+  .chip:hover { border-color: rgba(255,255,255,0.2); }
+
+  .chip-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .chip-remove {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+    font-family: system-ui;
+  }
+
+  .chip-remove:hover {
+    background: rgba(239,68,68,0.25);
+    color: #ef4444;
+  }
+
+  .prototype-badge {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    z-index: 5;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-left: 1px solid var(--sidebar-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Role selector */
+  .role-selector-wrap {
+    padding: 12px 12px 0;
+    flex-shrink: 0;
+  }
+
+  .role-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+  }
+
+  .role-selector {
+    width: 100%;
+    background: #0d1526;
+    border: 1px solid var(--sidebar-border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 10px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color 0.15s;
+  }
+
+  .role-selector:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+  }
+
+  /* Search */
+  .search-wrap {
+    padding: 10px 12px 0;
+    flex-shrink: 0;
+  }
+
+  .search-input {
+    width: 100%;
+    background: #0d1526;
+    border: 1px solid var(--sidebar-border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 7px 10px 7px 30px;
+    transition: border-color 0.15s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 10px center;
+  }
+
+  .search-input::placeholder { color: var(--text-muted); }
+  .search-input:focus { outline: none; border-color: var(--accent-blue); }
+
+  /* Layers list */
+  .layers-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--sidebar-border) transparent;
+  }
+
+  .layers-list::-webkit-scrollbar { width: 4px; }
+  .layers-list::-webkit-scrollbar-track { background: transparent; }
+  .layers-list::-webkit-scrollbar-thumb { background: var(--sidebar-border); border-radius: 2px; }
+
+  .no-results {
+    display: none;
+    text-align: center;
+    padding: 32px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* Category */
+  .category {
+    margin-bottom: 2px;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.12s;
+    border-radius: 0;
+  }
+
+  .category-header:hover { background: rgba(255,255,255,0.03); }
+
+  .category-icon {
+    font-size: 13px;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .category-name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .category-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    padding: 1px 6px;
+    border-radius: 10px;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    min-width: 28px;
+    text-align: center;
+  }
+
+  .category-badge.has-active {
+    color: var(--accent-blue);
+    background: var(--accent-blue-glow);
+    border-color: rgba(59,130,246,0.2);
+  }
+
+  .chevron {
+    color: var(--text-muted);
+    font-size: 10px;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .category.collapsed .chevron { transform: rotate(-90deg); }
+  .category.collapsed .category-body { display: none; }
+
+  .category-body {
+    padding: 0 0 4px;
+  }
+
+  /* Layer row */
+  .layer-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 38px;
+    cursor: pointer;
+    transition: background 0.1s;
+    position: relative;
+    border-left: 2px solid transparent;
+  }
+
+  .layer-row:hover { background: rgba(255,255,255,0.03); }
+
+  .layer-row.active {
+    border-left-color: var(--category-color, var(--accent-blue));
+    background: rgba(255,255,255,0.02);
+  }
+
+  .layer-row.coming-soon { cursor: default; }
+  .layer-row.coming-soon:hover { background: transparent; }
+
+  .layer-name {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .layer-row.coming-soon .layer-name { color: var(--text-muted); }
+
+  /* Subcategory label */
+  .subcategory-label {
+    padding: 4px 12px 2px 38px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* Toggle switch */
+  .toggle {
+    position: relative;
+    width: 30px;
+    height: 17px;
+    flex-shrink: 0;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 17px;
+    background: var(--toggle-off);
+    transition: background 0.15s ease;
+    cursor: pointer;
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #4a6080;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+
+  .toggle input:checked ~ .toggle-track { background: var(--toggle-on); }
+  .toggle input:checked ~ .toggle-track .toggle-thumb {
+    transform: translateX(13px);
+    background: white;
+  }
+
+  /* Coming soon badge */
+  .coming-soon-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(245,158,11,0.2);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 8px;
+    z-index: 100;
+    background: #0d1830;
+    border: 1px solid var(--sidebar-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-width: 180px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    pointer-events: none;
+  }
+
+  .layer-row:hover .tooltip { display: block; }
+
+  .tooltip-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 7px;
+  }
+  .tooltip-row:last-child { margin-bottom: 0; }
+
+  .tooltip-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .tooltip-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-primary);
+  }
+
+  /* Preset button */
+  .preset-section {
+    padding: 10px 12px;
+    border-top: 1px solid var(--sidebar-border);
+    flex-shrink: 0;
+  }
+
+  .preset-btn {
+    width: 100%;
+    padding: 9px 12px;
+    background: transparent;
+    border: 1px dashed var(--text-muted);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: not-allowed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    position: relative;
+    opacity: 0.6;
+  }
+
+  .preset-btn-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0d1830;
+    border: 1px solid var(--sidebar-border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent-amber);
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    z-index: 20;
+  }
+
+  .preset-btn:hover .preset-btn-tooltip { display: block; }
+
+  /* ─── MAP SVG STYLES ─── */
+  .map-grid { stroke: rgba(255,255,255,0.04); stroke-width: 1; }
+  .map-road { stroke: #2d3f5a; stroke-width: 2; fill: none; }
+  .map-highway { stroke: #3d5070; stroke-width: 4; fill: none; stroke-linecap: round; }
+  .map-parcel { stroke: #10b981; stroke-width: 1.5; fill: rgba(16,185,129,0.04); stroke-dasharray: 6 3; }
+  .map-transmission { stroke: #facc15; stroke-width: 1.5; fill: none; stroke-dasharray: 10 4; opacity: 0.7; }
+  .map-fault { stroke: #a78bfa; stroke-width: 1; fill: none; stroke-dasharray: 3 3; opacity: 0.5; }
+  .map-label { font-family: 'DM Mono', monospace; font-size: 9px; fill: rgba(255,255,255,0.2); }
+  .map-tower { fill: #facc15; opacity: 0.6; }
+  .map-compass { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 1; }
+  .map-compass-text { font-family: 'DM Mono', monospace; font-size: 8px; fill: rgba(255,255,255,0.2); }
+
+  /* coordinate readout */
+  .map-coords {
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+    pointer-events: none;
+  }
+
+  .map-scale {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    pointer-events: none;
+  }
+
+  .scale-bar {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(to right, rgba(255,255,255,0.3) 50%, transparent 50%);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-right: none;
+  }
+
+  .scale-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.04em;
+  }
+
+  /* Layer visibility on map — subtle layer indicators */
+  .map-layer-indicator {
+    transition: opacity 0.3s ease;
+  }
+
+  .map-layer-indicator.hidden { opacity: 0; }
+</style>
+</head>
+<body>
+
+<!-- APP HEADER -->
+<div class="app-header">
+  <div class="logo">
+    <div class="logo-mark">CG</div>
+    CIVILGRID
+  </div>
+  <div class="header-divider"></div>
+  <div class="project-breadcrumb">
+    <svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 0C2.794 0 1 1.794 1 4c0 3 4 8 4 8s4-5 4-8c0-2.206-1.794-4-4-4zm0 5.5C4.172 5.5 3.5 4.828 3.5 4S4.172 2.5 5 2.5 6.5 3.172 6.5 4 5.828 5.5 5 5.5z" fill="#64748b"/>
+    </svg>
+    <span>Phoenix, AZ</span>
+    <span style="color: var(--text-muted)">›</span>
+    <span class="project-name">Site 7 — Camelback Corridor</span>
+  </div>
+  <div class="header-right">
+    <div class="active-count-badge" id="headerCount">7 layers active</div>
+  </div>
+</div>
+
+<!-- MAIN BODY -->
+<div class="app-body">
+
+  <!-- MAP -->
+  <div class="map-area">
+    <div class="map-coords">
+      33.4484° N, 112.0740° W<br>
+      Zoom: 14 · Maricopa County, AZ
+    </div>
+    <div class="map-scale">
+      <div class="scale-bar"></div>
+      <div class="scale-label">0.5 mi</div>
+    </div>
+
+    <svg class="map-svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <!-- Background gradient -->
+      <defs>
+        <radialGradient id="mapGlow" cx="40%" cy="60%" r="50%">
+          <stop offset="0%" stop-color="#1a2744" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#111827" stop-opacity="0"/>
+        </radialGradient>
+        <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+          <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        </pattern>
+        <pattern id="smallgrid" width="12" height="12" patternUnits="userSpaceOnUse">
+          <path d="M 12 0 L 0 0 0 12" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="0.5"/>
+        </pattern>
+      </defs>
+
+      <rect width="900" height="700" fill="url(#smallgrid)"/>
+      <rect width="900" height="700" fill="url(#grid)"/>
+      <rect width="900" height="700" fill="url(#mapGlow)"/>
+
+      <!-- Block fill shapes (parcels/lots) -->
+      <g class="map-layer-indicator" id="mapLandRights" opacity="1">
+        <rect x="120" y="80" width="180" height="130" class="map-parcel"/>
+        <rect x="310" y="80" width="120" height="130" class="map-parcel"/>
+        <rect x="440" y="80" width="160" height="130" class="map-parcel"/>
+        <rect x="120" y="220" width="100" height="90" class="map-parcel"/>
+        <rect x="230" y="220" width="170" height="90" class="map-parcel"/>
+        <rect x="410" y="220" width="190" height="90" class="map-parcel"/>
+        <rect x="120" y="320" width="480" height="120" class="map-parcel" fill="rgba(16,185,129,0.07)"/>
+        <rect x="120" y="450" width="220" height="110" class="map-parcel"/>
+        <rect x="350" y="450" width="250" height="110" class="map-parcel"/>
+        <text x="255" y="388" class="map-label" text-anchor="middle">PARCEL · 1.8 AC</text>
+        <text x="475" y="388" class="map-label" text-anchor="middle">PARCEL · 2.3 AC</text>
+      </g>
+
+      <!-- Roads -->
+      <g class="map-layer-indicator" id="mapTransport" opacity="1">
+        <!-- Main grid roads -->
+        <line x1="0" y1="320" x2="900" y2="320" class="map-road"/>
+        <line x1="0" y1="450" x2="900" y2="450" class="map-road"/>
+        <line x1="120" y1="0" x2="120" y2="700" class="map-road"/>
+        <line x1="600" y1="0" x2="600" y2="700" class="map-road"/>
+        <line x1="310" y1="0" x2="310" y2="700" class="map-road"/>
+        <!-- Highway -->
+        <line x1="0" y1="560" x2="900" y2="560" class="map-highway"/>
+        <text x="450" y="552" class="map-label" text-anchor="middle">I-17 ·  INTERSTATE</text>
+        <text x="450" y="312" class="map-label" text-anchor="middle">CAMELBACK RD</text>
+        <text x="450" y="442" class="map-label" text-anchor="middle">INDIAN SCHOOL RD</text>
+      </g>
+
+      <!-- Transmission lines -->
+      <g class="map-layer-indicator" id="mapElectric" opacity="1">
+        <path d="M 0 160 Q 200 140 400 170 Q 600 200 900 155" class="map-transmission"/>
+        <!-- Tower markers -->
+        <rect x="148" y="153" width="6" height="10" class="map-tower"/>
+        <rect x="298" y="160" width="6" height="10" class="map-tower"/>
+        <rect x="448" y="165" width="6" height="10" class="map-tower"/>
+        <rect x="598" y="152" width="6" height="10" class="map-tower"/>
+        <rect x="748" y="148" width="6" height="10" class="map-tower"/>
+        <text x="300" y="142" class="map-label" text-anchor="middle">345 KV TRANSMISSION</text>
+      </g>
+
+      <!-- Fault line -->
+      <g class="map-layer-indicator" id="mapGeo" opacity="1">
+        <path d="M 0 620 Q 150 600 300 610 Q 450 618 600 600 Q 750 585 900 595" class="map-fault"/>
+        <text x="450" y="590" class="map-label" text-anchor="middle">AGUA FRIA FAULT · ZONE B</text>
+      </g>
+
+      <!-- Compass rose -->
+      <g transform="translate(840, 640)">
+        <circle cx="0" cy="0" r="22" class="map-compass"/>
+        <line x1="0" y1="-16" x2="0" y2="16" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
+        <line x1="-16" y1="0" x2="16" y2="0" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
+        <polygon points="0,-16 -4,-6 0,-10 4,-6" fill="rgba(255,255,255,0.5)"/>
+        <text x="0" y="-19" class="map-compass-text" text-anchor="middle">N</text>
+      </g>
+    </svg>
+
+    <!-- Active layer chips -->
+    <div class="active-chips" id="activeChips"></div>
+
+    <!-- Prototype badge -->
+    <div class="prototype-badge">Prototype · Cardboard Fidelity · 2026-03-23</div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <!-- Role selector -->
+    <div class="role-selector-wrap">
+      <div class="role-label">Viewing as</div>
+      <select class="role-selector" id="roleSelector">
+        <option value="developer">Infrastructure Developer</option>
+        <option value="engineer">Civil / Environmental Engineer</option>
+        <option value="consultant">Environmental Consultant</option>
+      </select>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search layers...">
+    </div>
+
+    <!-- Layers list -->
+    <div class="layers-list" id="layersList">
+      <div class="no-results" id="noResults">No layers match your search.</div>
+    </div>
+
+    <!-- Preset button -->
+    <div class="preset-section">
+      <button class="preset-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        Save as Preset
+        <div class="preset-btn-tooltip">Coming in next release</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA MODEL ───────────────────────────────────────────────────────────────
+
+const ROLE_DEFAULTS = {
+  developer: ['electric-transmission', 'electric-distribution', 'land-parcels', 'geo-fault-lines', 'transport-national-highway', 'boundary-counties'],
+  engineer: ['electric-distribution', 'electric-service', 'gas-distribution-main', 'geo-fault-lines', 'land-parcels', 'transport-state-highway'],
+  consultant: ['geo-fault-lines', 'geo-landslide', 'geo-studies', 'land-parcels', 'boundary-counties', 'boundary-az-parks']
+};
+
+const CATEGORY_COLORS = {
+  electric: '#facc15',
+  gas: '#f97316',
+  land: '#10b981',
+  geo: '#a78bfa',
+  transport: '#38bdf8',
+  boundary: '#f472b6'
+};
+
+// Map visual element IDs
+const MAP_LAYER_MAP = {
+  'electric-transmission': 'mapElectric',
+  'electric-distribution': 'mapElectric',
+  'land-parcels': 'mapLandRights',
+  'geo-fault-lines': 'mapGeo',
+  'transport-national-highway': 'mapTransport',
+  'transport-state-highway': 'mapTransport',
+  'boundary-counties': null
+};
+
+const CATEGORIES = [
+  {
+    id: 'electric',
+    name: 'Electric',
+    icon: '⚡',
+    color: '#facc15',
+    layers: [
+      { id: 'electric-transmission', name: 'Transmission Lines', source: 'EIA / HIFLD', updated: 'Jan 2026', coverage: 'Nationwide' },
+      { id: 'electric-distribution', name: 'Distribution Lines', source: 'APS / SRP', updated: 'Dec 2025', coverage: 'AZ — Maricopa, Pima' },
+      { id: 'electric-service', name: 'Service Lines', source: 'APS / SRP', updated: 'Oct 2025', coverage: 'AZ — select cities' },
+      { id: 'electric-substations', name: 'Substations', source: 'EIA / HIFLD', updated: 'Jan 2026', coverage: 'Nationwide', comingSoon: true },
+      { id: 'electric-vaults', name: 'Vaults', source: 'APS', updated: '—', coverage: 'AZ — Phoenix metro', comingSoon: true }
+    ]
+  },
+  {
+    id: 'gas',
+    name: 'Gas',
+    icon: '🔥',
+    color: '#f97316',
+    layers: [
+      { id: 'gas-transmission', name: 'Transmission Lines', source: 'PHMSA', updated: 'Nov 2025', coverage: 'Nationwide' },
+      { id: 'gas-distribution-main', name: 'Distribution Main Lines', source: 'Southwest Gas', updated: 'Sep 2025', coverage: 'AZ, NV, CA' },
+      { id: 'gas-service', name: 'Service Lines', source: 'Southwest Gas', updated: 'Aug 2025', coverage: 'AZ — Maricopa', comingSoon: true },
+      { id: 'gas-points', name: 'Points', source: 'PHMSA', updated: 'Nov 2025', coverage: 'Nationwide' }
+    ]
+  },
+  {
+    id: 'land',
+    name: 'Land Rights',
+    icon: '📍',
+    color: '#10b981',
+    layers: [
+      { id: 'land-parcels', name: 'Parcels', source: 'Maricopa County Assessor', updated: 'Feb 2026', coverage: 'AZ — 14 counties' },
+      { id: 'land-easements', name: 'Easements', source: 'County Recorder', updated: 'Jan 2026', coverage: 'AZ — Maricopa' },
+      { id: 'land-row', name: 'ROW Corridors', source: 'ADOT', updated: 'Dec 2025', coverage: 'AZ statewide' }
+    ]
+  },
+  {
+    id: 'geo',
+    name: 'Geotechnical',
+    icon: '🏔',
+    color: '#a78bfa',
+    layers: [
+      { id: 'geo-studies', name: 'Geotechnical Studies', source: 'AZGS', updated: 'Mar 2025', coverage: 'AZ — partial' },
+      { id: 'geo-fault-lines', name: 'Fault Lines', source: 'USGS', updated: 'Jan 2026', coverage: 'Nationwide', subcategory: 'Seismic' },
+      { id: 'geo-landslide', name: 'Landslide Areas', source: 'USGS', updated: 'Jan 2026', coverage: 'Nationwide', subcategory: 'Seismic' }
+    ]
+  },
+  {
+    id: 'transport',
+    name: 'Transportation',
+    icon: '🛣',
+    color: '#38bdf8',
+    layers: [
+      { id: 'transport-national-highway', name: 'National Highway Network', source: 'FHWA', updated: 'Dec 2025', coverage: 'Nationwide' },
+      { id: 'transport-state-highway', name: 'State Highway Network', source: 'ADOT', updated: 'Dec 2025', coverage: 'AZ statewide' },
+      { id: 'transport-district-boundaries', name: 'Transportation District Boundaries', source: 'ADOT', updated: 'Nov 2025', coverage: 'AZ statewide' }
+    ]
+  },
+  {
+    id: 'boundary',
+    name: 'Boundaries',
+    icon: '📐',
+    color: '#f472b6',
+    layers: [
+      { id: 'boundary-cities', name: 'Cities', source: 'US Census', updated: 'Jan 2026', coverage: 'Nationwide' },
+      { id: 'boundary-counties', name: 'Counties', source: 'US Census', updated: 'Jan 2026', coverage: 'Nationwide' },
+      { id: 'boundary-az-parks', name: 'Arizona State Parks', source: 'AZSP', updated: 'Oct 2025', coverage: 'AZ statewide' }
+      // NY State Parks, NYC Parks intentionally excluded — not applicable in AZ
+    ]
+  }
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+
+let activeLayers = new Set(ROLE_DEFAULTS.developer);
+let collapsedCategories = new Set();
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+
+function renderSidebar(filterText = '') {
+  const list = document.getElementById('layersList');
+  const noResults = document.getElementById('noResults');
+  const query = filterText.toLowerCase().trim();
+  let anyVisible = false;
+
+  // Clear existing categories (but keep noResults div)
+  const existing = list.querySelectorAll('.category');
+  existing.forEach(el => el.remove());
+
+  CATEGORIES.forEach(cat => {
+    // Filter layers
+    const visibleLayers = cat.layers.filter(l =>
+      !query || l.name.toLowerCase().includes(query) || cat.name.toLowerCase().includes(query)
+    );
+    if (visibleLayers.length === 0) return;
+    anyVisible = true;
+
+    const activeInCat = visibleLayers.filter(l => activeLayers.has(l.id)).length;
+    const collapsed = collapsedCategories.has(cat.id) && !query;
+
+    const catEl = document.createElement('div');
+    catEl.className = 'category' + (collapsed ? ' collapsed' : '');
+    catEl.dataset.catId = cat.id;
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'category-header';
+    header.innerHTML = `
+      <span class="category-icon">${cat.icon}</span>
+      <span class="category-name">${cat.name}</span>
+      <span class="category-badge ${activeInCat > 0 ? 'has-active' : ''}">${activeInCat}/${visibleLayers.length}</span>
+      <span class="chevron">▼</span>
+    `;
+    header.addEventListener('click', () => toggleCategory(cat.id, catEl));
+    catEl.appendChild(header);
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'category-body';
+
+    let lastSubcategory = null;
+
+    visibleLayers.forEach(layer => {
+      // Subcategory label
+      if (layer.subcategory && layer.subcategory !== lastSubcategory) {
+        const subLabel = document.createElement('div');
+        subLabel.className = 'subcategory-label';
+        subLabel.textContent = layer.subcategory;
+        body.appendChild(subLabel);
+        lastSubcategory = layer.subcategory;
+      }
+
+      const row = document.createElement('div');
+      row.className = 'layer-row' +
+        (activeLayers.has(layer.id) ? ' active' : '') +
+        (layer.comingSoon ? ' coming-soon' : '');
+      row.style.setProperty('--category-color', cat.color);
+
+      if (layer.comingSoon) {
+        row.innerHTML = `
+          <span class="layer-name">${layer.name}</span>
+          <span class="coming-soon-badge">Coming Soon in AZ</span>
+          <div class="tooltip">
+            <div class="tooltip-row">
+              <span class="tooltip-label">Source</span>
+              <span class="tooltip-value">${layer.source}</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Coverage</span>
+              <span class="tooltip-value">${layer.coverage}</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Status</span>
+              <span class="tooltip-value" style="color: var(--accent-amber)">Loading AZ data</span>
+            </div>
+          </div>
+        `;
+      } else {
+        const isActive = activeLayers.has(layer.id);
+        row.innerHTML = `
+          <span class="layer-name">${layer.name}</span>
+          <label class="toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" ${isActive ? 'checked' : ''} data-layer-id="${layer.id}">
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </label>
+          <div class="tooltip">
+            <div class="tooltip-row">
+              <span class="tooltip-label">Source</span>
+              <span class="tooltip-value">${layer.source}</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Last Updated</span>
+              <span class="tooltip-value">${layer.updated}</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Coverage</span>
+              <span class="tooltip-value">${layer.coverage}</span>
+            </div>
+          </div>
+        `;
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', () => toggleLayer(layer.id, checkbox.checked));
+        row.addEventListener('click', (e) => {
+          if (!e.target.closest('label')) {
+            checkbox.checked = !checkbox.checked;
+            toggleLayer(layer.id, checkbox.checked);
+          }
+        });
+      }
+
+      body.appendChild(row);
+    });
+
+    catEl.appendChild(body);
+    list.insertBefore(catEl, noResults);
+  });
+
+  noResults.style.display = anyVisible ? 'none' : 'block';
+}
+
+function toggleCategory(catId, el) {
+  if (collapsedCategories.has(catId)) {
+    collapsedCategories.delete(catId);
+    el.classList.remove('collapsed');
+  } else {
+    collapsedCategories.add(catId);
+    el.classList.add('collapsed');
+  }
+}
+
+function toggleLayer(layerId, active) {
+  if (active) {
+    activeLayers.add(layerId);
+  } else {
+    activeLayers.delete(layerId);
+  }
+  renderChips();
+  updateHeaderCount();
+  updateMapLayers();
+  // Re-render just the badge counts
+  renderBadges();
+}
+
+function renderBadges() {
+  CATEGORIES.forEach(cat => {
+    const catEl = document.querySelector(`[data-cat-id="${cat.id}"]`);
+    if (!catEl) return;
+    const badge = catEl.querySelector('.category-badge');
+    const visibleLayers = cat.layers;
+    const activeInCat = visibleLayers.filter(l => activeLayers.has(l.id)).length;
+    badge.textContent = `${activeInCat}/${visibleLayers.length}`;
+    badge.className = 'category-badge' + (activeInCat > 0 ? ' has-active' : '');
+    // Update row states
+    cat.layers.forEach(layer => {
+      const checkbox = catEl.querySelector(`input[data-layer-id="${layer.id}"]`);
+      if (checkbox) {
+        checkbox.checked = activeLayers.has(layer.id);
+        const row = checkbox.closest('.layer-row');
+        if (row) {
+          row.classList.toggle('active', activeLayers.has(layer.id));
+        }
+      }
+    });
+  });
+}
+
+function renderChips() {
+  const container = document.getElementById('activeChips');
+  container.innerHTML = '';
+
+  // Flatten all layers with their category colors
+  const allLayers = CATEGORIES.flatMap(cat =>
+    cat.layers.map(l => ({ ...l, color: cat.color }))
+  );
+
+  activeLayers.forEach(layerId => {
+    const layer = allLayers.find(l => l.id === layerId);
+    if (!layer) return;
+
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = `
+      <div class="chip-dot" style="background: ${layer.color}"></div>
+      <span>${layer.name}</span>
+      <button class="chip-remove" title="Remove layer">✕</button>
+    `;
+    chip.querySelector('.chip-remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleLayer(layerId, false);
+      renderSidebar(document.getElementById('searchInput').value);
+    });
+    container.appendChild(chip);
+  });
+}
+
+function updateHeaderCount() {
+  const count = activeLayers.size;
+  document.getElementById('headerCount').textContent = `${count} layer${count !== 1 ? 's' : ''} active`;
+}
+
+function updateMapLayers() {
+  // Electric
+  const hasElectric = activeLayers.has('electric-transmission') || activeLayers.has('electric-distribution') || activeLayers.has('electric-service');
+  const elEl = document.getElementById('mapElectric');
+  if (elEl) elEl.classList.toggle('hidden', !hasElectric);
+
+  // Land Rights
+  const hasLand = activeLayers.has('land-parcels') || activeLayers.has('land-easements') || activeLayers.has('land-row');
+  const landEl = document.getElementById('mapLandRights');
+  if (landEl) landEl.classList.toggle('hidden', !hasLand);
+
+  // Geotechnical
+  const hasGeo = activeLayers.has('geo-fault-lines') || activeLayers.has('geo-landslide') || activeLayers.has('geo-studies');
+  const geoEl = document.getElementById('mapGeo');
+  if (geoEl) geoEl.classList.toggle('hidden', !hasGeo);
+
+  // Transportation
+  const hasTransport = activeLayers.has('transport-national-highway') || activeLayers.has('transport-state-highway') || activeLayers.has('transport-district-boundaries');
+  const transEl = document.getElementById('mapTransport');
+  if (transEl) transEl.classList.toggle('hidden', !hasTransport);
+}
+
+// ─── ROLE SWITCHER ────────────────────────────────────────────────────────────
+
+document.getElementById('roleSelector').addEventListener('change', (e) => {
+  const role = e.target.value;
+  activeLayers = new Set(ROLE_DEFAULTS[role]);
+  renderSidebar(document.getElementById('searchInput').value);
+  renderChips();
+  updateHeaderCount();
+  updateMapLayers();
+});
+
+// ─── SEARCH ───────────────────────────────────────────────────────────────────
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  renderSidebar(e.target.value);
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+renderSidebar();
+renderChips();
+updateHeaderCount();
+updateMapLayers();
+</script>
+</body>
+</html>
