@@ -278,9 +278,9 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
 }
 
 /* Preset btn */
-.preset-section { padding: 10px 12px; border-top: 1px solid var(--sidebar-border); flex-shrink: 0; }
+.preset-section { padding: 10px 12px; border-top: 1px solid var(--sidebar-border); flex-shrink: 0; display: flex; gap: 8px; }
 .preset-btn {
-  width: 100%; padding: 9px 12px; background: transparent;
+  flex: 1; padding: 9px 12px; background: transparent;
   border: 1px dashed var(--text3); border-radius: 6px; color: var(--text3);
   font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
   cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -403,7 +403,12 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
       <div class="preset-section">
         <button class="preset-btn">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Save as View
+          Save Selections
+          <div class="preset-btn-tip">Coming in next release</div>
+        </button>
+        <button class="preset-btn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload Layers
           <div class="preset-btn-tip">Coming in next release</div>
         </button>
       </div>
