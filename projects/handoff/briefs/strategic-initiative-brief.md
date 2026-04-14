@@ -5,7 +5,7 @@
 **Status:** Aligned
 **Owner:** Wintermute (Product Manager)
 **Last updated:** 2026-03-11
-**Related Feature Briefs:** [`schedule-update-flow.md`](schedule-update-flow.md)
+**Related Feature Briefs:** [`schedule-update-flow.md`](schedule-update-flow.md) · [`daily-log.md`](daily-log.md)
 
 ---
 
@@ -39,9 +39,10 @@ The "Use Case of 1" principle applies here: we win if one superintendent managin
 
 **Buyer:** Project Executive or VP of Operations — the person who signs the check and is accountable for schedule outcomes.
 
-**Primary user:** Site Superintendent — the person who owns daily execution and is currently stuck chasing status.
-
-**Secondary users:** Specialty Foremen (sub-trade leads who log updates) and Project Managers (who consume schedule data for billing and coordination).
+**The three-role workflow:**
+- **Foreman** — provides actuals (completed work, men on site, blockers) and planned commitments (inspections, deliveries, handoffs). The input layer. Must be frictionless — foremen will not adopt new tools.
+- **Superintendent** — aggregates foreman inputs into a look-ahead schedule and daily log. Runs weekly sub coordination meetings off the look-ahead. Feeds structured updates up to the PM/Scheduler. The primary product user.
+- **Project Manager / Schedule Controller** — uses Superintendent outputs to publish updated master schedules (P6/OPC). Published schedules drive planning and financial actions including billing and payment applications. A consumer of structured outputs, not a field user.
 
 ## What We're Building
 
@@ -84,4 +85,4 @@ The agent's job is not to automate decisions — it is to eliminate the data ent
 
 2. **What is the acceptable accuracy threshold for P6 updates?** The "accuracy over guesswork" principle is clear, but the specific threshold at which a Superintendent trusts agent-proposed updates without reviewing every one is unknown. Too many false positives erode trust fast. We need to instrument the human-in-the-loop approval rate from day one of the pilot.
 
-3. **What does the P6 data access path look like?** Most hyperscale sites have P6 managed by the GC's scheduler. The Superintendent may not have write access. The agent's ability to "update" P6 may require working through the scheduler as an intermediary — which changes the workflow model significantly. This must be confirmed with a real site before the prototype is locked.
+3. **What does the P6 data access path look like?** Most hyperscale sites have P6 managed by the GC's scheduler. The Superintendent may not have write access. The agent's ability to "update" P6 may require working through the scheduler as an intermediary — which changes the workflow model significantly. This must be confirmed with a real site before the prototype is locked. **Update (2026-03-17):** Willis Clayton-Stankowski (Cahil Construction) confirmed this blocker is industry-wide — scheduling startups at the Future Tech Construction Conference couldn't solve it either. Near-term path is daily logs + pull planning, which avoids the scheduling system API entirely. See [`daily-log.md`](daily-log.md).

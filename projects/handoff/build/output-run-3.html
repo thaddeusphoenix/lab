@@ -1,577 +1,1125 @@
+<!--
+  Daily Log + Pull Planning Dashboard
+  Single self-contained HTML file — all CSS and JS inline.
+  Decisions made where brief was ambiguous:
+  - P6 data is seeded as static JSON (XER/CSV import path implied by brief's "biggest unknowns")
+  - Look-ahead rendered as a list/Gantt hybrid — week-grouped rows with day columns for 21 days
+  - SMS parse preview uses a simple regex + keyword extractor to simulate Claude NL parsing
+  - PDF simulation accepts file input and shows a mock extracted-fields panel
+  - Schedule Update Report JSON download uses Blob API
+  - "Area" field is always present; null when not determinable
+  - Seed data is intentionally lean (3 subs, ~2 weeks of activities) to stay within output budget
+  - Gap detection: P6 activity in window with no committed event from same trade = flagged
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Schedule Update Flow — Field Prototype</title>
+<title>Field Sync — Daily Log & Pull Planning</title>
 <style>
   /* ── Reset & Base ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f0f5; color: #1c1c1e; }
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --border: #dde1e7;
+    --border-light: #eaecf0;
+    --text: #1a1d23;
+    --text-muted: #6b7280;
+    --text-light: #9ca3af;
+    --accent: #2563eb;
+    --accent-light: #eff6ff;
+    --accent-dark: #1d4ed8;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --purple: #7c3aed;
+    --purple-light: #f5f3ff;
+    --gray: #6b7280;
+    --gray-light: #f9fafb;
+    --radius: 8px;
+    --radius-sm: 4px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  html { font-size: 14px; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+  a { color: var(--accent); text-decoration: none; }
 
-  /* ── App Shell ── */
-  #app { display: flex; height: 100vh; overflow: hidden; }
+  /* ── Layout ── */
+  .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 52px; display: flex; align-items: center;
+    gap: 16px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
+  }
+  .topbar-logo { font-weight: 700; font-size: 1rem; color: var(--accent); letter-spacing: -.3px; }
+  .topbar-project { font-size: .85rem; color: var(--text-muted); border-left: 1px solid var(--border); padding-left: 16px; }
+  .topbar-date { font-size: .8rem; color: var(--text-light); margin-left: auto; }
+  .topbar-role { background: var(--accent); color: #fff; border-radius: 20px; padding: 2px 10px; font-size: .75rem; font-weight: 600; }
 
-  /* ── Left Panel: Foreman View ── */
-  #foreman-panel {
-    width: 390px; min-width: 320px; max-width: 420px;
-    display: flex; flex-direction: column;
-    background: #fff; border-right: 1px solid #d1d1d6;
-    position: relative;
+  .main-layout { display: flex; flex: 1; }
+  .sidebar {
+    width: 200px; min-width: 200px; background: var(--surface);
+    border-right: 1px solid var(--border); padding: 20px 0;
+    position: sticky; top: 52px; height: calc(100vh - 52px); overflow-y: auto;
   }
+  .sidebar-nav { list-style: none; }
+  .sidebar-nav li a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 20px; font-size: .85rem; color: var(--text-muted);
+    border-left: 3px solid transparent; transition: all .15s;
+  }
+  .sidebar-nav li a:hover { background: var(--gray-light); color: var(--text); }
+  .sidebar-nav li a.active { background: var(--accent-light); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+  .sidebar-nav li a .nav-icon { font-size: 1rem; width: 18px; text-align: center; }
+  .sidebar-section { font-size: .7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: .08em; padding: 16px 20px 6px; }
 
-  /* Contact List Screen */
-  #contact-list-screen { display: flex; flex-direction: column; height: 100%; }
-  #contact-list-screen .nav-bar {
-    background: #f9f9f9; border-bottom: 1px solid #e5e5ea;
-    padding: 14px 16px 10px;
-  }
-  #contact-list-screen .nav-bar h2 { font-size: 22px; font-weight: 700; color: #1c1c1e; }
-  #contact-list-screen .nav-bar p { font-size: 12px; color: #8e8e93; margin-top: 2px; }
-  #contact-list { flex: 1; overflow-y: auto; }
-  .contact-row {
-    display: flex; align-items: center; padding: 12px 16px;
-    border-bottom: 1px solid #f2f2f7; cursor: pointer;
-    transition: background 0.15s;
-  }
-  .contact-row:active, .contact-row:hover { background: #f2f2f7; }
-  .contact-avatar {
-    width: 46px; height: 46px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 600; color: #fff;
-    flex-shrink: 0; margin-right: 12px;
-  }
-  .contact-info { flex: 1; min-width: 0; }
-  .contact-name { font-size: 16px; font-weight: 600; color: #1c1c1e; }
-  .contact-trade { font-size: 13px; color: #8e8e93; margin-top: 1px; }
-  .contact-preview { font-size: 13px; color: #8e8e93; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .contact-chevron { color: #c7c7cc; font-size: 14px; margin-left: 8px; }
-  .unread-dot { width: 10px; height: 10px; border-radius: 50%; background: #007aff; margin-left: 8px; flex-shrink: 0; }
+  .content { flex: 1; padding: 24px; overflow-x: hidden; }
 
-  /* Chat Screen */
-  #chat-screen { display: none; flex-direction: column; height: 100%; }
-  #chat-nav {
-    background: #f9f9f9; border-bottom: 1px solid #e5e5ea;
-    padding: 10px 16px; display: flex; align-items: center;
-  }
-  #back-btn {
-    background: none; border: none; color: #007aff; font-size: 16px;
-    cursor: pointer; padding: 4px 8px 4px 0; display: flex; align-items: center; gap: 4px;
-  }
-  #chat-contact-info { flex: 1; text-align: center; }
-  #chat-contact-avatar {
-    width: 34px; height: 34px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: #fff; margin: 0 auto 2px;
-  }
-  #chat-contact-name { font-size: 13px; font-weight: 600; color: #1c1c1e; }
-  #chat-contact-role { font-size: 11px; color: #8e8e93; }
-  .chat-spacer { width: 60px; }
+  /* ── Tabs / Panels ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
 
-  #message-thread {
-    flex: 1; overflow-y: auto; padding: 12px 16px;
-    display: flex; flex-direction: column; gap: 6px;
-    background: #fff;
-  }
+  /* ── Page Headers ── */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+  .page-title { font-size: 1.3rem; font-weight: 700; color: var(--text); }
+  .page-subtitle { font-size: .82rem; color: var(--text-muted); margin-top: 2px; }
 
-  /* Bubbles */
-  .bubble-row { display: flex; align-items: flex-end; gap: 6px; }
-  .bubble-row.outgoing { flex-direction: row-reverse; }
-  .bubble-row.incoming { flex-direction: row; }
-  .bubble {
-    max-width: 72%; padding: 9px 13px; border-radius: 18px;
-    font-size: 15px; line-height: 1.4; word-break: break-word;
+  /* ── Stat Cards ── */
+  .stat-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 18px; flex: 1; min-width: 140px; box-shadow: var(--shadow);
   }
-  .bubble.outgoing {
-    background: #007aff; color: #fff;
-    border-bottom-right-radius: 4px;
-  }
-  .bubble.incoming {
-    background: #e9e9eb; color: #1c1c1e;
-    border-bottom-left-radius: 4px;
-  }
-  .bubble-time { font-size: 10px; color: #8e8e93; margin-bottom: 2px; text-align: center; width: 100%; }
-  .bubble-timestamp { font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 2px; text-align: right; }
-  .bubble.incoming .bubble-timestamp { color: #8e8e93; }
+  .stat-label { font-size: .75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+  .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text); margin-top: 4px; line-height: 1; }
+  .stat-sub { font-size: .75rem; color: var(--text-light); margin-top: 4px; }
+  .stat-card.green .stat-value { color: var(--green); }
+  .stat-card.amber .stat-value { color: var(--amber); }
+  .stat-card.red .stat-value { color: var(--red); }
 
-  /* Input Bar */
-  #input-bar {
-    padding: 8px 12px; background: #f9f9f9;
-    border-top: 1px solid #e5e5ea;
-    display: flex; align-items: flex-end; gap: 8px;
+  /* ── Tables ── */
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .table-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .table-title { font-weight: 600; font-size: .9rem; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--gray-light); padding: 9px 14px; font-size: .75rem;
+    font-weight: 700; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: .05em; text-align: left; border-bottom: 1px solid var(--border);
+    white-space: nowrap;
   }
-  #msg-input {
-    flex: 1; border: 1px solid #d1d1d6; border-radius: 20px;
-    padding: 8px 14px; font-size: 15px; outline: none; resize: none;
-    max-height: 120px; line-height: 1.4; background: #fff;
-    font-family: inherit;
-  }
-  #msg-input:focus { border-color: #007aff; }
-  #send-btn {
-    width: 34px; height: 34px; border-radius: 50%;
-    background: #007aff; border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: background 0.15s;
-  }
-  #send-btn:disabled { background: #c7c7cc; cursor: default; }
-  #send-btn svg { width: 16px; height: 16px; fill: #fff; }
+  tbody tr { border-bottom: 1px solid var(--border-light); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--gray-light); }
+  tbody td { padding: 10px 14px; font-size: .83rem; vertical-align: top; }
 
-  /* ── Right Panel: Superintendent View ── */
-  #super-panel {
-    flex: 1; display: flex; flex-direction: column; overflow: hidden;
-    background: #f0f0f5;
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 20px; font-size: .72rem; font-weight: 600;
+    white-space: nowrap;
   }
-  #super-header {
-    background: #1c1c1e; color: #fff;
-    padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 10px;
-  }
-  #super-header .header-left h1 { font-size: 20px; font-weight: 700; }
-  #super-header .header-left p { font-size: 13px; color: #98989d; margin-top: 2px; }
-  #super-header .header-right { display: flex; align-items: center; gap: 10px; }
-  #bulk-approve-btn {
-    background: #30d158; color: #fff; border: none;
-    padding: 8px 18px; border-radius: 10px; font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: background 0.15s;
-  }
-  #bulk-approve-btn:hover { background: #25a244; }
-  #bulk-approve-btn:disabled { background: #48484a; color: #98989d; cursor: default; }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-amber { background: var(--amber-light); color: var(--amber); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-blue { background: var(--accent-light); color: var(--accent); }
+  .badge-purple { background: var(--purple-light); color: var(--purple); }
+  .badge-gray { background: #f3f4f6; color: var(--gray); }
 
-  /* Stats Bar */
-  #stats-bar {
-    display: flex; gap: 12px; padding: 12px 24px;
-    background: #2c2c2e; flex-wrap: wrap;
+  /* ── Source Labels ── */
+  .source-label {
+    font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    padding: 1px 6px; border-radius: var(--radius-sm);
   }
-  .stat-chip {
-    display: flex; align-items: center; gap: 6px;
-    background: #3a3a3c; border-radius: 8px; padding: 6px 12px;
-    font-size: 13px; color: #e5e5ea;
-  }
-  .stat-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .dot-pending { background: #ff9f0a; }
-  .dot-gap { background: #ff453a; }
-  .dot-approved { background: #30d158; }
+  .source-p6 { background: #e0f2fe; color: #0369a1; }
+  .source-foreman { background: var(--green-light); color: var(--green); }
+  .source-superintendent { background: var(--purple-light); color: var(--purple); }
 
-  /* Activity List */
-  #activity-list {
-    flex: 1; overflow-y: auto; padding: 16px 24px;
-    display: flex; flex-direction: column; gap: 12px;
-  }
+  /* ── Gap Flag ── */
+  .gap-flag { display: flex; align-items: center; gap: 5px; color: var(--red); font-size: .78rem; font-weight: 600; }
+  .gap-flag::before { content: '⚠'; }
 
-  .activity-card {
-    background: #fff; border-radius: 14px;
-    border-left: 5px solid #d1d1d6;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    overflow: hidden; transition: box-shadow 0.2s;
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: var(--radius-sm); border: none;
+    font-size: .82rem; font-weight: 600; cursor: pointer; transition: all .15s;
+    font-family: var(--font);
   }
-  .activity-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
-  .activity-card.status-pending { border-left-color: #ff9f0a; }
-  .activity-card.status-gap { border-left-color: #ff453a; }
-  .activity-card.status-approved { border-left-color: #30d158; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--gray-light); }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-success:hover { background: #15803d; }
+  .btn-sm { padding: 4px 10px; font-size: .78rem; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:hover { background: #b91c1c; }
 
-  .card-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px 8px; flex-wrap: wrap; gap: 8px;
+  /* ── Forms ── */
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: .8rem; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+  .form-label .required { color: var(--red); }
+  .form-control {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: .83rem; font-family: var(--font);
+    color: var(--text); background: var(--surface); transition: border-color .15s;
   }
-  .card-title { font-size: 15px; font-weight: 700; color: #1c1c1e; }
-  .card-id { font-size: 11px; color: #8e8e93; margin-top: 1px; }
-  .status-badge {
-    font-size: 11px; font-weight: 700; padding: 3px 9px;
-    border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
-  }
-  .badge-pending { background: #fff3e0; color: #e65100; }
-  .badge-gap { background: #ffeaea; color: #c62828; }
-  .badge-approved { background: #e8f5e9; color: #1b5e20; }
+  .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37,99,235,.12); }
+  textarea.form-control { resize: vertical; min-height: 72px; }
+  select.form-control { cursor: pointer; }
 
-  .card-body { padding: 0 16px 12px; }
-  .card-meta {
-    display: flex; gap: 16px; flex-wrap: wrap;
-    font-size: 12px; color: #8e8e93; margin-bottom: 10px;
+  /* ── Modals ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    z-index: 500; align-items: center; justify-content: center;
   }
-  .card-meta span { display: flex; align-items: center; gap: 4px; }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-md);
+    width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto;
+    margin: 16px;
+  }
+  .modal-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-weight: 700; font-size: 1rem; }
+  .modal-close { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--text-muted); line-height: 1; padding: 2px 6px; border-radius: var(--radius-sm); }
+  .modal-close:hover { background: var(--gray-light); }
+  .modal-body { padding: 18px 20px; }
+  .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
 
-  /* Progress Row */
-  .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-  .progress-label { font-size: 12px; color: #8e8e93; width: 80px; flex-shrink: 0; }
-  .progress-track { flex: 1; height: 8px; background: #f2f2f7; border-radius: 4px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
-  .fill-baseline { background: #c7c7cc; }
-  .fill-proposed { background: #ff9f0a; }
-  .fill-approved { background: #30d158; }
-  .progress-pct { font-size: 12px; font-weight: 600; width: 34px; text-align: right; }
+  /* ── Alert / Notice ── */
+  .alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: .82rem; margin-bottom: 14px; display: flex; gap: 8px; align-items: flex-start; }
+  .alert-amber { background: var(--amber-light); color: #92400e; border-left: 3px solid var(--amber); }
+  .alert-red { background: var(--red-light); color: #991b1b; border-left: 3px solid var(--red); }
+  .alert-green { background: var(--green-light); color: #14532d; border-left: 3px solid var(--green); }
+  .alert-blue { background: var(--accent-light); color: #1e40af; border-left: 3px solid var(--accent); }
 
-  /* Agent Interpretation */
-  .agent-box {
-    background: #f9f9f9; border-radius: 8px; padding: 8px 12px;
-    margin-bottom: 10px; border: 1px solid #e5e5ea;
-  }
-  .agent-label { font-size: 10px; font-weight: 700; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-  .agent-quote { font-size: 13px; color: #3c3c43; font-style: italic; line-height: 1.4; }
-  .agent-mapping { font-size: 12px; color: #007aff; margin-top: 4px; }
+  /* ── Look-ahead Gantt/List ── */
+  .lookahead-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .lookahead-legend { display: flex; gap: 12px; align-items: center; font-size: .78rem; flex-wrap: wrap; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 3px; }
+  .dot-p6 { background: #0ea5e9; }
+  .dot-committed { background: var(--green); }
+  .dot-gap { background: var(--red); border: 2px dashed var(--red); background: transparent; }
 
-  /* Gap Box */
-  .gap-box {
-    background: #fff5f5; border-radius: 8px; padding: 8px 12px;
-    margin-bottom: 10px; border: 1px solid #ffd5d5;
-  }
-  .gap-label { font-size: 10px; font-weight: 700; color: #c62828; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-  .gap-text { font-size: 13px; color: #c62828; }
+  .week-group { margin-bottom: 20px; }
+  .week-label { font-size: .78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; padding: 6px 0; border-bottom: 2px solid var(--border); margin-bottom: 8px; }
 
-  /* Card Actions */
-  .card-actions { display: flex; gap: 8px; padding: 0 16px 14px; flex-wrap: wrap; }
-  .btn-approve {
-    background: #30d158; color: #fff; border: none;
-    padding: 8px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: background 0.15s;
+  .gantt-row {
+    display: flex; align-items: center; gap: 8px; padding: 6px 0;
+    border-bottom: 1px solid var(--border-light);
   }
-  .btn-approve:hover { background: #25a244; }
-  .btn-override {
-    background: #f2f2f7; color: #1c1c1e; border: 1px solid #d1d1d6;
-    padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500;
-    cursor: pointer; transition: background 0.15s;
+  .gantt-row:last-child { border-bottom: none; }
+  .gantt-meta { width: 200px; min-width: 200px; }
+  .gantt-trade { font-size: .8rem; font-weight: 600; color: var(--text); }
+  .gantt-activity { font-size: .78rem; color: var(--text-muted); margin-top: 1px; }
+  .gantt-area { font-size: .72rem; color: var(--text-light); font-style: italic; }
+  .gantt-bar-wrap { flex: 1; position: relative; height: 28px; }
+  .gantt-bar {
+    position: absolute; height: 22px; border-radius: var(--radius-sm);
+    top: 3px; display: flex; align-items: center; padding: 0 8px;
+    font-size: .72rem; font-weight: 700; color: #fff; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; cursor: default; min-width: 6px;
+    transition: opacity .15s;
   }
-  .btn-override:hover { background: #e5e5ea; }
+  .gantt-bar:hover { opacity: .85; }
+  .gantt-bar.p6 { background: #0ea5e9; }
+  .gantt-bar.committed { background: var(--green); }
+  .gantt-bar.gap { background: transparent; border: 2px dashed var(--red); color: var(--red); }
+  .gantt-badges { display: flex; gap: 4px; align-items: center; width: 100px; min-width: 100px; flex-wrap: wrap; justify-content: flex-end; }
 
-  /* Override Modal */
-  #override-modal {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5); z-index: 1000;
-    align-items: center; justify-content: center;
+  /* List view */
+  .lookahead-list-item {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: flex-start;
+    gap: 12px; box-shadow: var(--shadow);
   }
-  #override-modal.open { display: flex; }
-  .modal-box {
-    background: #fff; border-radius: 16px; padding: 24px;
-    width: 340px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  }
-  .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
-  .modal-label { font-size: 13px; color: #3c3c43; margin-bottom: 8px; font-weight: 500; }
-  .override-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-  .pct-chip {
-    padding: 6px 14px; border-radius: 20px; border: 1.5px solid #d1d1d6;
-    font-size: 14px; cursor: pointer; background: #fff; transition: all 0.15s;
-  }
-  .pct-chip.selected { background: #007aff; color: #fff; border-color: #007aff; }
-  .modal-note { font-size: 13px; color: #8e8e93; margin-bottom: 16px; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
-  .btn-modal-cancel { background: #f2f2f7; color: #1c1c1e; border: none; padding: 9px 18px; border-radius: 10px; font-size: 14px; cursor: pointer; }
-  .btn-modal-confirm { background: #007aff; color: #fff; border: none; padding: 9px 18px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .lli-date { min-width: 52px; text-align: center; }
+  .lli-date-day { font-size: 1.1rem; font-weight: 700; color: var(--text); line-height: 1; }
+  .lli-date-mon { font-size: .7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: .05em; }
+  .lli-body { flex: 1; }
+  .lli-title { font-weight: 600; font-size: .85rem; color: var(--text); }
+  .lli-meta { font-size: .78rem; color: var(--text-muted); margin-top: 2px; }
+  .lli-area { font-size: .75rem; color: var(--text-light); font-style: italic; }
+  .lli-flags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .lli-actions { display: flex; gap: 6px; }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
+  /* ── SMS Parse Preview ── */
+  .sms-preview-box {
+    background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; margin-top: 12px; font-size: .82rem;
+  }
+  .sms-field-row { display: flex; gap: 8px; margin-bottom: 6px; align-items: flex-start; }
+  .sms-field-label { min-width: 120px; font-weight: 600; color: var(--text-muted); font-size: .78rem; }
+  .sms-field-value { color: var(--text); flex: 1; }
+  .sms-field-missing { color: var(--amber); font-style: italic; font-size: .78rem; }
+  .sms-field-null { color: var(--text-light); font-style: italic; }
+
+  /* ── PDF Upload Zone ── */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 24px; text-align: center; color: var(--text-muted); cursor: pointer;
+    transition: all .2s; background: var(--gray-light);
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+  .upload-zone input[type="file"] { display: none; }
+  .upload-icon { font-size: 2rem; margin-bottom: 8px; }
+  .upload-text { font-size: .85rem; font-weight: 600; }
+  .upload-sub { font-size: .75rem; margin-top: 4px; color: var(--text-light); }
+
+  /* ── Report JSON Preview ── */
+  .json-preview {
+    background: #1e1e2e; color: #cdd6f4; border-radius: var(--radius);
+    padding: 16px; font-family: 'Courier New', monospace; font-size: .75rem;
+    max-height: 400px; overflow-y: auto; line-height: 1.6; white-space: pre;
+    border: 1px solid #313244;
+  }
+  .json-key { color: #89b4fa; }
+  .json-str { color: #a6e3a1; }
+  .json-num { color: #fab387; }
+  .json-null { color: #f38ba8; }
+  .json-bool { color: #cba6f7; }
+
+  /* ── Chips ── */
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    padding: 3px 10px; background: var(--gray-light); border: 1px solid var(--border);
+    border-radius: 20px; font-size: .75rem; color: var(--text-muted); cursor: pointer;
+    transition: all .15s;
+  }
+  .chip:hover, .chip.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+
+  /* ── Toast ── */
+  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--text); color: #fff; padding: 10px 18px; border-radius: var(--radius);
+    font-size: .83rem; box-shadow: var(--shadow-md); animation: slideIn .2s ease;
+    max-width: 320px;
+  }
+  .toast.success { background: var(--green); }
+  .toast.error { background: var(--red); }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Misc ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .text-muted { color: var(--text-muted); }
+  .text-small { font-size: .78rem; }
+  .font-mono { font-family: monospace; font-size: .8rem; }
+  .mt-2 { margin-top: 8px; }
+  .mb-2 { margin-bottom: 8px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .flex-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .flex-1 { flex: 1; }
+  .w-full { width: 100%; }
+  .sub-timeline-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; margin-top: 3px; }
+  .submission-entry { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-light); }
+  .submission-entry:last-child { border-bottom: none; }
+  .sub-meta { flex: 1; }
+  .sub-sender { font-weight: 600; font-size: .82rem; color: var(--text); }
+  .sub-channel { font-size: .72rem; color: var(--text-muted); }
+  .sub-time { font-size: .72rem; color: var(--text-light); white-space: nowrap; }
+  .empty-state { text-align: center; padding: 32px; color: var(--text-muted); font-size: .85rem; }
+  .null-field { color: var(--text-light); font-style: italic; font-size: .8rem; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #c7c7cc; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
-  /* Empty state */
-  .empty-state { text-align: center; color: #8e8e93; font-size: 14px; padding: 40px 20px; }
-  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
-
-  /* Approved check */
-  .approved-check { color: #30d158; font-size: 18px; margin-right: 4px; }
-
-  @media (max-width: 700px) {
-    #foreman-panel { width: 100%; max-width: 100%; border-right: none; }
-    #super-panel { display: none; }
-    #app.show-super #foreman-panel { display: none; }
-    #app.show-super #super-panel { display: flex; }
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .content { padding: 16px; }
+    .gantt-meta { width: 120px; min-width: 120px; }
+    .gantt-badges { width: 70px; min-width: 70px; }
+    .grid-2 { grid-template-columns: 1fr; }
   }
+
+  /* Number pill */
+  .num-pill { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--red); color: #fff; font-size: .7rem; font-weight: 700; }
 </style>
 </head>
 <body>
+<div class="app-shell">
 
-<div id="app">
+  <!-- Top Bar -->
+  <header class="topbar">
+    <span class="topbar-logo">⚡ FieldSync</span>
+    <span class="topbar-project">Lakeside Medical — Phase 2 Core & Shell</span>
+    <span class="topbar-date" id="topbar-date"></span>
+    <span class="topbar-role">Superintendent</span>
+  </header>
 
-  <!-- ══════════════ FOREMAN PANEL ══════════════ -->
-  <div id="foreman-panel">
+  <div class="main-layout">
 
-    <!-- Contact List Screen -->
-    <div id="contact-list-screen">
-      <div class="nav-bar">
-        <h2>Messages</h2>
-        <p>Select a foreman to log a progress update</p>
-      </div>
-      <div id="contact-list"></div>
-    </div>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-section">Operations</div>
+      <ul class="sidebar-nav">
+        <li><a href="#" class="active nav-link" data-panel="panel-daily"><span class="nav-icon">📋</span>Daily Log</a></li>
+        <li><a href="#" class="nav-link" data-panel="panel-lookahead"><span class="nav-icon">📅</span>3-Week Look-Ahead</a></li>
+        <li><a href="#" class="nav-link" data-panel="panel-report"><span class="nav-icon">📊</span>Schedule Report</a></li>
+      </ul>
+      <div class="sidebar-section">Intake</div>
+      <ul class="sidebar-nav">
+        <li><a href="#" class="nav-link" data-panel="panel-submissions"><span class="nav-icon">📥</span>Submissions <span class="num-pill" id="unread-count">3</span></a></li>
+        <li><a href="#" class="nav-link" data-panel="panel-simulate"><span class="nav-icon">🔬</span>Parse Preview</a></li>
+      </ul>
+    </nav>
 
-    <!-- Chat Screen -->
-    <div id="chat-screen">
-      <div id="chat-nav">
-        <button id="back-btn" onclick="showContactList()">
-          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
-            <path d="M8.5 1L1.5 8L8.5 15" stroke="#007aff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Back
-        </button>
-        <div id="chat-contact-info">
-          <div id="chat-contact-avatar"></div>
-          <div id="chat-contact-name"></div>
-          <div id="chat-contact-role"></div>
+    <!-- Main Content -->
+    <main class="content">
+
+      <!-- ══════════════════════════════
+           PANEL: DAILY LOG
+      ══════════════════════════════ -->
+      <section class="panel active" id="panel-daily">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Daily Log</div>
+            <div class="page-subtitle" id="daily-date-sub"></div>
+          </div>
+          <div class="flex-row">
+            <button class="btn btn-secondary btn-sm" onclick="openAddSubmissionModal()">＋ Manual Entry</button>
+            <button class="btn btn-primary btn-sm" onclick="exportDailyLog()">↓ Export</button>
+          </div>
         </div>
-        <div class="chat-spacer"></div>
-      </div>
-      <div id="message-thread"></div>
-      <div id="input-bar">
-        <textarea id="msg-input" placeholder="iMessage" rows="1" oninput="autoResize(this); toggleSend()"></textarea>
-        <button id="send-btn" onclick="handleSend()" disabled>
-          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
-      </div>
-    </div>
 
+        <!-- Stat cards -->
+        <div class="stat-row" id="stat-row"></div>
+
+        <!-- Gap alerts -->
+        <div id="gap-alerts"></div>
+
+        <!-- Daily log table -->
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title">Foreman Updates — As Of This Morning</span>
+            <div class="chip-row" id="trade-filter-chips"></div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table id="daily-table">
+              <thead>
+                <tr>
+                  <th>Trade / Sub</th>
+                  <th>Foreman</th>
+                  <th>Channel</th>
+                  <th>Received</th>
+                  <th>Men On Site</th>
+                  <th>Area</th>
+                  <th>Work Completed</th>
+                  <th>Blockers</th>
+                  <th>Forward Commitments</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="daily-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════
+           PANEL: 3-WEEK LOOK-AHEAD
+      ══════════════════════════════ -->
+      <section class="panel" id="panel-lookahead">
+        <div class="page-header">
+          <div>
+            <div class="page-title">3-Week Look-Ahead</div>
+            <div class="page-subtitle">Planned (P6) vs. Committed (foreman/superintendent) — gaps flagged for coordination</div>
+          </div>
+          <div class="flex-row">
+            <button class="btn btn-secondary btn-sm" onclick="toggleLookaheadView()">⇄ Toggle View</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddCommitmentModal()">＋ Add Commitment</button>
+          </div>
+        </div>
+
+        <div class="lookahead-controls">
+          <div class="lookahead-legend">
+            <span><span class="legend-dot dot-p6"></span> P6 Planned</span>
+            <span><span class="legend-dot dot-committed"></span> Committed</span>
+            <span><span class="legend-dot dot-gap"></span> Gap (no commitment vs P6)</span>
+          </div>
+          <div style="margin-left:auto;" class="flex-row">
+            <span class="text-small text-muted">Filter:</span>
+            <div class="chip-row" id="la-filter-chips"></div>
+          </div>
+        </div>
+
+        <div id="gap-summary-alert"></div>
+
+        <div id="lookahead-container"></div>
+      </section>
+
+      <!-- ══════════════════════════════
+           PANEL: SCHEDULE UPDATE REPORT
+      ══════════════════════════════ -->
+      <section class="panel" id="panel-report">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Schedule Update Report</div>
+            <div class="page-subtitle">Machine-readable JSON — import into P6 or any scheduling tool</div>
+          </div>
+          <div class="flex-row">
+            <button class="btn btn-secondary btn-sm" onclick="copyReportJSON()">⎘ Copy JSON</button>
+            <button class="btn btn-success btn-sm" onclick="downloadReportJSON()">↓ Download JSON</button>
+          </div>
+        </div>
+
+        <div class="alert alert-blue mb-2">
+          <span>ℹ️</span>
+          <span>This report is generated from the Superintendent's approved daily log data and committed look-ahead entries. The PM/Schedule Controller imports this file — no manual re-entry or P6 write-back required. Every entry includes an explicit <code>area</code> field for filtering and sorting.</span>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="stat-card">
+            <div class="stat-label">Actuals Entries</div>
+            <div class="stat-value" id="report-actuals-count">—</div>
+            <div class="stat-sub">Work completed today</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Commitments Entries</div>
+            <div class="stat-value" id="report-commits-count">—</div>
+            <div class="stat-sub">Confirmed upcoming events</div>
+          </div>
+        </div>
+
+        <div class="table-card" style="margin-bottom:16px;">
+          <div class="table-header"><span class="table-title">JSON Preview</span></div>
+          <div class="modal-body" style="padding:14px;">
+            <div class="json-preview" id="report-json-preview">Loading…</div>
+          </div>
+        </div>
+
+        <div class="alert alert-amber">
+          <span>⚠️</span>
+          <span>Entries where <code>area</code> could not be determined from the submission are set to <code>null</code> — not omitted. Schedulers can filter by area; null entries require manual area assignment before import.</span>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════
+           PANEL: SUBMISSIONS INBOX
+      ══════════════════════════════ -->
+      <section class="panel" id="panel-submissions">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Submissions Inbox</div>
+            <div class="page-subtitle">All foreman updates received — SMS, email, PDF scans</div>
+          </div>
+          <div class="flex-row">
+            <button class="btn btn-secondary btn-sm" onclick="markAllRead()">✓ Mark All Read</button>
+          </div>
+        </div>
+
+        <div id="submissions-list"></div>
+      </section>
+
+      <!-- ══════════════════════════════
+           PANEL: PARSE PREVIEW (Simulate)
+      ══════════════════════════════ -->
+      <section class="panel" id="panel-simulate">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Parse Preview</div>
+            <div class="page-subtitle">Simulate Claude NL extraction — paste SMS/email text or upload a PDF scan</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- SMS / Email Text -->
+          <div class="table-card">
+            <div class="table-header"><span class="table-title">📱 SMS / Email Text</span></div>
+            <div class="modal-body" style="padding:16px;">
+              <div class="form-group">
+                <label class="form-label">Sender / Foreman</label>
+                <select class="form-control" id="sim-sender">
+                  <option value="Mike Delgado">Mike Delgado — Electrical</option>
+                  <option value="Rosa Chen">Rosa Chen — Mechanical</option>
+                  <option value="Tony Batista">Tony Batista — Structural Steel</option>
+                  <option value="Unknown">Unknown Sender</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Message Text</label>
+                <textarea class="form-control" id="sim-text" rows="5" placeholder="Paste SMS or email body here…">got 6 guys on site today, finished conduit run on floors 4 and 5 grids C-D. waiting on concrete pour clearance before we can continue panel work on 6. delivery of switchgear scheduled thursday morning loading dock B</textarea>
+              </div>
+              <button class="btn btn-primary w-full" onclick="runSMSParse()">▶ Parse Message</button>
+              <div id="sms-parse-result"></div>
+            </div>
+          </div>
+
+          <!-- PDF Upload Simulation -->
+          <div class="table-card">
+            <div class="table-header"><span class="table-title">📄 PDF Daily Log Scan</span></div>
+            <div class="modal-body" style="padding:16px;">
+              <label class="upload-zone" id="pdf-upload-zone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                <input type="file" id="pdf-file-input" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(event)">
+                <div class="upload-icon">📎</div>
+                <div class="upload-text">Drop PDF or photo here</div>
+                <div class="upload-sub">or click to browse — .pdf, .jpg, .png accepted</div>
+              </label>
+              <div id="pdf-parse-result" style="margin-top:12px;"></div>
+              <hr class="divider">
+              <div class="alert alert-blue" style="margin-bottom:0;">
+                <span>ℹ️</span>
+                <span>In production, Claude Vision extracts fields from the PDF. This preview simulates extraction from a common GC daily log template.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
   </div>
-
-  <!-- ══════════════ SUPERINTENDENT PANEL ══════════════ -->
-  <div id="super-panel">
-    <div id="super-header">
-      <div class="header-left">
-        <h1>📋 Schedule Reconciliation</h1>
-        <p id="super-date"></p>
-      </div>
-      <div class="header-right">
-        <button id="bulk-approve-btn" onclick="bulkApprove()">✓ Approve All Pending</button>
-      </div>
-    </div>
-    <div id="stats-bar">
-      <div class="stat-chip"><span class="dot dot-pending"></span><span id="stat-pending">0 Pending</span></div>
-      <div class="stat-chip"><span class="dot dot-gap"></span><span id="stat-gap">0 No Report</span></div>
-      <div class="stat-chip"><span class="dot dot-approved"></span><span id="stat-approved">0 Approved</span></div>
-    </div>
-    <div id="activity-list"></div>
-  </div>
-
 </div>
 
-<!-- Override Modal -->
-<div id="override-modal">
-  <div class="modal-box">
-    <div class="modal-title">Override Completion %</div>
-    <div class="modal-label">Select the correct completion percentage:</div>
-    <div class="override-chips" id="override-chips"></div>
-    <div class="modal-note" id="override-modal-note"></div>
-    <div class="modal-actions">
-      <button class="btn-modal-cancel" onclick="closeOverride()">Cancel</button>
-      <button class="btn-modal-confirm" onclick="confirmOverride()">Confirm Override</button>
+<!-- ══════════════════════════════
+     MODAL: Add Manual Entry
+══════════════════════════════ -->
+<div class="modal-overlay" id="modal-add-submission">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Manual Daily Log Entry</span>
+      <button class="modal-close" onclick="closeModal('modal-add-submission')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Trade / Sub <span class="required">*</span></label>
+          <select class="form-control" id="add-trade">
+            <option value="">— Select —</option>
+            <option>Electrical</option>
+            <option>Mechanical</option>
+            <option>Structural Steel</option>
+            <option>Concrete</option>
+            <option>Drywall</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Foreman Name <span class="required">*</span></label>
+          <input type="text" class="form-control" id="add-foreman" placeholder="First Last">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Men On Site</label>
+          <input type="number" class="form-control" id="add-men" placeholder="e.g. 6" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Area</label>
+          <input type="text" class="form-control" id="add-area" placeholder="e.g. Floor 4, Grid C-D">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Work Completed</label>
+        <textarea class="form-control" id="add-completed" placeholder="Describe what was finished…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Blockers</label>
+        <textarea class="form-control" id="add-blockers" placeholder="Any constraints or issues…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Forward Commitments</label>
+        <textarea class="form-control" id="add-commitments" placeholder="Upcoming inspections, deliveries, handoffs…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-submission')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveManualEntry()">Save Entry</button>
     </div>
   </div>
 </div>
+
+<!-- ══════════════════════════════
+     MODAL: Add Commitment
+══════════════════════════════ -->
+<div class="modal-overlay" id="modal-add-commitment">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add Commitment to Look-Ahead</span>
+      <button class="modal-close" onclick="closeModal('modal-add-commitment')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Trade / Sub <span class="required">*</span></label>
+          <select class="form-control" id="commit-trade">
+            <option value="">— Select —</option>
+            <option>Electrical</option>
+            <option>Mechanical</option>
+            <option>Structural Steel</option>
+            <option>Concrete</option>
+            <option>Drywall</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type <span class="required">*</span></label>
+          <select class="form-control" id="commit-type">
+            <option>Inspection</option>
+            <option>Material Delivery</option>
+            <option>Trade Handoff</option>
+            <option>Coordination Milestone</option>
+            <option>Activity Start</option>
+            <option>Activity Complete</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description <span class="required">*</span></label>
+        <input type="text" class="form-control" id="commit-desc" placeholder="e.g. Rough-in inspection Floor 3">
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Date <span class="required">*</span></label>
+          <input type="date" class="form-control" id="commit-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Area</label>
+          <input type="text" class="form-control" id="commit-area" placeholder="e.g. Floor 3, Zone B">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Source</label>
+        <select class="form-control" id="commit-source">
+          <option value="superintendent">Superintendent (this entry)</option>
+          <option value="foreman">Foreman submission</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">P6 Activity ID (if known)</label>
+        <input type="text" class="form-control" id="commit-p6id" placeholder="e.g. A1040">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-commitment')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCommitment()">Add to Look-Ahead</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
 
 <script>
-// ══════════════════════════════════════════════
-//  DATA: Stubbed P6 Schedule
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
+// DATA — Seed data (lean to preserve output budget)
+// ══════════════════════════════════════════════════════════════════════════════
 
-const P6_SCHEDULE = [
-  {
-    id: 'A-101',
-    title: 'Electrical Rough-In — Zone 4 North',
-    trade: 'Electrical',
-    foreman: 'foreman-1',
-    zone: '4',
-    zoneLabel: 'Zone 4 North',
-    baselinePct: 60,
-    currentPct: 60,
-    proposedPct: null,
-    status: 'gap',          // 'gap' | 'pending' | 'approved'
-    rawMessage: null,
-    agentInterpretation: null,
-    agentConfidence: null
-  },
-  {
-    id: 'A-102',
-    title: 'Conduit Pull — Level 3 East Wing',
-    trade: 'Electrical',
-    foreman: 'foreman-1',
-    zone: '3',
-    zoneLabel: 'Level 3 East',
-    baselinePct: 40,
-    currentPct: 40,
-    proposedPct: null,
-    status: 'gap',
-    rawMessage: null,
-    agentInterpretation: null,
-    agentConfidence: null
-  },
-  {
-    id: 'B-201',
-    title: 'Mechanical HVAC Ductwork — Zone 2',
-    trade: 'Mechanical',
-    foreman: 'foreman-2',
-    zone: '2',
-    zoneLabel: 'Zone 2',
-    baselinePct: 75,
-    currentPct: 75,
-    proposedPct: null,
-    status: 'gap',
-    rawMessage: null,
-    agentInterpretation: null,
-    agentConfidence: null
-  },
-  {
-    id: 'B-202',
-    title: 'Plumbing Rough-In — Restrooms Level 2',
-    trade: 'Plumbing',
-    foreman: 'foreman-3',
-    zone: '2',
-    zoneLabel: 'Level 2 Restrooms',
-    baselinePct: 50,
-    currentPct: 50,
-    proposedPct: null,
-    status: 'gap',
-    rawMessage: null,
-    agentInterpretation: null,
-    agentConfidence: null
-  },
-  {
-    id: 'C-301',
-    title: 'Steel Framing — Zone 5 Core',
-    trade: 'Structural',
-    foreman: 'foreman-4',
-    zone: '5',
-    zoneLabel: 'Zone 5 Core',
-    baselinePct: 85,
-    currentPct: 85,
-    proposedPct: null,
-    status: 'gap',
-    rawMessage: null,
-    agentInterpretation: null,
-    agentConfidence: null
-  },
-  {
-    id: 'C-302',
-    title: 'Concrete Pour — Zone 6 Podium Deck',
-    trade: 'Structural',
-    foreman: 'foreman-4',
-    zone: '6',
-    zoneLabel: 'Zone 6 Podium',
-    baselinePct: 30,
-    currentPct: 30,
-    proposedPct: null,
-    status: 'gap',
-    rawMessage: null,
-    agentInterpretation: null,
-    agentConfidence: null
-  }
-];
+const TODAY = new Date();
+TODAY.setHours(0,0,0,0);
 
-// ══════════════════════════════════════════════
-//  DATA: Foremen
-// ══════════════════════════════════════════════
-
-const FOREMEN = [
-  {
-    id: 'foreman-1',
-    name: 'Mike Reyes',
-    trade: 'Electrical',
-    initials: 'MR',
-    color: '#007aff',
-    activities: ['A-101', 'A-102'],
-    thread: []
-  },
-  {
-    id: 'foreman-2',
-    name: 'Sandra Torres',
-    trade: 'Mechanical / HVAC',
-    initials: 'ST',
-    color: '#ff6b35',
-    activities: ['B-201'],
-    thread: []
-  },
-  {
-    id: 'foreman-3',
-    name: 'Darnell Webb',
-    trade: 'Plumbing',
-    initials: 'DW',
-    color: '#5ac8fa',
-    activities: ['B-202'],
-    thread: []
-  },
-  {
-    id: 'foreman-4',
-    name: 'Priya Okonkwo',
-    trade: 'Structural / Steel',
-    initials: 'PO',
-    color: '#ff9f0a',
-    activities: ['C-301', 'C-302'],
-    thread: []
-  }
-];
-
-let activeForeman = null;
-let overrideTarget = null;
-let overrideSelectedPct = null;
-
-// ══════════════════════════════════════════════
-//  NLP UTILITIES
-// ══════════════════════════════════════════════
-
-// Zone alias map — many ways to say a zone
-const ZONE_ALIASES = {
-  '1': ['zone 1','zone one','z1','level 1','floor 1','first floor','1st floor'],
-  '2': ['zone 2','zone two','z2','level 2','floor 2','second floor','2nd floor','restroom','bathroom','plumbing level'],
-  '3': ['zone 3','zone three','z3','level 3','floor 3','third floor','3rd floor','east wing','east side'],
-  '4': ['zone 4','zone four','z4','level 4','floor 4','north side','north wing','zone four north','zone 4 north'],
-  '5': ['zone 5','zone five','z5','core','core zone','structural core'],
-  '6': ['zone 6','zone six','z6','podium','podium deck','deck','roof deck','level 6']
-};
-
-// Trade alias map
-const TRADE_ALIASES = {
-  'Electrical': ['electrical','electric','elec','conduit','wire','wiring','panel','lighting','circuits','breaker','rough-in','rough in'],
-  'Mechanical': ['mechanical','hvac','duct','ductwork','air handler','mechanical rough','ventilation','mech'],
-  'Plumbing': ['plumbing','plumb','pipe','piping','drain','water','sewer','restroom rough','bathroom rough','rough-in plumb'],
-  'Structural': ['structural','steel','framing','frame','concrete','pour','deck','rebar','beam','column','slab','core']
-};
-
-function tokenize(str) {
-  if (!str || typeof str !== 'string') return [];
-  var lower = str.toLowerCase();
-  // Replace common punctuation with spaces, keep alphanumeric and spaces
-  lower = lower.replace(/[^a-z0-9\s\-]/g, ' ');
-  // Normalize multiple spaces
-  lower = lower.replace(/\s+/g, ' ').trim();
-  var words = lower.split(' ');
-  // Build bigrams and trigrams in addition to single tokens
-  var tokens = [];
-  for (var i = 0; i < words.length; i++) {
-    if (words[i]) tokens.push(words[i]);
-    if (i + 1 < words.length && words[i+1]) tokens.push(words[i] + ' ' + words[i+1]);
-    if (i + 2 < words.length && words[i+2]) tokens.push(words[i] + ' ' + words[i+1] + ' ' + words[i+2]);
-    if (i + 3 < words.length && words[i+3]) tokens.push(words[i] + ' ' + words[i+1] + ' ' + words[i+2] + ' ' + words[i+3]);
-  }
-  return tokens;
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
 }
 
-function extractPercentage(text) {
-  if (!text || typeof text !== 'string') return null;
-  var lower = text.toLowerCase();
+function fmtDate(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function fmtDateShort(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function isoDate(d) {
+  return d.toISOString().split('T')[0];
+}
 
-  // Explicit: "90%", "90 percent", "90 per cent"
-  var pctMatch = lower.match(/(\d{1,3})\s*(%|percent|per cent)/);
-  if (pctMatch) {
-    var val = parseInt(pctMatch[1], 10);
-    if (val >= 0 && val <= 100) return val;
+// Daily log entries — one per sub, today
+let dailyLog = [
+  {
+    id: 'dl-001',
+    trade: 'Electrical',
+    sub: 'Apex Electric',
+    foreman: 'Mike Delgado',
+    channel: 'SMS',
+    received: '06:47',
+    men_on_site: 6,
+    area: 'Floors 4–5, Grid C–D',
+    completed: 'Conduit rough-in complete floors 4 and 5 grids C–D. Home-run pulls done for panels 4A and 5A.',
+    blockers: 'Awaiting concrete pour clearance before panel work can proceed on floor 6.',
+    commitments: 'Switchgear delivery Thursday AM loading dock B. Rough-in inspection floor 3 confirmed Monday.',
+    status: 'received',
+    approved: false,
+    source_ref: 'sub-001'
+  },
+  {
+    id: 'dl-002',
+    trade: 'Mechanical',
+    sub: 'Tri-State HVAC',
+    foreman: 'Rosa Chen',
+    channel: 'Email + PDF',
+    received: '07:12',
+    men_on_site: 4,
+    area: null,
+    completed: 'Ductwork installation level 3 west wing complete.',
+    blockers: null,
+    commitments: 'Pressure test scheduled Wednesday 9 AM with inspector.',
+    status: 'received',
+    approved: false,
+    source_ref: 'sub-002'
+  },
+  {
+    id: 'dl-003',
+    trade: 'Structural Steel',
+    sub: 'Allied Ironworks',
+    foreman: 'Tony Batista',
+    channel: 'SMS',
+    received: '08:03',
+    men_on_site: null,
+    area: 'Roof Level, Grid A–F',
+    completed: 'Secondary beam placement complete grid A–F roof level.',
+    blockers: 'Crane rental expires Friday — need confirmation on extension or crane release.',
+    commitments: null,
+    status: 'gap',
+    approved: false,
+    source_ref: 'sub-003'
+  },
+  {
+    id: 'dl-004',
+    trade: 'Concrete',
+    sub: 'Meridian Concrete',
+    foreman: null,
+    channel: null,
+    received: null,
+    men_on_site: null,
+    area: null,
+    completed: null,
+    blockers: null,
+    commitments: null,
+    status: 'missing',
+    approved: false,
+    source_ref: null
   }
+];
 
-  // Fraction pattern: "3 of 4 sections", "three quarters done"
-  var fracMatch = lower.match(/(\d+)\s+(?:of|out of|\/)\s+(\d+)/);
-  if (fracMatch) {
-    var num = parseInt(fracMatch[1], 10);
-    var den = parseInt(fracMatch[2], 10);
-    if (den > 0) return Math.round((num / den) * 100);
+// Look-ahead — P6 planned activities
+const p6Activities = [
+  {
+    id: 'p6-A1010',
+    p6_id: 'A1010',
+    trade: 'Electrical',
+    description: 'Rough-in Inspection — Floor 3',
+    area: 'Floor 3',
+    start: addDays(TODAY, 3),
+    end: addDays(TODAY, 3),
+    duration: 1
+  },
+  {
+    id: 'p6-A1020',
+    p6_id: 'A1020',
+    trade: 'Electrical',
+    description: 'Switchgear Installation — Floors 4–5',
+    area: 'Floors 4–5',
+    start: addDays(TODAY, 6),
+    end: addDays(TODAY, 9),
+    duration: 4
+  },
+  {
+    id: 'p6-A1030',
+    p6_id: 'A1030',
+    trade: 'Mechanical',
+    description: 'HVAC Pressure Test — Level 3',
+    area: 'Level 3 West Wing',
+    start: addDays(TODAY, 2),
+    end: addDays(TODAY, 2),
+    duration: 1
+  },
+  {
+    id: 'p6-A1040',
+    p6_id: 'A1040',
+    trade: 'Mechanical',
+    description: 'Ductwork Installation — Level 4',
+    area: 'Level 4',
+    start: addDays(TODAY, 5),
+    end: addDays(TODAY, 11),
+    duration: 7
+  },
+  {
+    id: 'p6-A1050',
+    p6_id: 'A1050',
+    trade: 'Structural Steel',
+    description: 'Crane Demobilization',
+    area: 'Roof Level',
+    start: addDays(TODAY, 4),
+    end: addDays(TODAY, 4),
+    duration: 1
+  },
+  {
+    id: 'p6-A1060',
+    p6_id: 'A1060',
+    trade: 'Concrete',
+    description: 'Floor 6 Deck Pour',
+    area: 'Floor 6',
+    start: addDays(TODAY, 7),
+    end: addDays(TODAY, 8),
+    duration: 2
+  },
+  {
+    id: 'p6-A1070',
+    p6_id: 'A1070',
+    trade: 'Concrete',
+    description: 'Cure & Prep Floor 6',
+    area: 'Floor 6',
+    start: addDays(TODAY, 9),
+    end: addDays(TODAY, 12),
+    duration: 4
+  },
+  {
+    id: 'p6-A1080',
+    p6_id: 'A1080',
+    trade: 'Electrical',
+    description: 'Panel Terminations — Floor 6',
+    area: 'Floor 6',
+    start: addDays(TODAY, 13),
+    end: addDays(TODAY, 16),
+    duration: 4
   }
+];
 
-  // Written fractions
-  var fractions = {
-    'half': 50, 'halfway': 50,
-    'quarter': 25, 'three quarter': 75, 'three quarters': 75, 'three-quarter': 75,
-    'two thirds': 67, 'two-thirds': 67,
-    'one third': 33, 'one-third': 33
-  };
-  for (var f in fractions) {
-    if (lower.indexOf(f) !== -1) return fractions[f];
+// Committed events
+let committedEvents = [
+  {
+    id: 'ce-001',
+    trade: 'Electrical',
+    type: 'Material Delivery',
+    description: 'Switchgear delivery — loading dock B',
+    area: 'Loading Dock B',
+    date: addDays(TODAY, 3),
+    source: 'Mike Delgado',
+    source_type: 'foreman',
+    p6_ref: null
+  },
+  {
+    id: 'ce-002',
+    trade: 'Electrical',
+    type: 'Inspection',
+    description: 'Rough-in inspection Floor 3',
+    area: 'Floor 3',
+    date: addDays(TODAY, 3),
+    source: 'Mike Delgado',
+    source_type: 'foreman',
+    p6_ref: 'A1010'
+  },
+  {
+    id: 'ce-003',
+    trade: 'Mechanical',
+    type: 'Inspection',
+    description: 'Pressure test Level 3 — inspector confirmed',
+    area: 'Level 3 West Wing',
+    date: addDays(TODAY, 2),
+    source: 'Rosa Chen',
+    source_type: 'foreman',
+    p6_ref: 'A1030'
+  },
+  {
+    id: 'ce-004',
+    trade: 'Structural Steel',
+    type: 'Coordination Milestone',
+    description: 'Crane extension confirmation needed',
+    area: 'Roof Level',
+    date: addDays(TODAY, 1),
+    source: 'Superintendent',
+    source_type: 'superintendent',
+    p6_ref: 'A1050'
   }
+];
 
-  // Completion adverbs
-  var completionWords = {
-    'complete': 100, 'completed': 100, 'done': 100, 'finished': 100, 'wrapped': 100, 'wrapped up': 100,
-    'almost done': 90, 'nearly done': 90, 'almost complete': 90, 'nearly complete': 90,
-    'mostly done': 80, 'mostly
+// Submissions inbox
+let submissions = [
+  {
+    id: 'sub-001',
+    sender: 'Mike Delgado',
+    trade: 'Electrical',
+    channel: 'SMS',
+    time: '06:47',
+    text: 'got 6 guys on site today, finished conduit run on floors 4 and 5 grids C-D. waiting on concrete pour clearance before we can continue panel work on 6. delivery of switchgear scheduled thursday morning loading dock B',
+    read: false,
+    linked_dl: 'dl-001'
+  },
+  {
+    id: 'sub-002',
+    sender: 'Rosa Chen',
+    trade: 'Mechanical',
+    channel: 'Email + PDF',
+    time: '07:12',
+    text: '[PDF attached: Tri-State HVAC Daily Log] 4 workers. Completed: ductwork level 3 west. Upcoming: pressure test Wed 9am.',
+    read: false,
+    linked_dl: 'dl-002'
+  },
+  {
+    id: 'sub-003',
+    sender: 'Tony Batista',
+    trade: 'Structural Steel',
+    channel: 'SMS',
+    time: '08:03',
+    text: 'secondary beams done roof grid A to F. crane rental expires friday need to know if we extending or releasing. no manpower count sent this time',
+    read: false,
+    linked_dl: 'dl-003'
+  }
+];
+
+// State
+let lookaheadView = 'list'; // 'list' or 'gantt'
+let activeTradeFilter = 'All';
+let activeLAFilter = 'All';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// UTILITY FUNCTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function showToast(msg, type = '') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getAllTrades() {
+  const trades = new Set(['All']);
+  dailyLog.forEach(r => trades.add(r.trade));
+  return Array.from(trades);
+}
+
+function getAllLATrades() {
+  const trades = new Set(['All']);
+  p6Activities.forEach(a => trades.add(a.trade));
+  committedEvents.forEach(c => trades.add(c.trade));
+  return Array.from(trades);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════════════════════
+
+function initNav() {
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+      const panelId = this.dataset.panel;
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(panelId).classList.add('active');
+      if (panelId === 'panel-report') renderReport();
+      if (panelId === 'panel-lookahead') renderLookahead();
+      if (panelId === 'panel-submissions') renderSubmissions();
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DAILY LOG RENDERING
+// ══════════════════════════════════════════════════════════════════════════════
+
+function renderDailyLog() {
+  renderStatCards();
+  renderGapAlerts();
+  renderTradeFilterChips();
+  renderDailyTable();
+}
+
+function renderStatCards() {
+  const received = dailyLog.filter(r => r.status !== 'missing').length;
+  const missing = dailyLog.filter(r => r.status === 'missing').length;
+  const gaps = dailyLog.filter(r => r.status === 'gap').length;
+  const totalMen = dailyLog.filter(r => r.men_on_site != null).reduce((s,r) => s + r.men_on_site, 0);
+  const html = `
+    <div class="stat-card green">
+      <div class="stat-label">Updates Received</div>
+      <div class="stat-value">${received}</div>
+      <div class="stat-sub">of ${dailyLog.length} subs expected</div>
+    </div>
+    <div class="stat-card ${missing > 0 ? 'red' : ''}">
+      <div class="stat-label">Missing Updates</div>
+      <div class="stat-value">${missing}</div>
+      <div class="stat-sub">Follow up required</div>
+    </div>
+    <div class="stat-card ${gaps > 0 ? 'amber' : ''}">
+      <div class="stat-label">Gaps Flagged</div>
+      <div class="stat-value">${gaps}</div>
+      <div class="stat-sub">Incomplete submissions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Men On Site</div>
+      <div class="stat-value">${totalMen}</div>
+      <div class="stat-sub">${dailyLog.filter(r => r.men_on_site == null && r.status !== 'missing').length} subs — count not reported</div>
+    </div>
+  `;
+  document.getElementById('stat-row').innerHTML = html;
+}
+
+function renderGapAlerts() {
+  const missing = dailyLog.filter(r => r.status === 'missing');
+  const gaps = dailyLog.filter(r => r.status === 'gap');
+  let html = '';
+  if (missing.length > 0) {
+    html += `<div class="alert alert-red">⚠️ <strong>No update received from:</strong> ${missing.map(r => r.trade + (r.foreman ? ' (' + r.foreman + ')' : '')).join(', ')}. Manual follow-up required.</div>`;
+  }
+  if (gaps.length > 0) {
+    const fieldGaps = [];
+    gaps.forEach(r => {
+      if (r.men_on_site == null) fieldGaps.push(r.trade + ': men on site not reported');
+      if (r.area == null) fieldGaps.push(r.trade + ': area not specified');
+      if (r.commitments == null) fieldGaps.push(r.trade + ': no forward commitments');
+    });
+    if (fieldGaps.length) {
+      html += `<div class="alert alert-amber">⚠️ <strong>Incomplete fields extracted:</strong> ${fieldGaps.join(' · ')}</div>`;
+    }
+  }
+  document.getElementById('gap-alerts').innerHTML = html;
+}
+
+function renderTradeFilterChips() {
+  const trades = getAllTrades();
+  const html = trades.map(t =>
+    `<span class="chip${activeTradeFilter === t ? ' active' : ''}" onclick="setTradeFilter('${esc(t)}')">${esc(t)}</span>`
+  ).join('');
+  document.getElementById('trade-filter-chips').innerHTML = html;
+}
+
+function setTradeFilter(trade) {
+  activeTradeFilter = trade;
+  renderTradeFilterChips();
+  renderDailyTable();
+}
+
+function renderDailyTable() {
+  const filtered = activeTradeFilter === 'All' ? dailyLog : dailyLog.filter(r => r.trade === activeTradeFilter);
+  const tbody = document.getElementById('daily-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No entries match the current filter.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(row => {
+    const statusBadge = {
+      'received': '<span class="badge badge-green">✓ Received</span>',
+      'gap': '<span class="badge badge-amber">⚠ Gaps</span>',
+      'missing': '<span class="badge badge-red">✕ Missing</span>'
+    }[row.status] || '';
+
+    const channelBadge = row.channel
+      ? `<span class="badge badge-gray">${esc(row.channel)}</span>`
+      : '<span class="null-

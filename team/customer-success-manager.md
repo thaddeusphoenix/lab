@@ -56,3 +56,9 @@ When users are struggling, prototype a solution before waiting for the product t
 - **QA / Quality Engineer** — Reports bugs with user context and reproduction steps. Identifies quality issues that disproportionately affect specific user segments.
 - **Marketing Manager** — Provides success stories, testimonials, and user language that fuels authentic marketing. Flags when marketing promises do not match user reality.
 - **Sales Engineering Lead** — Ensures smooth handoff from sales to onboarding. Provides context on what was promised during the sales process so expectations are managed correctly.
+
+## Skills
+
+| Skill | When to reach for it |
+|---|---|
+| `measuring-product-market-fit` | Interpreting retention and satisfaction signals — Sean Ellis survey, churn patterns, reference customer counts |

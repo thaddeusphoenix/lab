@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Superintendent View</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f0f2f5;color:#1a1a2e}
+header{background:#1a1a2e;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:1.1rem;font-weight:700}
+header span{font-size:.8rem;opacity:.5}
+#stats-bar{background:#fff;border-bottom:1px solid #e0e0e0;padding:10px 24px;display:flex;align-items:center;gap:16px}
+.stat{font-size:.83rem;font-weight:600;display:flex;align-items:center;gap:5px}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot-u{background:#f59e0b}.dot-g{background:#9ca3af}.dot-a{background:#22c55e}
+#bulk-btn{margin-left:auto;background:#22c55e;color:#fff;border:none;padding:6px 14px;border-radius:5px;font-size:.82rem;font-weight:700;cursor:pointer}
+#bulk-btn.hidden{display:none}
+#main{padding:16px 24px;max-width:860px;margin:0 auto}
+.sec-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin:0 0 10px}
+.card{background:#fff;border-radius:8px;border-left:4px solid #e5e7eb;padding:13px 15px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:9px}
+.card.has-update{border-left-color:#f59e0b}
+.card.approved{border-left-color:#22c55e}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.card-name{font-weight:700;font-size:.92rem}
+.card-meta{font-size:.74rem;color:#6b7280;margin-top:2px}
+.pill{font-size:.71rem;font-weight:700;padding:3px 9px;border-radius:10px;white-space:nowrap}
+.pill-update{background:#fef3c7;color:#92400e;cursor:pointer;border:none;font-family:inherit}
+.pill-approved{background:#dcfce7;color:#15803d}
+.pill-gap{background:#f3f4f6;color:#9ca3af}
+.review-panel{margin-top:10px;padding-top:10px;border-top:1px solid #fde68a}
+.proposal{font-size:.82rem;color:#78350f;background:#fffbeb;border-radius:4px;padding:7px 10px;margin-bottom:8px}
+.source{font-size:.75rem;color:#6b7280;line-height:1.6;margin-bottom:9px}
+.source b{color:#374151;font-weight:600}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+.btn-a{background:#22c55e;color:#fff;border:none;padding:6px 14px;border-radius:4px;font-size:.8rem;font-weight:700;cursor:pointer}
+.btn-o{background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:4px;font-size:.8rem;cursor:pointer}
+.btn-undo{background:none;border:1px solid #d1d5db;color:#6b7280;padding:3px 9px;border-radius:4px;font-size:.73rem;cursor:pointer;margin-top:6px}
+.ov-form{display:flex;gap:7px;align-items:center;margin-top:7px}
+.ov-form input{border:1px solid #d1d5db;border-radius:4px;padding:5px 8px;font-size:.8rem;width:80px}
+.ov-form button{background:#1a1a2e;color:#fff;border:none;padding:5px 10px;border-radius:4px;font-size:.8rem;cursor:pointer}
+#queue{margin-top:22px}
+.q-card{background:#fff;border-radius:7px;border-left:4px solid #ef4444;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:8px}
+.q-from{font-size:.75rem;font-weight:700;color:#b91c1c;margin-bottom:3px}
+.q-text{font-size:.83rem;color:#374151;font-style:italic}
+.q-note{font-size:.71rem;color:#9ca3af;margin-top:4px}
+</style>
+</head>
+<body>
+<header>
+<h1>⚡ Superintendent Dashboard</h1>
+<span id="hdr-date"></span>
+</header>
+<div id="stats-bar">
+<div class="stat"><div class="dot dot-u"></div><span id="cnt-u">0 Updates</span></div>
+<div class="stat"><div class="dot dot-g"></div><span id="cnt-g">0 No update</span></div>
+<div class="stat"><div class="dot dot-a"></div><span id="cnt-a">0 Approved</span></div>
+<button id="bulk-btn" class="hidden" onclick="bulkApprove()">Approve All</button>
+</div>
+<div id="main">
+<div class="sec-title">Schedule — <span id="act-count"></span> activities</div>
+<div id="activity-list"></div>
+<div id="queue"></div>
+</div>
+<script>
+var P6=[
+{id:'A1',name:'Electrical Conduit Zone 4',trade:'Electrical',zone:'Zone 4',fId:'f1',zA:['zone 4','zone4','north','z4'],tA:['electrical','conduit','rough-in','wire'],status:'gap',pct:null},
+{id:'A2',name:'Electrical Panel Level 2',trade:'Electrical',zone:'Level 2',fId:'f1',zA:['level 2','level2','lvl2','l2'],tA:['electrical','panel','switchgear'],status:'gap',pct:null},
+{id:'A3',name:'Mechanical Ductwork Zone 2',trade:'Mechanical',zone:'Zone 2',fId:'f2',zA:['zone 2','zone2','south','z2'],tA:['mechanical','duct','ductwork','hvac','mep'],status:'gap',pct:null},
+{id:'A4',name:'Mechanical Piping Level 3',trade:'Mechanical',zone:'Level 3',fId:'f2',zA:['level 3','level3','lvl3','l3'],tA:['mechanical','pipe','piping','plumbing'],status:'gap',pct:null},
+{id:'A5',name:'Concrete Pour Zone 1',trade:'Concrete',zone:'Zone 1',fId:'f3',zA:['zone 1','zone1','east','z1'],tA:['concrete','pour','slab','foundation'],status:'gap',pct:null},
+{id:'A6',name:'Concrete Formwork Level 1',trade:'Concrete',zone:'Level 1',fId:'f3',zA:['level 1','level1','lvl1','l1'],tA:['concrete','formwork','form','shoring'],status:'gap',pct:null}
+];
+var FOREMEN={f1:{name:'Marcus T.',trade:'Electrical'},f2:{name:'Rosa V.',trade:'Mechanical'},f3:{name:'Devon K.',trade:'Concrete'},f4:{name:'Priya S.',trade:'Steel Framing'}};
+var MSGS=[
+{fId:'f1',text:'north side electrical rough-in is about 80 percent done'},
+{fId:'f2',text:'MEP on level two is about halfway'},
+{fId:'f3',text:'we finished the concrete pour in zone 1'},
+{fId:'f1',text:'panel work on level 2 is just started'},
+{fId:'f4',text:'steel framing on the mezzanine is about sixty percent'}
+];
+var unmatched=[];
+var reviewOpen={};
+var ovOpen={};
+
+function tok(s){return s.toLowerCase().split(/\W+/).filter(Boolean);}
+
+function extractPct(t){
+  var s=t.toLowerCase(),m;
+  if(m=s.match(/(\d+)\s*%/)||s.match(/(\d+)\s+percent/))return Math.min(100,parseInt(m[1]));
+  var WN={ten:10,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90,hundred:100};
+  var tks=tok(s),tens=null;
+  for(var i=0;i<tks.length;i++){var v=WN[tks[i]];if(v!==undefined){if(v%10===0)tens=v;else if(tens)return tens;}}
+  if(tens)return tens;
+  if(/almost\s+done/.test(s))return 90;
+  if(/\b(done|complete|finished)\b/.test(s))return 100;
+  if(/halfway/.test(s))return 50;
+  if(/just\s+started/.test(s))return 10;
+  return null;
+}
+
+function matchMsg(text,fId){
+  var tks=tok(text),best=null,top=0,sigs=[];
+  for(var i=0;i<P6.length;i++){
+    var a=P6[i],sc=0,sg=[];
+    for(var z=0;z<a.zA.length;z++){var zt=tok(a.zA[z]),ok=true;for(var k=0;k<zt.length;k++)if(!~tks.indexOf(zt[k])){ok=false;break;}if(ok&&zt.length){sc+=5;sg.push('zone "'+a.zA[z]+'"');break;}}
+    for(var r=0;r<a.tA.length;r++){var tt=tok(a.tA[r]),ok=true;for(var k=0;k<tt.length;k++)if(!~tks.indexOf(tt[k])){ok=false;break;}if(ok&&tt.length){sc+=4;sg.push('trade "'+a.tA[r]+'"');break;}}
+    if(a.fId===fId){sc+=3;sg.push('foreman');}
+    if(sc>top){top=sc;best=a;sigs=sg;}
+  }
+  return top>0?{act:best,sigs:sigs,score:top}:null;
+}
+
+function render(){
+  var list=document.getElementById('activity-list');
+  list.innerHTML='';
+  var nu=0,ng=0,na=0;
+  for(var i=0;i<P6.length;i++){
+    var a=P6[i];
+    if(a.status==='update')nu++;else if(a.status==='gap')ng++;else na++;
+    var cls='card'+(a.status==='update'?' has-update':a.status==='approved'?' approved':'');
+    var pill=a.status==='update'
+      ?'<button class="pill pill-update" onclick="toggleReview(\''+a.id+'\')">📩 Update received</button>'
+      :a.status==='approved'
+        ?'<span class="pill pill-approved">✓ Approved</span>'
+        :'<span class="pill pill-gap">No update</span>';
+    var h='<div class="card-head"><div><div class="card-name">'+a.name+'</div><div class="card-meta">'+a.trade+' — '+a.zone+'</div></div>'+pill+'</div>';
+    if(a.status==='update'&&reviewOpen[a.id]){
+      h+='<div class="review-panel">';
+      h+='<div class="proposal">📥 Proposed: <strong>'+(a.pct!==null?a.pct+'%':'unknown')+' complete</strong></div>';
+      var fm=FOREMEN[a.srcFId];
+      h+='<div class="source"><b>From</b> '+(fm?fm.name+' \u00b7 '+fm.trade:a.srcFId)+'<br><b>Message</b> \u201c'+a.srcMsg+'\u201d<br><b>Signals</b> '+a.sigs.join(', ')+' (score: '+a.score+')</div>';
+      h+='<div class="actions"><button class="btn-a" onclick="approve(\''+a.id+'\')">✓ Approve</button><button class="btn-o" onclick="toggleOv(\''+a.id+'\')">✎ Override</button></div>';
+      if(ovOpen[a.id])h+='<div class="ov-form"><input type="number" id="ov-'+a.id+'" min="0" max="100" value="'+(a.pct||'')+'"><button onclick="submitOv(\''+a.id+'\')">Set & Approve</button></div>';
+      h+='</div>';
+    }
+    if(a.status==='approved')h+='<button class="btn-undo" onclick="undo(\''+a.id+'\')">↩ Undo</button>';
+    var card=document.createElement('div');
+    card.className=cls;card.id='card-'+a.id;card.innerHTML=h;
+    list.appendChild(card);
+  }
+  document.getElementById('cnt-u').textContent=nu+' Updates';
+  document.getElementById('cnt-g').textContent=ng+' No update';
+  document.getElementById('cnt-a').textContent=na+' Approved';
+  document.getElementById('act-count').textContent=P6.length;
+  var bb=document.getElementById('bulk-btn');
+  nu?bb.classList.remove('hidden'):bb.classList.add('hidden');
+  renderQueue();
+}
+
+function renderQueue(){
+  var q=document.getElementById('queue');
+  if(!unmatched.length){q.innerHTML='';return;}
+  var h='<div class="sec-title" style="margin-top:4px">Unmatched messages ('+unmatched.length+')</div>';
+  for(var i=0;i<unmatched.length;i++){
+    var m=unmatched[i];
+    var qfm=FOREMEN[m.fId];
+    h+='<div class="q-card"><div class="q-from">'+(qfm?qfm.name+' \u00b7 '+qfm.trade:m.fId)+'</div><div class="q-text">\u201c'+m.text+'\u201d</div><div class="q-note">No activity matched — needs manual assignment</div></div>';
+  }
+  q.innerHTML=h;
+}
+
+function toggleReview(id){reviewOpen[id]=!reviewOpen[id];render();}
+function toggleOv(id){ovOpen[id]=!ovOpen[id];render();}
+function approve(id){for(var i=0;i<P6.length;i++){if(P6[i].id===id){P6[i].status='approved';delete reviewOpen[id];delete ovOpen[id];break;}}render();}
+function undo(id){for(var i=0;i<P6.length;i++){if(P6[i].id===id){P6[i].status='update';break;}}render();}
+function submitOv(id){var v=parseInt(document.getElementById('ov-'+id).value,10);if(isNaN(v)||v<0||v>100)return;for(var i=0;i<P6.length;i++){if(P6[i].id===id){P6[i].pct=v;break;}}approve(id);}
+function bulkApprove(){for(var i=0;i<P6.length;i++){if(P6[i].status==='update'){P6[i].status='approved';delete reviewOpen[P6[i].id];delete ovOpen[P6[i].id];}}render();}
+
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('hdr-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  for(var i=0;i<MSGS.length;i++){
+    var msg=MSGS[i],res=matchMsg(msg.text,msg.fId);
+    if(res){res.act.status='update';res.act.pct=extractPct(msg.text);res.act.srcMsg=msg.text;res.act.srcFId=msg.fId;res.act.sigs=res.sigs;res.act.score=res.score;}
+    else unmatched.push(msg);
+  }
+  render();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - navigation [ref=e6]:
+      - link [ref=e8] [cursor=pointer]:
+        - /url: ./
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - paragraph [ref=e13]:
+            - link "Product" [ref=e14] [cursor=pointer]:
+              - /url: ./#what-is-civilgrid
+          - paragraph [ref=e16]:
+            - link "Case Studies" [ref=e17] [cursor=pointer]:
+              - /url: ./#case-studies
+          - paragraph [ref=e19]:
+            - link "About Us" [ref=e20] [cursor=pointer]:
+              - /url: ./about-us
+          - paragraph [ref=e22]:
+            - link "Careers" [ref=e23] [cursor=pointer]:
+              - /url: ./careers
+          - paragraph [ref=e25]:
+            - link "Contact" [ref=e26] [cursor=pointer]:
+              - /url: ./#contact
+        - generic [ref=e27]:
+          - link "Try CivilGrid" [ref=e28] [cursor=pointer]:
+            - /url: https://map.civilgrid.com/register
+            - paragraph [ref=e30]: Try CivilGrid
+          - link "Login" [ref=e31] [cursor=pointer]:
+            - /url: https://map.civilgrid.com
+            - paragraph [ref=e33]: Login
+    - generic [ref=e38]:
+      - generic [ref=e44]:
+        - heading "Google Maps for Pre-Construction" [level=1] [ref=e46]
+        - heading "Where Engineering and Construction Teams Go to Start Every Project" [level=5] [ref=e48]
+      - generic [ref=e54] [cursor=pointer]:
+        - img [ref=e57]
+        - paragraph [ref=e61]:
+          - strong [ref=e62]: Watch a 2-min demo
+    - generic [ref=e65]:
+      - heading "Trusted by leading utilities and engineering teams" [level=2] [ref=e67]
+      - list [ref=e72]:
+        - listitem [ref=e73]
+        - listitem [ref=e76]
+        - listitem [ref=e79]
+        - listitem [ref=e82]
+        - listitem [ref=e85]
+        - listitem [ref=e88]
+        - listitem [ref=e91]
+        - listitem [ref=e94]
+        - listitem [ref=e97]
+        - listitem [ref=e100]
+        - listitem [ref=e103]
+        - listitem [ref=e106]
+        - listitem [ref=e109]
+        - listitem [ref=e112]
+        - listitem [ref=e115]
+        - listitem [ref=e118]
+        - listitem [ref=e121]
+        - listitem [ref=e124]
+        - listitem [ref=e127]
+        - listitem [ref=e130]
+        - listitem [ref=e133]
+        - listitem [ref=e136]
+        - listitem [ref=e139]
+        - listitem [ref=e142]
+        - listitem [ref=e145]
+        - listitem [ref=e148]
+        - listitem [ref=e151]
+        - listitem [ref=e154]
+        - listitem [ref=e157]
+        - listitem [ref=e160]
+        - listitem [ref=e163]
+        - listitem [ref=e166]
+        - listitem [ref=e169]
+        - listitem [ref=e172]
+        - listitem [ref=e175]
+        - listitem [ref=e178]
+        - listitem [ref=e181]
+        - listitem [ref=e184]
+        - listitem [ref=e187]
+        - listitem [ref=e190]
+        - listitem [ref=e193]
+        - listitem [ref=e196]
+    - generic [ref=e202]:
+      - textbox [ref=e205]:
+        - /placeholder: alice@acme-engineering.com
+      - button "Try CivilGrid" [ref=e206] [cursor=pointer]:
+        - paragraph [ref=e208]: Try CivilGrid
+    - banner [ref=e209]:
+      - generic [ref=e213]:
+        - heading "What is CivilGrid?" [level=2] [ref=e215]
+        - heading "CivilGrid centralizes proprietary utility, environmental, geotechnical, and other critical site data in a single platform where your teams can collaboratively scope and plan projects" [level=5] [ref=e217]
+    - generic [ref=e228]:
+      - generic [ref=e233]:
+        - heading "What our customers say about us" [level=2] [ref=e235]
+        - generic:
+          - heading [level=5]
+      - list [ref=e242]:
+        - listitem [ref=e243]:
+          - generic [ref=e245]:
+            - paragraph [ref=e250]: “CivilGrid keeps showing its value to me every time I use it. I urge my team to use it on every proposal or project that has a utility component to be even more efficient. Their services keep getting more comprehensive over time and replaces other standalone applications we were using.”
+            - generic [ref=e254]:
+              - paragraph [ref=e256]: Matt Kamkar, QSD, PE, JD
+              - paragraph [ref=e258]: Principal Civil Engineer
+              - paragraph [ref=e260]: Underwood & Rosenblum, Inc.
+        - listitem [ref=e261]:
+          - generic [ref=e263]:
+            - paragraph [ref=e268]: “CivilGrid is a great tool for our pipeline projects for providing instant access to utility information during the planning and early design stages, identifying affected agencies along an alignment, and capturing field observations that aid in decision making for our designs.”
+            - generic [ref=e272]:
+              - paragraph [ref=e274]: Caisey Raines, PE
+              - paragraph [ref=e276]: US West Business Group Leader - Linear Infrastructure
+              - paragraph [ref=e278]: GHD
+        - listitem [ref=e279]:
+          - generic [ref=e281]:
+            - paragraph [ref=e286]: "\"CivilGrid's data specialists are top notch. They are always ready to answer questions, lend assistance, and make product changes to help us work better.\""
+            - generic [ref=e290]:
+              - paragraph [ref=e292]: Robert Lundeen
+              - paragraph [ref=e294]: Survey Technician
+              - paragraph [ref=e296]: Mark Thomas
+        - listitem [ref=e297]:
+          - generic [ref=e299]:
+            - paragraph [ref=e304]: “Over the past year, we’ve seen improvements in our project efficiency and overall workflow. CivilGrid’s ability to consolidate all project records and requests into a single platform has been incredibly convenient. We no longer need to juggle multiple systems or contact various agencies. Another highlight has been the exceptional responsiveness of CivilGrid’s customer support. Overall, CivilGrid has exceeded our expectations. It’s become an indispensable tool for our projects.”
+            - generic [ref=e308]:
+              - paragraph [ref=e310]: David Song, PE
+              - paragraph [ref=e312]: Principal
+              - paragraph [ref=e314]: Civiltec
+        - listitem [ref=e315]:
+          - generic [ref=e317]:
+            - paragraph [ref=e322]: "\"I recommend CivilGrid to all utilities. They are a reliable source for the vital combined utility information that doesn't exist in most areas.”"
+            - generic [ref=e326]:
+              - paragraph [ref=e328]: Bill Tuttle
+              - paragraph [ref=e330]: VP of Engineering
+              - paragraph [ref=e332]: San Jose Water
+        - listitem [ref=e333]:
+          - generic [ref=e335]:
+            - paragraph [ref=e340]: “CivilGrid keeps showing its value to me every time I use it. I urge my team to use it on every proposal or project that has a utility component to be even more efficient. Their services keep getting more comprehensive over time and replaces other standalone applications we were using.”
+            - generic [ref=e344]:
+              - paragraph [ref=e346]: Matt Kamkar, QSD, PE, JD
+              - paragraph [ref=e348]: Principal Civil Engineer
+              - paragraph [ref=e350]: Underwood & Rosenblum, Inc.
+        - listitem [ref=e351]:
+          - generic [ref=e353]:
+            - paragraph [ref=e358]: “CivilGrid is a great tool for our pipeline projects for providing instant access to utility information during the planning and early design stages, identifying affected agencies along an alignment, and capturing field observations that aid in decision making for our designs.”
+            - generic [ref=e362]:
+              - paragraph [ref=e364]: Caisey Raines, PE
+              - paragraph [ref=e366]: US West Business Group Leader - Linear Infrastructure
+              - paragraph [ref=e368]: GHD
+        - listitem [ref=e369]:
+          - generic [ref=e371]:
+            - paragraph [ref=e376]: "\"CivilGrid's data specialists are top notch. They are always ready to answer questions, lend assistance, and make product changes to help us work better.\""
+            - generic [ref=e380]:
+              - paragraph [ref=e382]: Robert Lundeen
+              - paragraph [ref=e384]: Survey Technician
+              - paragraph [ref=e386]: Mark Thomas
+        - listitem [ref=e387]:
+          - generic [ref=e389]:
+            - paragraph [ref=e394]: “Over the past year, we’ve seen improvements in our project efficiency and overall workflow. CivilGrid’s ability to consolidate all project records and requests into a single platform has been incredibly convenient. We no longer need to juggle multiple systems or contact various agencies. Another highlight has been the exceptional responsiveness of CivilGrid’s customer support. Overall, CivilGrid has exceeded our expectations. It’s become an indispensable tool for our projects.”
+            - generic [ref=e398]:
+              - paragraph [ref=e400]: David Song, PE
+              - paragraph [ref=e402]: Principal
+              - paragraph [ref=e404]: Civiltec
+        - listitem [ref=e405]:
+          - generic [ref=e407]:
+            - paragraph [ref=e412]: "\"I recommend CivilGrid to all utilities. They are a reliable source for the vital combined utility information that doesn't exist in most areas.”"
+            - generic [ref=e416]:
+              - paragraph [ref=e418]: Bill Tuttle
+              - paragraph [ref=e420]: VP of Engineering
+              - paragraph [ref=e422]: San Jose Water
+        - listitem [ref=e423]:
+          - generic [ref=e425]:
+            - paragraph [ref=e430]: “CivilGrid keeps showing its value to me every time I use it. I urge my team to use it on every proposal or project that has a utility component to be even more efficient. Their services keep getting more comprehensive over time and replaces other standalone applications we were using.”
+            - generic [ref=e434]:
+              - paragraph [ref=e436]: Matt Kamkar, QSD, PE, JD
+              - paragraph [ref=e438]: Principal Civil Engineer
+              - paragraph [ref=e440]: Underwood & Rosenblum, Inc.
+        - listitem [ref=e441]:
+          - generic [ref=e443]:
+            - paragraph [ref=e448]: “CivilGrid is a great tool for our pipeline projects for providing instant access to utility information during the planning and early design stages, identifying affected agencies along an alignment, and capturing field observations that aid in decision making for our designs.”
+            - generic [ref=e452]:
+              - paragraph [ref=e454]: Caisey Raines, PE
+              - paragraph [ref=e456]: US West Business Group Leader - Linear Infrastructure
+              - paragraph [ref=e458]: GHD
+        - listitem [ref=e459]:
+          - generic [ref=e461]:
+            - paragraph [ref=e466]: "\"CivilGrid's data specialists are top notch. They are always ready to answer questions, lend assistance, and make product changes to help us work better.\""
+            - generic [ref=e470]:
+              - paragraph [ref=e472]: Robert Lundeen
+              - paragraph [ref=e474]: Survey Technician
+              - paragraph [ref=e476]: Mark Thomas
+        - listitem [ref=e477]:
+          - generic [ref=e479]:
+            - paragraph [ref=e484]: “Over the past year, we’ve seen improvements in our project efficiency and overall workflow. CivilGrid’s ability to consolidate all project records and requests into a single platform has been incredibly convenient. We no longer need to juggle multiple systems or contact various agencies. Another highlight has been the exceptional responsiveness of CivilGrid’s customer support. Overall, CivilGrid has exceeded our expectations. It’s become an indispensable tool for our projects.”
+            - generic [ref=e488]:
+              - paragraph [ref=e490]: David Song, PE
+              - paragraph [ref=e492]: Principal
+              - paragraph [ref=e494]: Civiltec
+        - listitem [ref=e495]:
+          - generic [ref=e497]:
+            - paragraph [ref=e502]: "\"I recommend CivilGrid to all utilities. They are a reliable source for the vital combined utility information that doesn't exist in most areas.”"
+            - generic [ref=e506]:
+              - paragraph [ref=e508]: Bill Tuttle
+              - paragraph [ref=e510]: VP of Engineering
+              - paragraph [ref=e512]: San Jose Water
+    - generic [ref=e513]:
+      - generic [ref=e517]:
+        - heading "Schedule a Demo" [level=2] [ref=e519]
+        - generic:
+          - heading [level=5]
+      - generic [ref=e520]:
+        - generic [ref=e521]:
+          - heading "To learn more, give us a ring, send us an email, or grab time on our calendar" [level=5] [ref=e524]
+          - generic [ref=e525]:
+            - generic [ref=e526]:
+              - img [ref=e529]
+              - heading "415-942-1303" [level=5] [ref=e532]:
+                - link "415-942-1303" [ref=e533] [cursor=pointer]:
+                  - /url: tel:415-942-1303
+            - generic [ref=e534]:
+              - img [ref=e537]
+              - heading "sales@civilgrid.com" [level=5] [ref=e541]:
+                - link "sales@civilgrid.com" [ref=e542] [cursor=pointer]:
+                  - /url: mailto:info@civilgrid.com
+        - iframe [ref=e544]
+    - generic [ref=e545]:
+      - heading "Who is CivilGrid for?" [level=2] [ref=e548]
+      - generic [ref=e549]:
+        - generic [ref=e554]:
+          - heading "Developers" [level=2] [ref=e556]
+          - heading "Perform site due diligence and plan utility interconnects" [level=3] [ref=e558]
+        - generic [ref=e563]:
+          - heading "Engineers" [level=2] [ref=e565]
+          - heading "Jumpstart your drawings with utility shapefiles, download known geotechnical findings" [level=3] [ref=e567]
+        - generic [ref=e572]:
+          - heading "Construction Firms" [level=2] [ref=e574]
+          - heading "Gather bid or construction planning intelligence" [level=3] [ref=e576]
+        - generic [ref=e581]:
+          - heading "Utilities" [level=2] [ref=e583]
+          - heading "Accelerate utility composite generation and improve your project planning" [level=3] [ref=e585]
+        - generic [ref=e590]:
+          - heading "Cities" [level=2] [ref=e592]
+          - heading "Analyze projects in your municipality for improved resource allocation and infrastructure development" [level=3] [ref=e594]
+        - generic [ref=e599]:
+          - heading "Agencies" [level=2] [ref=e601]
+          - heading "Streamline permitting processes and enhance project oversight, ensuring efficient project delivery" [level=3] [ref=e603]
+    - generic [ref=e604]:
+      - generic [ref=e605]:
+        - generic [ref=e608]:
+          - heading [level=5] [ref=e610]
+          - heading "Powerful data insights." [level=1] [ref=e612] [cursor=pointer]
+        - paragraph [ref=e614]: Unlock the true potential of your data with our advanced analytics tools. Gain valuable insights and make informed decisions to drive your business forward.
+      - generic [ref=e615]:
+        - paragraph [ref=e621]: Total Datasets
+        - paragraph [ref=e627]: Hours Saved
+        - paragraph [ref=e633]: Projects Completed
+        - paragraph [ref=e639]: Miles of Utilities
+    - generic [ref=e641]:
+      - list [ref=e642]:
+        - listitem "1 of 7" [ref=e643]:
+          - 'link "Case Studies Case Study: PG&E How PG&E Reduced Design Time and Risk with CivilGrid" [ref=e645] [cursor=pointer]':
+            - /url: ./pge-case-study
+            - generic [ref=e648]:
+              - generic [ref=e649]:
+                - paragraph [ref=e651]: Case Studies
+                - 'heading "Case Study: PG&E" [level=4] [ref=e653]'
+              - paragraph [ref=e655]: How PG&E Reduced Design Time and Risk with CivilGrid
+        - listitem "2 of 7" [ref=e656]:
+          - 'link "Case Studies Case Study: Mark Thomas Reducing SUE Cost Per Project by 75% with CivilGrid" [ref=e658] [cursor=pointer]':
+            - /url: ./reducing-sue-cost
+            - generic [ref=e661]:
+              - generic [ref=e662]:
+                - paragraph [ref=e664]: Case Studies
+                - 'heading "Case Study: Mark Thomas" [level=4] [ref=e666]'
+              - paragraph [ref=e668]: Reducing SUE Cost Per Project by 75% with CivilGrid
+        - listitem "3 of 7" [ref=e669]:
+          - 'link "Case Studies Case Study: Telecom Telecom Engineering Provider Realizes 90% Cost Reduction with CivilGrid" [ref=e671] [cursor=pointer]':
+            - /url: ./telecom-case-study
+            - generic [ref=e674]:
+              - generic [ref=e675]:
+                - paragraph [ref=e677]: Case Studies
+                - 'heading "Case Study: Telecom" [level=4] [ref=e679]'
+              - paragraph [ref=e681]: Telecom Engineering Provider Realizes 90% Cost Reduction with CivilGrid
+        - listitem [ref=e682]:
+          - link [ref=e684] [cursor=pointer]:
+            - /url: ./blog/civilgrid-is-now-soc2-compliant
+            - generic [ref=e687]:
+              - generic [ref=e688]:
+                - paragraph [ref=e690]: Security
+                - heading [level=4] [ref=e692]: CivilGrid is now SOC2 compliant!
+              - paragraph [ref=e694]: We are proud to announce that we’ve received a clean SOC 2 Type 2 attestation.
+        - listitem [ref=e695]:
+          - link [ref=e697] [cursor=pointer]:
+            - /url: ./water-case-study
+            - generic [ref=e700]:
+              - generic [ref=e701]:
+                - paragraph [ref=e703]: Case Studies
+                - heading [level=4] [ref=e705]: "Case Study: San Jose Water"
+              - paragraph [ref=e707]: San Jose Water Gains Project Planning Efficiency with CivilGrid
+        - listitem [ref=e708]:
+          - link [ref=e710] [cursor=pointer]:
+            - /url: ./sample-dataset
+            - generic [ref=e713]:
+              - generic [ref=e714]:
+                - paragraph [ref=e716]: Data
+                - heading [level=4] [ref=e718]: Example Dataset
+              - paragraph [ref=e720]: Download a sample CivilGrid dataset
+        - listitem [ref=e721]:
+          - generic [ref=e726] [cursor=pointer]:
+            - generic [ref=e727]:
+              - paragraph [ref=e729]: Certifications
+              - heading [level=4] [ref=e731]: SBE Certified
+            - paragraph [ref=e733]: We are proudly certified as a Small Business by the State of California, enabling us to better serve our community.
+      - group "Carousel pagination controls":
+        - button "Previous"
+        - button "Next" [ref=e734] [cursor=pointer]
+    - generic [ref=e737]:
+      - generic [ref=e739]:
+        - heading [level=6] [ref=e741]
+        - heading "Contact Us" [level=4] [ref=e743] [cursor=pointer]
+      - generic [ref=e744]:
+        - generic [ref=e745]:
+          - generic [ref=e746]:
+            - paragraph [ref=e748]: Name
+            - textbox "Name" [ref=e750]:
+              - /placeholder: Alice Appleseed
+          - generic [ref=e751]:
+            - paragraph [ref=e753]: Company
+            - textbox "Company" [ref=e755]:
+              - /placeholder: ACME Engineering Inc.
+          - generic [ref=e756]:
+            - paragraph [ref=e758]: Email
+            - textbox "Email" [ref=e760]:
+              - /placeholder: alice@acmeengineering.com
+          - generic [ref=e761]:
+            - paragraph [ref=e763]: Message
+            - textbox "Message" [ref=e765]:
+              - /placeholder: ""
+          - button "Submit" [ref=e767] [cursor=pointer]:
+            - paragraph [ref=e769]: Submit
+        - generic [ref=e770]:
+          - generic [ref=e771]:
+            - img [ref=e774]
+            - heading "415-942-1303" [level=5] [ref=e777]:
+              - link "415-942-1303" [ref=e778] [cursor=pointer]:
+                - /url: tel:415-942-1303
+          - generic [ref=e779]:
+            - img [ref=e782]
+            - heading "info@civilgrid.com" [level=5] [ref=e786]:
+              - link "info@civilgrid.com" [ref=e787] [cursor=pointer]:
+                - /url: mailto:info@civilgrid.com
+    - paragraph [ref=e789]:
+      - link "Do Not Share or Sell My Information" [ref=e790] [cursor=pointer]:
+        - /url: ./do-not-sell
+    - generic [ref=e798]:
+      - contentinfo [ref=e799]:
+        - paragraph [ref=e801]: © 2025 CivilGrid. All rights reserved.
+        - paragraph [ref=e803]:
+          - link "Terms of Use" [ref=e804] [cursor=pointer]:
+            - /url: https://drive.google.com/uc?export=download&id=1ivF-Bl1Hcxqj6SLytM9RlhiBOte9CBO1
+        - paragraph [ref=e806]:
+          - link "Privacy Policy" [ref=e807] [cursor=pointer]:
+            - /url: https://drive.google.com/uc?export=download&id=1XciSJ0JtW0IVyjItiDSPgS2FkmGKMkeJ
+      - contentinfo [ref=e808]:
+        - button "Cookie Trigger" [ref=e810] [cursor=pointer]:
+          - generic [ref=e811]: Cookie Settings
+        - paragraph [ref=e813]:
+          - link "info@civilgrid.com" [ref=e814] [cursor=pointer]:
+            - /url: mailto:info@civilgrid.com
+        - paragraph [ref=e816]: 415-942-1303
+  - generic [ref=e820]:
+    - generic [ref=e821]:
+      - paragraph [ref=e822]: Cookie Settings
+      - paragraph [ref=e823]:
+        - text: We use cookies to personalize content, run ads, and analyze traffic.
+        - generic [ref=e824]:
+          - text: Read our
+          - link "Privacy Policy" [ref=e825] [cursor=pointer]:
+            - /url: https://drive.google.com/uc?export=download&id=1XciSJ0JtW0IVyjItiDSPgS2FkmGKMkeJ
+          - text: .
+    - generic [ref=e826]:
+      - button "Reject" [ref=e827] [cursor=pointer]
+      - button "Accept" [ref=e828] [cursor=pointer]

@@ -1,0 +1,126 @@
+Activity_ID,Activity_Name,WBS_Code,Parent_Activity_ID,Area,Trade,Resource,Level
+PRE-1000,Project Charter & Owner Project Requirements (OPR),01.01.01,,,,PM_EPC,summary
+PRE-1010,Basis of Design (BOD) Submission & Approval,01.01.02,,,,MEP_ENG,summary
+PRE-1020,Site Geotechnical & Topographic Survey,01.01.03,,,,SURVEY_CREW,summary
+PRE-1030,Utility Interconnection Request (60MW Load),01.01.04,,,,UTIL_LIAISON,summary
+PRE-1040,Environmental Impact Study & NEPA Review,01.01.05,,,,ENV_CONSULT,summary
+PRE-1050,Final AHJ Zoning & Land Use Permit Approval,01.01.06,,,,LEGAL_LEAD,summary
+PRO-2000,LLE: 115kV Power Transformer PO Placement,02.01.01,,,,PROCURE_SPEC,summary
+PRO-2010,LLE: 2.5MW Diesel Generators (24 Units) PO,02.01.02,,,,PROCURE_SPEC,summary
+PRO-2020,LLE: Medium Voltage (MV) Switchgear PO,02.01.03,,,,PROCURE_SPEC,summary
+PRO-2030,LLE: 1200kW UPS Modules & Lithium Batteries PO,02.01.04,,,,PROCURE_SPEC,summary
+PRO-2040,LLE: 1500-Ton Chiller Plant Assemblies PO,02.01.05,,,,PROCURE_SPEC,summary
+CIV-3000,Site Mobilization & Temporary Logistics Yard,03.01.01,,,,CIVIL_SUPER,summary
+CIV-3010,Mass Excavation & Export (Phase 1),03.01.02,,,,HEAVY_EQUIP,summary
+CIV-3020,Substation Retaining Wall & Pad Foundations,03.01.03,,,,CONC_CREW,summary
+CIV-3030,MV Ductbank Installation - Substation to Building,03.01.04,,,,UTIL_CREW,summary
+CIV-3040,Ground Grid Installation & Megger Testing,03.01.05,,,,ELEC_GROUND,summary
+CIV-3050,Foundation Piling - Data Halls 1-4,03.01.06,,,,PILE_RIG,summary
+STR-4000,Data Hall Structural Steel Erection (Zone A),03.02.01,,,,STEEL_ERECTOR,summary
+STR-4010,Data Hall Slab-on-Grade Pours (Reinforced),03.02.02,,,,CONC_CREW,summary
+STR-4020,Roof Decking & Mechanical Penthouse Steel,03.02.03,,,,STEEL_ERECTOR,summary
+STR-4030,Exterior Facade & Pre-cast Panel Installation,03.02.04,,,,RIGGING_CREW,summary
+STR-4040,Roofing Membrane & Envelope Seal (Weather-Tight),03.02.05,,,,ENVELOPE_CONT,summary
+MEP-5000,Underfloor MEP Rough-in - Mechanical/Elec,04.01.01,,,,PIPEFITTER,summary
+MEP-5010,Main Switchgear Room - Electrical Fit-out,04.01.02,,,,ELEC_JOURNEYMAN,summary
+MEP-5020,UPS Room Fit-out & Static Switch Install,04.01.03,,,,UPS_TECH,summary
+MEP-5030,CHW Primary/Secondary Loop Header Piping,04.02.01,,,,PIPEFITTER,summary
+MEP-5040,Generator Yard Rigging & Setting (LLE Arrival),04.02.02,,,,RIGGING_CREW,summary
+MEP-5050,Fuel Oil Piping - Bulk Storage to Day Tanks,04.02.03,,,,PIPEFITTER,summary
+MEP-5060,BMS/EPMS Head-end Control Panel Install,04.02.04,,,,CONTROL_ENG,summary
+FP-5070,Fire Protection Rough-In (All Areas),04.01.05,,,,FIRE_PROT,summary
+FIT-6000,Data Hall 1: Raised Floor Pedestals & Stringers,05.01.01,,,,CARPENTER,summary
+FIT-6010,Data Hall 1: Overhead Busway & PDU Feeds,05.01.02,,,,ELEC_JOURNEYMAN,summary
+FIT-6020,Data Hall 1: CRAH Unit Placement & Final Piping,05.01.03,,,,HVAC_TECH,summary
+FIT-6030,Data Hall 1: Rack Containment & Hot-Aisle Seal,05.01.04,,,,CARPENTER,summary
+FIT-6040,Data Hall 1: Fiber Backbone & Patch Panel Term,05.01.05,,,,IT_TECH,summary
+CXL-7000,Cx Level 1: Factory Witness Tests (FAT) - Gens,06.01.01,,,,CX_AGENT,summary
+CXL-7010,Cx Level 2: Component Site Acceptance (SAT),06.01.02,,,,CX_AGENT,summary
+CXL-7020,Cx Level 3: Individual System Startup & Energize,06.01.03,,,,VEND_TECH,summary
+CXL-7030,Cx Level 4: Functional Performance Testing (FPT),06.01.04,,,,CX_AGENT,summary
+CXL-7040,Cx Level 5: Integrated System Testing (IST),06.01.05,,,,CX_AGENT,summary
+TUR-8000,Substantial Completion & AHJ Final Inspection,07.01.01,,,,PM_EPC,summary
+TUR-8010,Certificate of Occupancy (CO) Issuance,07.01.02,,,,AHJ_INSPECT,summary
+TUR-8020,O&M Manual Delivery & Operations Handover,07.01.03,,,,FACILITY_OPS,summary
+TUR-8030,Operational Go-Live (IT Load Ready),07.01.04,,,,MILESTONE,milestone
+F-MEP-5000-01,Conduit Rough-In — Data Hall 1,04.01.01.01,MEP-5000,Data Hall 1,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5000-02,Conduit Rough-In — Data Hall 2,04.01.01.02,MEP-5000,Data Hall 2,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5000-03,Conduit Rough-In — Data Hall 3,04.01.01.03,MEP-5000,Data Hall 3,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5000-04,Conduit Rough-In — Data Hall 4,04.01.01.04,MEP-5000,Data Hall 4,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5000-05,Wire Pull — Data Hall 1,04.01.01.05,MEP-5000,Data Hall 1,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5000-06,Wire Pull — Data Hall 2,04.01.01.06,MEP-5000,Data Hall 2,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5000-07,Wire Pull — Data Hall 3,04.01.01.07,MEP-5000,Data Hall 3,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5000-08,Wire Pull — Data Hall 4,04.01.01.08,MEP-5000,Data Hall 4,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5000-09,Plumbing Rough-In — Data Hall 1,04.01.01.09,MEP-5000,Data Hall 1,Plumbing,PIPEFITTER,field
+F-MEP-5000-10,Plumbing Rough-In — Data Hall 2,04.01.01.10,MEP-5000,Data Hall 2,Plumbing,PIPEFITTER,field
+F-MEP-5000-11,Plumbing Rough-In — Data Hall 3,04.01.01.11,MEP-5000,Data Hall 3,Plumbing,PIPEFITTER,field
+F-MEP-5000-12,Plumbing Rough-In — Data Hall 4,04.01.01.12,MEP-5000,Data Hall 4,Plumbing,PIPEFITTER,field
+F-MEP-5010-01,Switchgear Installation — ESR,04.01.02.01,MEP-5010,ESR,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5010-02,Wire Pull — ESR,04.01.02.02,MEP-5010,ESR,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5010-03,Grounding — ESR,04.01.02.03,MEP-5010,ESR,Electrical,ELEC_GROUND,field
+F-MEP-5010-04,Lighting Rough-In — ESR,04.01.02.04,MEP-5010,ESR,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5020-01,UPS Module Setting — UPS Room,04.01.03.01,MEP-5020,UPS Room,Electrical,UPS_TECH,field
+F-MEP-5020-02,Wire Pull — UPS Room,04.01.03.02,MEP-5020,UPS Room,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5020-03,Static Switch Installation — UPS Room,04.01.03.03,MEP-5020,UPS Room,Electrical,UPS_TECH,field
+F-MEP-5030-01,CHW Header Piping — MER-1,04.02.01.01,MEP-5030,MER-1,Mechanical,PIPEFITTER,field
+F-MEP-5030-02,CHW Header Piping — MER-2,04.02.01.02,MEP-5030,MER-2,Mechanical,PIPEFITTER,field
+F-MEP-5030-03,CHW Insulation — MER-1,04.02.01.03,MEP-5030,MER-1,Mechanical,PIPEFITTER,field
+F-MEP-5030-04,CHW Insulation — MER-2,04.02.01.04,MEP-5030,MER-2,Mechanical,PIPEFITTER,field
+F-MEP-5030-05,Mezzanine Framing — MER-1,04.02.01.05,MEP-5030,MER-1,Steel,STEEL_ERECTOR,field
+F-MEP-5030-06,Mezzanine Framing — MER-2,04.02.01.06,MEP-5030,MER-2,Steel,STEEL_ERECTOR,field
+F-MEP-5030-07,Equipment Platform Fabrication — MER-1,04.02.01.07,MEP-5030,MER-1,Steel,STEEL_ERECTOR,field
+F-MEP-5030-08,Equipment Platform Fabrication — MER-2,04.02.01.08,MEP-5030,MER-2,Steel,STEEL_ERECTOR,field
+F-MEP-5040-01,Generator Setting — Generator Yard,04.02.02.01,MEP-5040,Generator Yard,Mechanical,RIGGING_CREW,field
+F-MEP-5040-02,Conduit Rough-In — Generator Yard,04.02.02.02,MEP-5040,Generator Yard,Electrical,ELEC_JOURNEYMAN,field
+F-MEP-5040-03,Grounding — Generator Yard,04.02.02.03,MEP-5040,Generator Yard,Electrical,ELEC_GROUND,field
+F-MEP-5050-01,Fuel Oil Main Piping — Generator Yard,04.02.03.01,MEP-5050,Generator Yard,Mechanical,PIPEFITTER,field
+F-MEP-5050-02,Day Tank Connections — Generator Yard,04.02.03.02,MEP-5050,Generator Yard,Mechanical,PIPEFITTER,field
+F-MEP-5060-01,BAS Sensor Rough-In — Data Hall 1,04.02.04.01,MEP-5060,Data Hall 1,Controls,CONTROL_ENG,field
+F-MEP-5060-02,BAS Sensor Rough-In — Data Hall 2,04.02.04.02,MEP-5060,Data Hall 2,Controls,CONTROL_ENG,field
+F-MEP-5060-03,BAS Sensor Rough-In — Data Hall 3,04.02.04.03,MEP-5060,Data Hall 3,Controls,CONTROL_ENG,field
+F-MEP-5060-04,BAS Sensor Rough-In — Data Hall 4,04.02.04.04,MEP-5060,Data Hall 4,Controls,CONTROL_ENG,field
+F-MEP-5060-05,BMS Head-End Panel Install — ESR,04.02.04.05,MEP-5060,ESR,Controls,CONTROL_ENG,field
+F-FP-5070-01,Sprinkler Mains — Data Hall 1,04.01.05.01,FP-5070,Data Hall 1,Fire Protection,FIRE_PROT,field
+F-FP-5070-02,Sprinkler Mains — Data Hall 2,04.01.05.02,FP-5070,Data Hall 2,Fire Protection,FIRE_PROT,field
+F-FP-5070-03,Sprinkler Mains — Data Hall 3,04.01.05.03,FP-5070,Data Hall 3,Fire Protection,FIRE_PROT,field
+F-FP-5070-04,Sprinkler Mains — Data Hall 4,04.01.05.04,FP-5070,Data Hall 4,Fire Protection,FIRE_PROT,field
+F-FP-5070-05,Sprinkler Drops — Data Hall 1,04.01.05.05,FP-5070,Data Hall 1,Fire Protection,FIRE_PROT,field
+F-FP-5070-06,Sprinkler Drops — Data Hall 2,04.01.05.06,FP-5070,Data Hall 2,Fire Protection,FIRE_PROT,field
+F-FP-5070-07,Sprinkler Drops — Data Hall 3,04.01.05.07,FP-5070,Data Hall 3,Fire Protection,FIRE_PROT,field
+F-FP-5070-08,Sprinkler Drops — Data Hall 4,04.01.05.08,FP-5070,Data Hall 4,Fire Protection,FIRE_PROT,field
+F-FP-5070-09,Suppression System — ESR,04.01.05.09,FP-5070,ESR,Fire Protection,FIRE_PROT,field
+F-FP-5070-10,Suppression System — UPS Room,04.01.05.10,FP-5070,UPS Room,Fire Protection,FIRE_PROT,field
+F-STR-4020-01,Ductwork — Mechanical Penthouse,03.02.03.01,STR-4020,Roof,Mechanical,HVAC_TECH,field
+F-STR-4020-02,Mechanical Equipment Pad Setting — Roof,03.02.03.02,STR-4020,Roof,Mechanical,HVAC_TECH,field
+F-FIT-6000-01,Raised Floor Pedestals & Stringers — Data Hall 1,05.01.01.01,FIT-6000,Data Hall 1,Finishes,CARPENTER,field
+F-FIT-6000-02,Raised Floor Pedestals & Stringers — Data Hall 2,05.01.01.02,FIT-6000,Data Hall 2,Finishes,CARPENTER,field
+F-FIT-6000-03,Raised Floor Pedestals & Stringers — Data Hall 3,05.01.01.03,FIT-6000,Data Hall 3,Finishes,CARPENTER,field
+F-FIT-6000-04,Raised Floor Pedestals & Stringers — Data Hall 4,05.01.01.04,FIT-6000,Data Hall 4,Finishes,CARPENTER,field
+F-FIT-6010-01,Cable Tray Installation — Data Hall 1,05.01.02.01,FIT-6010,Data Hall 1,Low Voltage,IT_TECH,field
+F-FIT-6010-02,Cable Tray Installation — Data Hall 2,05.01.02.02,FIT-6010,Data Hall 2,Low Voltage,IT_TECH,field
+F-FIT-6010-03,Cable Tray Installation — Data Hall 3,05.01.02.03,FIT-6010,Data Hall 3,Low Voltage,IT_TECH,field
+F-FIT-6010-04,Cable Tray Installation — Data Hall 4,05.01.02.04,FIT-6010,Data Hall 4,Low Voltage,IT_TECH,field
+F-FIT-6010-05,Overhead Busway Install — Data Hall 1,05.01.02.05,FIT-6010,Data Hall 1,Electrical,ELEC_JOURNEYMAN,field
+F-FIT-6010-06,Overhead Busway Install — Data Hall 2,05.01.02.06,FIT-6010,Data Hall 2,Electrical,ELEC_JOURNEYMAN,field
+F-FIT-6010-07,Overhead Busway Install — Data Hall 3,05.01.02.07,FIT-6010,Data Hall 3,Electrical,ELEC_JOURNEYMAN,field
+F-FIT-6010-08,Overhead Busway Install — Data Hall 4,05.01.02.08,FIT-6010,Data Hall 4,Electrical,ELEC_JOURNEYMAN,field
+F-FIT-6020-01,CRAH Unit Setting — Data Hall 1,05.01.03.01,FIT-6020,Data Hall 1,Mechanical,HVAC_TECH,field
+F-FIT-6020-02,CRAH Unit Setting — Data Hall 2,05.01.03.02,FIT-6020,Data Hall 2,Mechanical,HVAC_TECH,field
+F-FIT-6020-03,CRAH Unit Setting — Data Hall 3,05.01.03.03,FIT-6020,Data Hall 3,Mechanical,HVAC_TECH,field
+F-FIT-6020-04,CRAH Unit Setting — Data Hall 4,05.01.03.04,FIT-6020,Data Hall 4,Mechanical,HVAC_TECH,field
+F-FIT-6020-05,Ductwork — Data Hall 1,05.01.03.05,FIT-6020,Data Hall 1,Mechanical,HVAC_TECH,field
+F-FIT-6020-06,Ductwork — Data Hall 2,05.01.03.06,FIT-6020,Data Hall 2,Mechanical,HVAC_TECH,field
+F-FIT-6020-07,Ductwork — Data Hall 3,05.01.03.07,FIT-6020,Data Hall 3,Mechanical,HVAC_TECH,field
+F-FIT-6020-08,Ductwork — Data Hall 4,05.01.03.08,FIT-6020,Data Hall 4,Mechanical,HVAC_TECH,field
+F-FIT-6030-01,Hot-Aisle Containment — Data Hall 1,05.01.04.01,FIT-6030,Data Hall 1,Finishes,CARPENTER,field
+F-FIT-6030-02,Hot-Aisle Containment — Data Hall 2,05.01.04.02,FIT-6030,Data Hall 2,Finishes,CARPENTER,field
+F-FIT-6030-03,Hot-Aisle Containment — Data Hall 3,05.01.04.03,FIT-6030,Data Hall 3,Finishes,CARPENTER,field
+F-FIT-6030-04,Hot-Aisle Containment — Data Hall 4,05.01.04.04,FIT-6030,Data Hall 4,Finishes,CARPENTER,field
+F-FIT-6040-01,Fiber Backbone — Data Hall 1,05.01.05.01,FIT-6040,Data Hall 1,Low Voltage,IT_TECH,field
+F-FIT-6040-02,Fiber Backbone — Data Hall 2,05.01.05.02,FIT-6040,Data Hall 2,Low Voltage,IT_TECH,field
+F-FIT-6040-03,Fiber Backbone — Data Hall 3,05.01.05.03,FIT-6040,Data Hall 3,Low Voltage,IT_TECH,field
+F-FIT-6040-04,Fiber Backbone — Data Hall 4,05.01.05.04,FIT-6040,Data Hall 4,Low Voltage,IT_TECH,field
+F-FIT-6040-05,Patch Panel Termination — Data Hall 1,05.01.05.05,FIT-6040,Data Hall 1,Low Voltage,IT_TECH,field
+F-FIT-6040-06,Patch Panel Termination — Data Hall 2,05.01.05.06,FIT-6040,Data Hall 2,Low Voltage,IT_TECH,field
+F-FIT-6040-07,Patch Panel Termination — Data Hall 3,05.01.05.07,FIT-6040,Data Hall 3,Low Voltage,IT_TECH,field
+F-FIT-6040-08,Patch Panel Termination — Data Hall 4,05.01.05.08,FIT-6040,Data Hall 4,Low Voltage,IT_TECH,field

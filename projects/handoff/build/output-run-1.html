@@ -3,248 +3,1294 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Schedule Update Flow</title>
+<title>Daily Log + Pull Planning — Superintendent Dashboard</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f2f2f7;height:100vh;display:flex;flex-direction:column}
-#tabs{display:flex;background:#fff;border-bottom:1px solid #ddd}
-.tab{flex:1;padding:12px;text-align:center;font-size:14px;font-weight:600;color:#8e8e93;cursor:pointer;border-bottom:2px solid transparent}
-.tab.active{color:#007aff;border-bottom-color:#007aff}
-.view{display:none;flex:1;flex-direction:column;overflow:hidden}
-.view.active{display:flex}
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --surface-2: #f8f9fa;
+    --border: #dde1e7;
+    --border-strong: #b0b7c3;
+    --text-primary: #1a1d23;
+    --text-secondary: #4b5263;
+    --text-muted: #8b93a5;
+    --accent: #1d6af5;
+    --accent-light: #e8f0fe;
+    --green: #1a8a52;
+    --green-light: #e6f4ed;
+    --amber: #b45309;
+    --amber-light: #fef3c7;
+    --red: #c0392b;
+    --red-light: #fdecea;
+    --purple: #6d28d9;
+    --purple-light: #ede9fe;
+    --gray-tag: #e4e7ed;
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+    --radius: 6px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.1);
+  }
+  html { font-size: 14px; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-/* Foreman View */
-#fv{background:#fff}
-.chat-header{background:#f7f7f7;border-bottom:1px solid #e0e0e0;padding:10px 16px;display:flex;align-items:center;gap:10px}
-.avatar{width:36px;height:36px;border-radius:50%;background:#007aff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
-.chat-title{font-size:16px;font-weight:600}
-.chat-sub{font-size:12px;color:#8e8e93}
-.msgs{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
-.bubble-row{display:flex;align-items:flex-end;gap:6px}
-.bubble-row.out{flex-direction:row-reverse}
-.bubble{max-width:72%;padding:8px 12px;border-radius:18px;font-size:15px;line-height:1.4}
-.bubble-row.in .bubble{background:#e5e5ea;color:#000;border-bottom-left-radius:4px}
-.bubble-row.out .bubble{background:#007aff;color:#fff;border-bottom-right-radius:4px}
-.ts{font-size:11px;color:#8e8e93;margin-top:2px}
-.bubble-row.out .ts{text-align:right}
-.input-bar{display:flex;align-items:center;padding:8px 12px;background:#f7f7f7;border-top:1px solid #e0e0e0;gap:8px}
-#msg-input{flex:1;border:1px solid #ddd;border-radius:20px;padding:8px 14px;font-size:15px;outline:none;background:#fff}
-#send-btn{background:#007aff;color:#fff;border:none;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  /* ── Typography ── */
+  h1 { font-size: 1.25rem; font-weight: 700; }
+  h2 { font-size: 1rem; font-weight: 700; }
+  h3 { font-size: .875rem; font-weight: 600; }
+  .label { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
 
-/* Super View */
-#sv{background:#f2f2f7}
-.sv-header{background:#fff;padding:14px 16px;border-bottom:1px solid #ddd}
-.sv-header h2{font-size:18px;font-weight:700}
-.sv-header p{font-size:12px;color:#8e8e93;margin-top:2px}
-.sv-toolbar{display:flex;gap:8px;padding:10px 16px;background:#f2f2f7}
-.btn-sm{font-size:13px;padding:6px 14px;border-radius:20px;border:none;cursor:pointer;font-weight:600}
-.btn-approve-all{background:#34c759;color:#fff}
-.btn-filter{background:#fff;color:#007aff;border:1px solid #007aff}
-.btn-filter.active{background:#007aff;color:#fff}
-.acts{flex:1;overflow-y:auto;padding:0 16px 16px}
-.act-card{background:#fff;border-radius:12px;margin-top:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.act-top{padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start}
-.act-name{font-size:15px;font-weight:600}
-.act-meta{font-size:12px;color:#8e8e93;margin-top:2px}
-.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap}
-.badge.pending{background:#fff3cd;color:#856404}
-.badge.gap{background:#f8d7da;color:#721c24}
-.badge.approved{background:#d4edda;color:#155724}
-.act-log{padding:0 14px 10px;font-size:13px;color:#555;border-top:1px solid #f2f2f7;padding-top:8px}
-.act-proposal{padding:6px 14px 10px;background:#f0f7ff;font-size:13px;color:#004085}
-.act-actions{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #f2f2f7}
-.btn-approve{background:#34c759;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer}
-.btn-override{background:#fff;color:#ff3b30;border:1px solid #ff3b30;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer}
-.override-panel{padding:10px 14px;border-top:1px solid #f2f2f7;display:none}
-.override-panel input{width:100%;border:1px solid #ddd;border-radius:8px;padding:7px 10px;font-size:13px;margin-top:4px}
-.btn-confirm-ov{margin-top:6px;background:#ff9500;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer}
-.legend{display:flex;gap:12px;padding:8px 16px;font-size:11px;color:#8e8e93;flex-wrap:wrap}
-.legend span{display:flex;align-items:center;gap:4px}
-.dot{width:8px;height:8px;border-radius:50%}
+  /* ── Layout ── */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-logo {
+    font-size: .85rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .project-badge {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .header-date { font-size: .8rem; color: var(--text-secondary); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius);
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background .15s, box-shadow .15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #1555cc; }
+  .btn-secondary { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-sm { padding: 4px 10px; font-size: .78rem; }
+  .btn-danger { background: var(--red-light); color: var(--red); border: 1px solid #f5c6c2; }
+  .btn-success { background: var(--green-light); color: var(--green); border: 1px solid #a8d5be; }
+
+  .tab-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    gap: 0;
+  }
+  .tab-btn {
+    padding: 12px 20px;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color .15s, border-color .15s;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn:hover:not(.active) { color: var(--text-primary); }
+
+  .main-content {
+    flex: 1;
+    padding: 24px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* ── Status Bar ── */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .status-kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 120px;
+  }
+  .status-kpi .kpi-val { font-size: 1.4rem; font-weight: 700; }
+  .status-kpi .kpi-label { font-size: .72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .kpi-green { color: var(--green); }
+  .kpi-amber { color: var(--amber); }
+  .kpi-red { color: var(--red); }
+
+  .gap-alert {
+    flex: 1;
+    background: var(--amber-light);
+    border: 1px solid #fbbf24;
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: .82rem;
+    color: var(--amber);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gap-alert .gap-icon { font-size: 1rem; }
+
+  /* ── Section Headers ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-header-left { display: flex; align-items: center; gap: 10px; }
+
+  /* ── Daily Log Table ── */
+  .daily-log-table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .daily-log-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .daily-log-table th {
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    padding: 9px 14px;
+    text-align: left;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .daily-log-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    font-size: .84rem;
+  }
+  .daily-log-table tr:last-child td { border-bottom: none; }
+  .daily-log-table tr:hover td { background: #fafbfc; }
+
+  .sub-name { font-weight: 700; }
+  .sub-trade { font-size: .74rem; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
+
+  /* Source tag */
+  .source-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .source-sms { background: var(--accent-light); color: var(--accent); }
+  .source-email { background: var(--purple-light); color: var(--purple); }
+  .source-pdf { background: #fdf2f8; color: #9d174d; }
+  .source-manual { background: var(--gray-tag); color: var(--text-secondary); }
+  .source-p6 { background: #fff7ed; color: #c2410c; }
+
+  /* Gap pill */
+  .gap-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: .72rem;
+    font-weight: 600;
+  }
+  .gap-missing { background: var(--red-light); color: var(--red); }
+  .gap-partial { background: var(--amber-light); color: var(--amber); }
+  .gap-complete { background: var(--green-light); color: var(--green); }
+
+  .manpower-cell { font-size: .95rem; font-weight: 700; }
+  .missing-val { color: var(--red); font-style: italic; font-size: .78rem; font-weight: 500; }
+
+  .blocker-tag {
+    display: inline-block;
+    background: var(--red-light);
+    color: var(--red);
+    border-radius: 3px;
+    padding: 2px 7px;
+    font-size: .74rem;
+    font-weight: 600;
+    margin-top: 3px;
+  }
+
+  .cell-note { font-size: .78rem; color: var(--text-secondary); margin-top: 2px; }
+
+  /* Submission inbox */
+  .inbox-pane {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .inbox-header {
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .inbox-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .inbox-item:last-child { border-bottom: none; }
+  .inbox-item:hover { background: var(--surface-2); }
+  .inbox-item.selected { background: var(--accent-light); border-left: 3px solid var(--accent); }
+  .inbox-item-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .inbox-sender { font-weight: 700; font-size: .85rem; }
+  .inbox-time { font-size: .74rem; color: var(--text-muted); }
+  .inbox-preview { font-size: .78rem; color: var(--text-secondary); }
+
+  /* Parsed preview */
+  .parsed-pane {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .parsed-pane .pane-title {
+    font-size: .82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .parsed-field {
+    display: flex;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+  .parsed-field:last-child { border-bottom: none; }
+  .parsed-field-key {
+    width: 130px;
+    flex-shrink: 0;
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-muted);
+    padding-top: 1px;
+  }
+  .parsed-field-val { font-size: .84rem; color: var(--text-primary); flex: 1; }
+  .parsed-field-val.missing { color: var(--red); font-style: italic; font-size: .8rem; }
+  .confidence-bar {
+    display: flex; align-items: center; gap: 6px; margin-top: 4px;
+  }
+  .confidence-track {
+    flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+  }
+  .confidence-fill { height: 100%; border-radius: 2px; }
+  .conf-high { background: var(--green); }
+  .conf-med { background: var(--amber); }
+  .conf-low { background: var(--red); }
+  .confidence-label { font-size: .7rem; color: var(--text-muted); }
+
+  .raw-text-block {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: .78rem;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    margin-top: 10px;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+
+  /* ── Look-Ahead Gantt ── */
+  .lookahead-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .gantt-header-row {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .gantt-label-col { width: 200px; flex-shrink: 0; }
+  .gantt-days { flex: 1; display: flex; overflow-x: auto; }
+  .gantt-day-header {
+    flex: 1;
+    min-width: 44px;
+    text-align: center;
+    padding: 8px 4px;
+    border-right: 1px solid var(--border);
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .gantt-day-header.today { color: var(--accent); background: var(--accent-light); }
+  .gantt-day-header.weekend { background: #f9fafb; }
+  .gantt-day-header:last-child { border-right: none; }
+  .gantt-day-date { font-size: .65rem; font-weight: 400; margin-top: 1px; }
+
+  .gantt-sub-group {}
+  .gantt-sub-header {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: #fcfcfd;
+    cursor: pointer;
+  }
+  .gantt-sub-header:hover { background: var(--bg); }
+  .gantt-sub-name-cell {
+    width: 200px;
+    flex-shrink: 0;
+    padding: 9px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border-right: 1px solid var(--border);
+  }
+  .gantt-sub-name { font-weight: 700; font-size: .83rem; }
+  .gantt-sub-trade { font-size: .72rem; color: var(--text-muted); }
+  .gantt-sub-bar-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    min-height: 40px;
+  }
+  .gantt-day-cell {
+    flex: 1;
+    min-width: 44px;
+    height: 28px;
+    border-right: 1px solid var(--border);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .gantt-day-cell.weekend { background: #f9fafb; }
+  .gantt-day-cell.today { background: #eef4ff; }
+  .gantt-day-cell:last-child { border-right: none; }
+
+  .gantt-bar {
+    position: absolute;
+    left: 2px; right: 2px;
+    height: 18px;
+    border-radius: 3px;
+    font-size: .64rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    padding: 0 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .bar-p6 { background: #fff0e0; border: 1.5px solid #f59e0b; color: #92400e; }
+  .bar-committed { background: var(--green-light); border: 1.5px solid #34d399; color: #065f46; }
+  .bar-gap { background: var(--red-light); border: 1.5px dashed var(--red); color: var(--red); }
+  .bar-milestone { background: var(--purple-light); border: 1.5px solid #8b5cf6; color: var(--purple); border-radius: 50% 3px 3px 50%; }
+  .bar-span-start { border-radius: 3px 0 0 3px; right: 0; }
+  .bar-span-mid { border-radius: 0; left: 0; right: 0; }
+  .bar-span-end { border-radius: 0 3px 3px 0; left: 0; }
+
+  .gantt-legend {
+    display: flex;
+    gap: 16px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: .74rem; color: var(--text-secondary);
+  }
+  .legend-swatch {
+    width: 20px; height: 10px; border-radius: 2px;
+  }
+  .sw-p6 { background: #fff0e0; border: 1.5px solid #f59e0b; }
+  .sw-committed { background: var(--green-light); border: 1.5px solid #34d399; }
+  .sw-gap { background: var(--red-light); border: 1.5px dashed var(--red); }
+  .sw-milestone { background: var(--purple-light); border: 1.5px solid #8b5cf6; }
+
+  /* Events / Commitments list */
+  .event-list { display: flex; flex-direction: column; gap: 8px; }
+  .event-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .15s;
+  }
+  .event-card:hover { box-shadow: var(--shadow-md); }
+  .event-card.gap-card { border-left: 3px solid var(--red); }
+  .event-card.committed-card { border-left: 3px solid var(--green); }
+  .event-card.p6-card { border-left: 3px solid #f59e0b; }
+  .event-date-badge {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 10px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .event-date-month { font-size: .65rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+  .event-date-day { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
+  .event-body { flex: 1; }
+  .event-title { font-weight: 700; font-size: .88rem; margin-bottom: 3px; }
+  .event-meta { font-size: .76rem; color: var(--text-secondary); display: flex; gap: 10px; flex-wrap: wrap; }
+  .event-actions { display: flex; gap: 6px; align-items: flex-start; flex-shrink: 0; }
+
+  /* Report / Export pane */
+  .report-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .report-header {
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .json-preview {
+    padding: 16px 18px;
+    font-family: 'Courier New', monospace;
+    font-size: .76rem;
+    color: #374151;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    max-height: 340px;
+    overflow-y: auto;
+    line-height: 1.6;
+  }
+  .json-key { color: #89b4fa; }
+  .json-str { color: #a6e3a1; }
+  .json-num { color: #fab387; }
+  .json-bool { color: #f38ba8; }
+  .json-comment { color: #6c7086; font-style: italic; }
+
+  /* Grid helpers */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .grid-inbox { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
+  @media (max-width: 900px) {
+    .grid-2, .grid-3-1, .grid-inbox { grid-template-columns: 1fr; }
+    .gantt-label-col, .gantt-sub-name-cell { width: 140px; }
+    .daily-log-table th:nth-child(5),
+    .daily-log-table td:nth-child(5) { display: none; }
+  }
+
+  /* ── Modals ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    width: 520px;
+    max-width: calc(100vw - 32px);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-body { padding: 20px; }
+  .modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .close-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 1.2rem; color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 4px;
+  }
+  .close-btn:hover { background: var(--bg); color: var(--text-primary); }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: .78rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary); }
+  .form-input, .form-textarea, .form-select {
+    width: 100%;
+    padding: 8px 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: .84rem;
+    font-family: var(--font);
+    color: var(--text-primary);
+    background: var(--surface);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+
+  /* ── Notification toast ── */
+  .toast-container {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast {
+    background: var(--text-primary);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: .82rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: slideIn .2s ease;
+  }
+  @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .toast.success { background: #065f46; }
+  .toast.warning { background: #92400e; }
+
+  /* ── Misc ── */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .empty-state {
+    text-align: center; padding: 40px; color: var(--text-muted);
+    font-size: .85rem; font-style: italic;
+  }
+  .badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--red); color: #fff;
+    border-radius: 10px; min-width: 18px; height: 18px;
+    font-size: .68rem; font-weight: 800; padding: 0 5px;
+  }
+  .badge-amber { background: var(--amber); }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .tabs-pane { display: none; }
+  .tabs-pane.active { display: block; }
+
+  /* Inline simulate SMS */
+  .sim-bar {
+    background: #1e1e2e;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .sim-bar .sim-label { color: #89b4fa; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; flex-shrink: 0; padding-top: 9px; }
+  .sim-bar textarea {
+    flex: 1;
+    background: #2a2a3e;
+    border: 1px solid #44475a;
+    border-radius: 4px;
+    color: #cdd6f4;
+    font-family: monospace;
+    font-size: .78rem;
+    padding: 7px 10px;
+    resize: none;
+    height: 60px;
+    outline: none;
+  }
+  .sim-bar textarea:focus { border-color: #89b4fa; }
+  .sim-sender-sel {
+    background: #2a2a3e;
+    border: 1px solid #44475a;
+    border-radius: 4px;
+    color: #cdd6f4;
+    font-size: .78rem;
+    padding: 7px 10px;
+    outline: none;
+  }
+
+  .processing-indicator {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .78rem; color: var(--accent); font-weight: 600;
+  }
+
+  /* Approval bar for report */
+  .approval-bar {
+    background: var(--amber-light);
+    border: 1px solid #fbbf24;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .approval-bar .approval-text { font-size: .84rem; color: var(--amber); font-weight: 600; }
+
+  /* Week selector */
+  .week-nav {
+    display: flex; align-items: center; gap: 10px; font-size: .84rem; font-weight: 600;
+  }
+  .week-nav button {
+    background: none; border: 1px solid var(--border); border-radius: 4px;
+    width: 28px; height: 28px; cursor: pointer; font-size: .9rem;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary);
+  }
+  .week-nav button:hover { background: var(--bg); }
 </style>
 </head>
 <body>
 
-<div id="tabs">
-  <div class="tab active" onclick="switchTab('fv')">Foreman</div>
-  <div class="tab" onclick="switchTab('sv')">Superintendent</div>
-</div>
+<!-- ── App Header ── -->
+<header class="app-header">
+  <div class="header-left">
+    <span class="header-logo">FieldSync</span>
+    <span class="project-badge">📍 Eastside Medical Center — Phase 2</span>
+  </div>
+  <div class="header-right">
+    <span class="header-date" id="headerDate"></span>
+    <button class="btn btn-secondary btn-sm" onclick="openAddCommitment()">+ Commitment</button>
+    <button class="btn btn-primary btn-sm" onclick="openApproveReport()">Approve & Export</button>
+  </div>
+</header>
 
-<div id="fv" class="view active">
-  <div class="chat-header">
-    <div class="avatar">SB</div>
-    <div>
-      <div class="chat-title">Site Bot</div>
-      <div class="chat-sub">Schedule Update Assistant</div>
+<!-- ── Tab Bar ── -->
+<nav class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('daily', this)">Daily Log <span class="badge" id="inboxBadge">3</span></button>
+  <button class="tab-btn" onclick="switchTab('lookahead', this)">3-Week Look-Ahead <span class="badge badge-amber" id="gapBadge">2</span></button>
+  <button class="tab-btn" onclick="switchTab('report', this)">Schedule Report</button>
+</nav>
+
+<!-- ── Main Content ── -->
+<main class="main-content">
+
+  <!-- ════════════════════════ DAILY LOG TAB ════════════════════════ -->
+  <div class="tabs-pane active" id="tab-daily">
+
+    <!-- Simulate incoming submission bar -->
+    <div class="sim-bar">
+      <span class="sim-label">Simulate<br>Submission</span>
+      <select class="sim-sender-sel" id="simSender">
+        <option value="torres">Torres (Electrical)</option>
+        <option value="kowalski">Kowalski (Mechanical)</option>
+        <option value="chen">Chen (Steel)</option>
+        <option value="reyes">Reyes (Concrete)</option>
+        <option value="unknown">Unknown Sender</option>
+      </select>
+      <textarea id="simText" placeholder="Type an SMS/email text... e.g. '8 guys on site, finished rough-in 3rd floor west, waiting on inspection clearance'"></textarea>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <button class="btn btn-primary btn-sm" onclick="simulateSubmission()">Send SMS</button>
+        <button class="btn btn-ghost btn-sm" onclick="simulatePDF()">Attach PDF</button>
+      </div>
+    </div>
+
+    <!-- Status KPIs -->
+    <div class="status-bar">
+      <div class="status-kpi">
+        <span class="kpi-val kpi-green" id="kpiSubmitted">4</span>
+        <span class="kpi-label">Subs Submitted</span>
+      </div>
+      <div class="status-kpi">
+        <span class="kpi-val kpi-amber" id="kpiPending">1</span>
+        <span class="kpi-label">Awaiting Update</span>
+      </div>
+      <div class="status-kpi">
+        <span class="kpi-val" id="kpiManpower">34</span>
+        <span class="kpi-label">Total on Site</span>
+      </div>
+      <div class="status-kpi">
+        <span class="kpi-val kpi-red" id="kpiBlockers">2</span>
+        <span class="kpi-label">Active Blockers</span>
+      </div>
+      <div class="gap-alert">
+        <span class="gap-icon">⚠️</span>
+        <span id="gapAlertText">No manpower count from <strong>Mechanical (Kowalski)</strong>. Ask before 10 AM coordination call.</span>
+      </div>
+    </div>
+
+    <!-- Grid: Table + Inbox -->
+    <div class="grid-inbox" style="margin-bottom:20px;">
+
+      <!-- Left: Inbox -->
+      <div>
+        <div class="section-header">
+          <div class="section-header-left">
+            <h2>Submissions</h2>
+          </div>
+        </div>
+        <div class="inbox-pane">
+          <div class="inbox-header">
+            <span class="label">Today's Inbox</span>
+            <span id="inboxProcessing" class="processing-indicator" style="display:none;"><span class="spinner"></span> Parsing…</span>
+          </div>
+          <div id="inboxList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Parsed detail -->
+      <div>
+        <div class="section-header">
+          <div class="section-header-left">
+            <h2>Extracted Fields</h2>
+          </div>
+          <span id="selectedSourceTag"></span>
+        </div>
+        <div class="parsed-pane" id="parsedPane">
+          <div class="empty-state">Select a submission to see extracted fields</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Daily Log Table -->
+    <div class="section-header">
+      <div class="section-header-left">
+        <h2>Daily Log</h2>
+        <span class="label" id="logDate"></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">Export CSV</button>
+    </div>
+    <div class="daily-log-table-wrap">
+      <table class="daily-log-table">
+        <thead>
+          <tr>
+            <th>Subcontractor</th>
+            <th>Source</th>
+            <th>Men on Site</th>
+            <th>Work Completed</th>
+            <th>Blockers / Notes</th>
+            <th>Commitments Extracted</th>
+            <th>Data Quality</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="dailyLogBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
     </div>
   </div>
-  <div class="msgs" id="msgs"></div>
-  <div class="input-bar">
-    <input id="msg-input" type="text" placeholder="Message" />
-    <button id="send-btn" onclick="sendMsg()">&#8593;</button>
+
+  <!-- ════════════════════════ LOOK-AHEAD TAB ════════════════════════ -->
+  <div class="tabs-pane" id="tab-lookahead">
+
+    <div class="section-header" style="margin-bottom:16px;">
+      <div class="section-header-left">
+        <h2>3-Week Look-Ahead</h2>
+        <div class="week-nav">
+          <button onclick="shiftWeek(-1)">‹</button>
+          <span id="weekRangeLabel"></span>
+          <button onclick="shiftWeek(1)">›</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="openAddCommitment()">+ Commitment</button>
+        <button class="btn btn-secondary btn-sm" onclick="showGapSummary()">Gap Summary <span class="badge" id="ganttGapBadge">2</span></button>
+      </div>
+    </div>
+
+    <!-- Gantt area -->
+    <div class="lookahead-wrap" style="margin-bottom:20px;">
+      <div id="ganttContainer">
+        <!-- Populated by JS -->
+      </div>
+      <div class="gantt-legend">
+        <div class="legend-item"><div class="legend-swatch sw-p6"></div>P6 Planned</div>
+        <div class="legend-item"><div class="legend-swatch sw-committed"></div>Foreman Committed</div>
+        <div class="legend-item"><div class="legend-swatch sw-gap"></div>P6 Gap (No Commitment)</div>
+        <div class="legend-item"><div class="legend-swatch sw-milestone"></div>Inspection / Milestone</div>
+      </div>
+    </div>
+
+    <!-- Events list -->
+    <div class="section-header">
+      <div class="section-header-left">
+        <h2>Commitments & Planned Activities</h2>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select class="form-select" style="width:auto;font-size:.78rem;padding:5px 10px;" id="filterTrade" onchange="renderEventList()">
+          <option value="all">All Trades</option>
+          <option value="Electrical">Electrical</option>
+          <option value="Mechanical">Mechanical</option>
+          <option value="Concrete">Concrete</option>
+          <option value="Steel">Steel</option>
+        </select>
+        <select class="form-select" style="width:auto;font-size:.78rem;padding:5px 10px;" id="filterType" onchange="renderEventList()">
+          <option value="all">All Types</option>
+          <option value="p6">P6 Planned</option>
+          <option value="committed">Committed</option>
+          <option value="gap">Gaps</option>
+        </select>
+      </div>
+    </div>
+    <div class="event-list" id="eventList">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- ════════════════════════ REPORT TAB ════════════════════════ -->
+  <div class="tabs-pane" id="tab-report">
+
+    <div class="approval-bar">
+      <div>
+        <div class="approval-text">⚠ Report not yet approved for distribution</div>
+        <div style="font-size:.76rem;color:var(--amber);margin-top:2px;">Review the look-ahead gaps before approving. 2 P6 activities have no foreman commitment.</div>
+      </div>
+      <button class="btn btn-primary" onclick="openApproveReport()">Review & Approve</button>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:20px;">
+      <div class="report-section">
+        <div class="report-header">
+          <h3>Summary — <span id="reportDateRange"></span></h3>
+          <span class="source-tag source-manual">Draft</span>
+        </div>
+        <div style="padding:16px 18px;">
+          <div class="parsed-field">
+            <div class="parsed-field-key">Project</div>
+            <div class="parsed-field-val">Eastside Medical Center — Phase 2</div>
+          </div>
+          <div class="parsed-field">
+            <div class="parsed-field-key">Report Date</div>
+            <div class="parsed-field-val" id="reportDate"></div>
+          </div>
+          <div class="parsed-field">
+            <div class="parsed-field-key">Subs Reporting</div>
+            <div class="parsed-field-val">4 of 5</div>
+          </div>
+          <div class="parsed-field">
+            <div class="parsed-field-key">Total Manpower</div>
+            <div class="parsed-field-val">34 workers on site</div>
+          </div>
+          <div class="parsed-field">
+            <div class="parsed-field-key">Active Blockers</div>
+            <div class="parsed-field-val kpi-red">2 blockers flagged</div>
+          </div>
+          <div class="parsed-field">
+            <div class="parsed-field-key">Look-Ahead Gaps</div>
+            <div class="parsed-field-val kpi-amber">2 P6 activities unconfirmed</div>
+          </div>
+          <div class="parsed-field">
+            <div class="parsed-field-key">Committed Events</div>
+            <div class="parsed-field-val">8 events in 21-day window</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="report-header">
+          <h3>Blockers Requiring Action</h3>
+        </div>
+        <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
+          <div class="event-card gap-card" style="padding:10px 12px;">
+            <div class="event-body">
+              <div class="event-title">🔴 Inspection Hold — 3rd Floor West</div>
+              <div class="event-meta">
+                <span>Electrical · Torres</span>
+                <span>Raised: Today 07:14</span>
+                <span>Blocking: Rough-in sign-off</span>
+              </div>
+            </div>
+          </div>
+          <div class="event-card gap-card" style="padding:10px 12px;">
+            <div class="event-body">
+              <div class="event-title">🔴 Material Delay — Ductwork (Level 4)</div>
+              <div class="event-meta">
+                <span>Mechanical · Kowalski</span>
+                <span>Raised: Today 08:33</span>
+                <span>Blocking: HVAC rough-in start</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <div class="report-header">
+        <h3>Machine-Readable Output (JSON)</h3>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="copyJSON()">Copy JSON</button>
+          <button class="btn btn-secondary btn-sm" onclick="downloadJSON()">Download .json</button>
+        </div>
+      </div>
+      <div class="json-preview" id="jsonPreview">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Add Commitment Modal ── -->
+<div class="modal-overlay" id="addCommitmentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Add Commitment</h2>
+      <button class="close-btn" onclick="closeModal('addCommitmentModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="commitType">
+          <option>Inspection</option>
+          <option>Material Delivery</option>
+          <option>Trade Handoff</option>
+          <option>Coordination Milestone</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input class="form-input" id="commitDesc" placeholder="e.g. Rough-in inspection — 3rd floor west">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Trade / Responsible Sub</label>
+        <select class="form-select" id="commitTrade">
+          <option>Electrical</option>
+          <option>Mechanical</option>
+          <option>Concrete</option>
+          <option>Steel</option>
+          <option>General</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input class="form-input" type="date" id="commitDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes (optional)</label>
+        <textarea class="form-textarea" id="commitNotes" placeholder="Any context, dependencies, or follow-up required…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addCommitmentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCommitment()">Add Commitment</button>
+    </div>
   </div>
 </div>
 
-<div id="sv" class="view">
-  <div class="sv-header">
-    <h2>Daily Schedule Review</h2>
-    <p id="sv-date"></p>
+<!-- ── Approve Report Modal ── -->
+<div class="modal-overlay" id="approveModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Approve Schedule Update Report</h2>
+      <button class="close-btn" onclick="closeModal('approveModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--amber-light);border:1px solid #fbbf24;border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;font-size:.82rem;color:var(--amber);font-weight:600;">
+        ⚠ 2 P6 planned activities in the look-ahead window have no foreman commitment. Review before approving.
+      </div>
+      <div class="parsed-field">
+        <div class="parsed-field-key">Subs Covered</div>
+        <div class="parsed-field-val">4 of 5 (Plumbing — no submission today)</div>
+      </div>
+      <div class="parsed-field">
+        <div class="parsed-field-key">Data Gaps</div>
+        <div class="parsed-field-val kpi-amber">Mechanical manpower count missing</div>
+      </div>
+      <div class="parsed-field">
+        <div class="parsed-field-key">Blockers</div>
+        <div class="parsed-field-val kpi-red">2 active — included in report</div>
+      </div>
+      <div class="form-group" style="margin-top:16px;">
+        <label class="form-label">Superintendent Note (optional)</label>
+        <textarea class="form-textarea" id="suprNote" placeholder="Add context for the PM/Schedule Controller…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Send to</label>
+        <input class="form-input" id="reportRecipient" value="pmiller@eastside-gc.com">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('approveModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="approveReport()">Approve & Send Report</button>
+    </div>
   </div>
-  <div class="sv-toolbar">
-    <button class="btn-sm btn-approve-all" onclick="approveAll()">Approve All Pending</button>
-    <button class="btn-sm btn-filter" id="filter-btn" onclick="toggleFilter()">Show Gaps Only</button>
-  </div>
-  <div class="legend">
-    <span><div class="dot" style="background:#856404"></div>Pending</span>
-    <span><div class="dot" style="background:#721c24"></div>No Report</span>
-    <span><div class="dot" style="background:#155724"></div>Approved</span>
-  </div>
-  <div class="acts" id="acts"></div>
 </div>
+
+<!-- ── Gap Summary Modal ── -->
+<div class="modal-overlay" id="gapModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Look-Ahead Gap Summary</h2>
+      <button class="close-btn" onclick="closeModal('gapModal')">✕</button>
+    </div>
+    <div class="modal-body" id="gapModalBody">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('gapModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast Container ── -->
+<div class="toast-container" id="toastContainer"></div>
 
 <script>
-var now = new Date();
-var dateStr = now.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
-document.getElementById('sv-date').textContent = dateStr;
+// ══════════════════════════════════════════════════════════════════
+// DATA MODEL
+// ══════════════════════════════════════════════════════════════════
 
-var schedule = [
-  {id:'A1',name:'Electrical Rough-In — North Wing',trade:'Electrical',foreman:'J. Reyes',planned:65,unit:'%',keywords:['electrical','north','conduit','rough','rough-in','zone 4','zone4']},
-  {id:'A2',name:'Concrete Pour — Level 3 Deck',trade:'Concrete',foreman:'M. Torres',planned:100,unit:'%',keywords:['concrete','pour','level 3','deck','slab','l3']},
-  {id:'A3',name:'Mechanical Duct Install — East Corridor',trade:'Mechanical',foreman:'D. Kim',planned:40,unit:'%',keywords:['mechanical','duct','hvac','east','corridor','mech']},
-  {id:'A4',name:'Framing — South Tower Floors 4-6',trade:'Framing',foreman:'R. Patel',planned:80,unit:'%',keywords:['framing','frame','south tower','floor 4','floor 5','floor 6','sf']},
-  {id:'A5',name:'Fire Sprinkler Rough-In — Level 2',trade:'Fire Protection',foreman:'L. Gomez',planned:50,unit:'%',keywords:['sprinkler','fire','level 2','l2','fp']}
+const TODAY = new Date();
+TODAY.setHours(0,0,0,0);
+
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+function fmtDate(d) {
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+function fmtDateFull(d) {
+  return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+}
+function fmtDateISO(d) {
+  return d.toISOString().slice(0,10);
+}
+function fmtDayOfWeek(d) {
+  return d.toLocaleDateString('en-US', { weekday:'short' });
+}
+function isWeekend(d) {
+  return d.getDay() === 0 || d.getDay() === 6;
+}
+function isToday(d) {
+  return fmtDateISO(d) === fmtDateISO(TODAY);
+}
+
+// ── Subs roster ──
+const SUBS = {
+  torres:   { name: 'Torres', company: 'Torres Electric', trade: 'Electrical' },
+  kowalski: { name: 'Kowalski', company: 'Metro Mechanical', trade: 'Mechanical' },
+  chen:     { name: 'Chen', company: 'Pacific Steel', trade: 'Steel' },
+  reyes:    { name: 'Reyes', company: 'Westside Concrete', trade: 'Concrete' },
+  murphy:   { name: 'Murphy', company: 'Murphy Plumbing', trade: 'Plumbing' },
+};
+
+// ── Submissions inbox ──
+let submissions = [
+  {
+    id: 's1',
+    sender: 'torres',
+    channel: 'sms',
+    time: '07:14',
+    raw: '8 guys on site. Finished rough-in 3rd floor west wall panels. Waiting on inspection clearance before we can close up. Need that signed off or we're blocked tomorrow. Also flagging: inspection scheduled for Fri looks like it might slip.',
+    parsed: {
+      manpower: { val: '8', confidence: 0.97 },
+      completed: { val: 'Rough-in — 3rd floor west wall panels', confidence: 0.92 },
+      blockers: { val: 'Inspection hold — cannot close 3rd floor west until clearance', confidence: 0.95 },
+      commitments: { val: 'Rough-in inspection (3rd floor west) — Fri risk of slip', confidence: 0.78 },
+    },
+    approved: true,
+  },
+  {
+    id: 's2',
+    sender: 'kowalski',
+    channel: 'email',
+    time: '08:33',
+    raw: 'Ductwork delivery for level 4 is delayed — supplier says Thursday earliest, we told them Wednesday. Can\'t start Level 4 HVAC rough-in without it. Today we\'re pulling Level 3 flex connections, should have that done by EOD. No idea on headcount offhand.',
+    parsed: {
+      manpower: { val: null, confidence: 0 },
+      completed: { val: 'Level 3 flex connections (in progress → EOD)', confidence: 0.85 },
+      blockers: { val: 'Ductwork delivery delayed (Level 4) — supplier slip Wed → Thu', confidence: 0.98 },
+      commitments: { val: 'Level 4 HVAC rough-in — delayed, now Thu start at earliest', confidence: 0.90 },
+    },
+    approved: true,
+  },
+  {
+    id: 's3',
+    sender: 'chen',
+    channel: 'pdf',
+    time: '06:55',
+    raw: '[PDF: Pacific Steel Daily Report]\nDate: TODAY\nForeman: D. Chen\nPersonnel on site: 12\nWork performed: Set W10 columns Grid B-D, Floors 2-3. Steel erection 82% complete on Phase 2 frame.\nEquipment: 2x cranes, 1x boom lift\nBlockers / Issues: None\nNext 7 days: Complete Grid E-F columns (Mon–Wed). Beam connections Floors 2-3 (Thu–Fri). Deck pour coordination with Reyes needed Tue.',
+    parsed: {
+      manpower: { val: '12', confidence: 0.99 },
+      completed: { val: 'W10 columns Grid B-D Floors 2-3. Phase 2 frame 82% complete.', confidence: 0.97 },
+      blockers: { val: 'None reported', confidence: 0.99 },
+      commitments: { val: 'Grid E-F columns Mon–Wed; Beam connections Thu–Fri; Deck pour coordination with Concrete Tue', confidence: 0.93 },
+    },
+    approved: true,
+  },
+  {
+    id: 's4',
+    sender: 'reyes',
+    channel: 'sms',
+    time: '07:48',
+    raw: '14 on site. Poured slab section C4 this morning, curing looks good. Will need to coordinate deck pour with steel crew next week — Chen should confirm Tuesday. Rebar placement C5 this afternoon.',
+    parsed: {
+      manpower: { val: '14', confidence: 0.99 },
+      completed: { val: 'Slab pour — section C4. Rebar placement C5 (PM).', confidence: 0.91 },
+      blockers: { val: 'None', confidence: 0.99 },
+      commitments: { val: 'Deck pour coordination w/ Steel (Chen) — confirm Tuesday', confidence: 0.88 },
+    },
+    approved: true,
+  },
 ];
 
-var logs = {};
-var statuses = {};
-var filter = false;
-
-function ts(){
-  return now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-}
-
-var initMsgs = [
-  {dir:'in',text:"Good morning! Send me your progress update for today and I'll log it to the schedule."}
+// ── Daily log rows (one per sub) ──
+let dailyLog = [
+  {
+    subId: 'torres',
+    submissionId: 's1',
+    manpower: 8,
+    completed: 'Rough-in — 3rd floor west wall panels',
+    blockers: 'Inspection hold — cannot close 3rd floor west',
+    commitments: ['Rough-in inspection (3rd floor west) — Fri'],
+    quality: 'partial', // complete | partial | missing
+  },
+  {
+    subId: 'kowalski',
+    submissionId: 's2',
+    manpower: null,
+    completed: 'Level 3 flex connections (in progress, EOD)',
+    blockers: 'Ductwork delivery delayed — Level 4 blocked',
+    commitments: ['Level 4 HVAC rough-in — Thu start (delayed)'],
+    quality: 'partial',
+  },
+  {
+    subId: 'chen',
+    submissionId: 's3',
+    manpower: 12,
+    completed: 'W10 columns Grid B-D Floors 2-3. Frame 82% complete.',
+    blockers: null,
+    commitments: ['Grid E-F columns Mon–Wed', 'Beam connections Thu–Fri', 'Deck pour coord w/ Concrete — Tue'],
+    quality: 'complete',
+  },
+  {
+    subId: 'reyes',
+    submissionId: 's4',
+    manpower: 14,
+    completed: 'Slab pour — C4. Rebar placement C5 (PM).',
+    blockers: null,
+    commitments: ['Deck pour coord w/ Steel (Chen) — Tue'],
+    quality: 'complete',
+  },
+  {
+    subId: 'murphy',
+    submissionId: null,
+    manpower: null,
+    completed: null,
+    blockers: null,
+    commitments: [],
+    quality: 'missing',
+  },
 ];
-var chatMsgs = [...initMsgs];
 
-function renderChat(){
-  var el = document.getElementById('msgs');
-  el.innerHTML = chatMsgs.map(function(m){
-    return '<div class="bubble-row '+m.dir+'"><div class="bubble">'+m.text+'</div></div>';
-  }).join('');
-  el.scrollTop = el.scrollHeight;
-}
-renderChat();
-
-document.getElementById('msg-input').addEventListener('keydown',function(e){
-  if(e.key==='Enter') sendMsg();
-});
-
-function sendMsg(){
-  var inp = document.getElementById('msg-input');
-  var txt = inp.value.trim();
-  if(!txt) return;
-  inp.value='';
-  chatMsgs.push({dir:'out',text:txt});
-  renderChat();
-  setTimeout(function(){processMsg(txt);},600);
-}
-
-function processMsg(txt){
-  var low = txt.toLowerCase();
-  var matched = null;
-  var bestScore = 0;
-  schedule.forEach(function(act){
-    var score = 0;
-    act.keywords.forEach(function(k){if(low.includes(k)) score++;});
-    if(score>bestScore){bestScore=score;matched=act;}
-  });
-
-  var pct = extractPct(low);
-  var reply;
-
-  if(matched && bestScore>0){
-    logs[matched.id] = txt;
-    statuses[matched.id] = {status:'pending',actual:pct!==null?pct:matched.planned,note:txt};
-    reply = 'Got it — logged against "'+matched.name+'".'+(pct!==null?' Reported at '+pct+'% complete.':' I\'ll propose matching planned progress. The super will review.');
-  } else {
-    reply = "I couldn't match that to a scheduled activity. Try mentioning the trade or location (e.g. 'electrical north wing' or 'level 3 concrete').";
-  }
-  chatMsgs.push({dir:'in',text:reply});
-  renderChat();
-  renderActs();
-}
-
-function extractPct(txt){
-  var m = txt.match(/(\d{1,3})\s*(%|percent)/);
-  if(m) return parseInt(m[1]);
-  var words = {'hundred':100,'fifty':50,'seventy':70,'eighty':80,'sixty':60,'forty':40,'thirty':30,'twenty':20,'ninety':90};
-  for(var w in words){if(txt.includes(w)) return words[w];}
-  return null;
-}
-
-function renderActs(){
-  var el = document.getElementById('acts');
-  el.innerHTML = schedule.map(function(act){
-    var s = statuses[act.id];
-    var log = logs[act.id];
-    var st = s?s.status:'gap';
-    if(filter && st!=='gap') return '';
-    var badge = st==='approved'?'approved':st==='pending'?'pending':'gap';
-    var badgeText = st==='approved'?'Approved':st==='pending'?'Pending Review':'No Report';
-    var proposal = s?'Proposed: Set actual to '+s.actual+'% (planned '+act.planned+'%)':'—';
-    var logTxt = log?'&ldquo;'+log+'&rdquo;':'No update received from '+act.foreman+'.';
-    var actions = '';
-    if(st==='pending'){
-      actions='<div class="act-actions"><button class="btn-approve" onclick="approve(\''+act.id+'\')">Approve</button><button class="btn-override" onclick="showOv(\''+act.id+'\')">Override</button></div><div class="override-panel" id="ov-'+act.id+'"><label style="font-size:12px;color:#555">Set actual %:</label><input type="number" id="ovi-'+act.id+'" min="0" max="100" placeholder="e.g. 55"/><button class="btn-confirm-ov" onclick="confirmOv(\''+act.id+'\')">Confirm Override</button></div>';
-    }
-    return '<div class="act-card" id="card-'+act.id+'"><div class="act-top"><div><div class="act-name">'+act.name+'</div><div class="act-meta">'+act.trade+' · Foreman: '+act.foreman+' · Planned: '+act.planned+'%</div></div><div><span class="badge '+badge+'">'+badgeText+'</span></div></div><div class="act-log">'+logTxt+'</div>'+(s?'<div class="act-proposal">'+proposal+'</div>':'')+actions+'</div>';
-  }).join('');
-}
-renderActs();
-
-function approve(id){
-  if(statuses[id]) statuses[id].status='approved';
-  renderActs();
-}
-
-function approveAll(){
-  schedule.forEach(function(act){
-    if(statuses[act.id]&&statuses[act.id].status==='pending') statuses[act.id].status='approved';
-  });
-  renderActs();
-}
-
-function showOv(id){
-  var p = document.getElementById('ov-'+id);
-  p.style.display = p.style.display==='block'?'none':'block';
-}
-
-function confirmOv(id){
-  var v = parseInt(document.getElementById('ovi-'+id).value);
-  if(isNaN(v)||v<0||v>100) return;
-  statuses[id].actual=v;
-  statuses[id].status='approved';
-  renderActs();
-}
-
-function toggleFilter(){
-  filter=!filter;
-  var b=document.getElementById('filter-btn');
-  b.classList.toggle('active',filter);
-  b.textContent=filter?'Show All':'Show Gaps Only';
-  renderActs();
-}
-
-function switchTab(id){
-  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
-  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
-  document.getElementById(id).classList.add('active');
-  var idx=id==='fv'?0:1;
-  document.querySelectorAll('.tab')[idx].classList.add('active');
-  if(id==='sv') renderActs();
-}
-</script>
-</body>
-</html>
+// ── Look-ahead events ──
+// type: p6 | committed | gap | milestone
+let lookAheadEvents = [
+  {
+    id: 'e1', type: 'committed', trade: 'Steel', source: 'chen',
+    title: 'Grid E-F Columns', start: addDays(TODAY, 3), end: addDays(TODAY, 5),
+    notes: 'Foreman commitment via PDF daily log'
+  },
+  {
+    id: 'e2', type: 'committed', trade: 'Steel', source: 'chen',
+    title: 'Beam Connections Flr 2-3', start: addDays(TODAY, 6), end: addDays(TODAY, 7),
+    notes: 'Foreman commitment via PDF daily log'
+  },
+  {
+    id: 'e3', type: 'committed', trade: 'Concrete', source: 'reyes',
+    title: 'Deck Pour Coord w/ Steel', start: addDays(TODAY, 4), end: addDays(TODAY, 4),
+    notes: 'Coordination milestone — confirm with Chen'
+  },
+  {
+    id: 'e4', type: 'p6', trade: 'Electrical', source: 'P6',
+    title: 'Rough-in — Floors 4-5', start: addDays(TODAY, 5), end: addDays(TODAY, 9),
+    notes: 'From master schedule P6 export'
+  },
+  {
+    id: 'e5', type: 'gap', trade: 'Electrical', source: 'P6',
+    title: 'Panel Feed — 3rd Floor', start: addDays(TODAY, 1), end: addDays(TODAY, 2),
+    notes: '⚠ P6 activity — no foreman commitment received'
+  },
+  {
+    id: 'e6', type: 'milestone', trade: 'Electrical', source: 'torres',
+    title: 'Rough-in Inspection', start: addDays(TODAY, 2), end: addDays(TODAY, 2),
+    notes:

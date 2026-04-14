@@ -1,0 +1,736 @@
+{
+  "meta": {
+    "description": "Realistic foreman field update samples for testing NL-to-schedule matching on a mid-stage hyperscale data center build.",
+    "total": 70,
+    "site": "Hyperscale data center, mid-construction",
+    "areas": ["Hall A", "Hall B", "MER-1", "MER-2", "ESR", "Generator Yard", "Roof"],
+    "trades": ["Electrical", "Mechanical", "Low Voltage", "Fire Protection", "Plumbing", "Steel", "Controls"],
+    "categories": {
+      "easy": "Area and trade mentioned clearly. Tests baseline matching.",
+      "fuzzy": "Slang, nicknames, abbreviations. No exact schedule terms. Tests alias resolution.",
+      "ambiguous": "Could map to 2+ activities. Tests scoring disambiguation.",
+      "multi": "One message covers two activities. Tests splitting and dual-match.",
+      "pct_variation": "Vague or non-numeric completion language. Tests extractPercentage.",
+      "no_match": "Work not in schedule, idle reports, or too vague to map."
+    }
+  },
+  "messages": [
+
+    {
+      "id": "MSG-001",
+      "category": "easy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Hall A electrical conduit rough-in is about 60 percent complete.",
+      "intended_area": "Hall A",
+      "intended_trade": "Electrical",
+      "intended_activity": "Conduit Rough-In",
+      "notes": "Straightforward. All key tokens present."
+    },
+    {
+      "id": "MSG-002",
+      "category": "easy",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "Chilled water piping in MER-1 is done for today, we got about 40 feet installed, sitting at 40 percent overall.",
+      "intended_area": "MER-1",
+      "intended_trade": "Mechanical",
+      "intended_activity": "Chilled Water Piping",
+      "notes": "Linear footage metric alongside percentage. Common field pattern."
+    },
+    {
+      "id": "MSG-003",
+      "category": "easy",
+      "foreman": { "name": "Tomas R.", "trade": "Fire Protection" },
+      "text": "Sprinkler rough-in in Hall B is 75 percent, should finish tomorrow.",
+      "intended_area": "Hall B",
+      "intended_trade": "Fire Protection",
+      "intended_activity": "Sprinkler Rough-In",
+      "notes": "Clean signal with timeline estimate."
+    },
+    {
+      "id": "MSG-004",
+      "category": "easy",
+      "foreman": { "name": "Aisha K.", "trade": "Low Voltage" },
+      "text": "Cable tray in Hall A is fully installed, 100 percent.",
+      "intended_area": "Hall A",
+      "intended_trade": "Low Voltage",
+      "intended_activity": "Cable Tray Installation",
+      "notes": "Complete activity. Tests approved-state transition."
+    },
+    {
+      "id": "MSG-005",
+      "category": "easy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Wire pull in the switchgear room is at 50 percent, got two crews on it.",
+      "intended_area": "ESR",
+      "intended_trade": "Electrical",
+      "intended_activity": "Wire Pull",
+      "notes": "Uses 'switchgear room' not 'ESR'. Common alias."
+    },
+    {
+      "id": "MSG-006",
+      "category": "easy",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "Ductwork in MER-2 is 80 percent, just finishing the last runs.",
+      "intended_area": "MER-2",
+      "intended_trade": "Mechanical",
+      "intended_activity": "Ductwork",
+      "notes": "Clean signal."
+    },
+    {
+      "id": "MSG-007",
+      "category": "easy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Generator yard electrical conduit is 30 percent, broke ground today.",
+      "intended_area": "Generator Yard",
+      "intended_trade": "Electrical",
+      "intended_activity": "Conduit Rough-In",
+      "notes": "New start. Tests low-percentage handling."
+    },
+    {
+      "id": "MSG-008",
+      "category": "easy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Hall B wire pull started this morning, about 10 percent in.",
+      "intended_area": "Hall B",
+      "intended_trade": "Electrical",
+      "intended_activity": "Wire Pull",
+      "notes": "Early-stage activity."
+    },
+    {
+      "id": "MSG-009",
+      "category": "easy",
+      "foreman": { "name": "Tomas R.", "trade": "Fire Protection" },
+      "text": "Fire suppression rough-in in the ESR is 90 percent complete.",
+      "intended_area": "ESR",
+      "intended_trade": "Fire Protection",
+      "intended_activity": "Suppression Rough-In",
+      "notes": "Uses 'ESR' as abbreviation."
+    },
+    {
+      "id": "MSG-010",
+      "category": "easy",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "Roof mechanical equipment pads are poured and cured, 100 percent done.",
+      "intended_area": "Roof",
+      "intended_trade": "Mechanical",
+      "intended_activity": "Equipment Pad Installation",
+      "notes": "Complete. Mentions concrete action for a mechanical activity."
+    },
+    {
+      "id": "MSG-011",
+      "category": "easy",
+      "foreman": { "name": "Devon K.", "trade": "Plumbing" },
+      "text": "Hall A plumbing rough-in is about halfway, 50 percent.",
+      "intended_area": "Hall A",
+      "intended_trade": "Plumbing",
+      "intended_activity": "Plumbing Rough-In",
+      "notes": "Both verbal and numeric percentage present."
+    },
+    {
+      "id": "MSG-012",
+      "category": "easy",
+      "foreman": { "name": "Yuki O.", "trade": "Controls" },
+      "text": "BAS sensor rough-in in Hall B is 65 percent, moving through the rows.",
+      "intended_area": "Hall B",
+      "intended_trade": "Controls",
+      "intended_activity": "BAS Sensor Rough-In",
+      "notes": "BAS spelled out."
+    },
+    {
+      "id": "MSG-013",
+      "category": "easy",
+      "foreman": { "name": "Priya S.", "trade": "Steel" },
+      "text": "Steel mezzanine framing in MER-1 is 85 percent done.",
+      "intended_area": "MER-1",
+      "intended_trade": "Steel",
+      "intended_activity": "Mezzanine Framing",
+      "notes": "Clean signal."
+    },
+    {
+      "id": "MSG-014",
+      "category": "easy",
+      "foreman": { "name": "Aisha K.", "trade": "Low Voltage" },
+      "text": "Low voltage cable tray in Hall B complete, 100 percent.",
+      "intended_area": "Hall B",
+      "intended_trade": "Low Voltage",
+      "intended_activity": "Cable Tray Installation",
+      "notes": "Complete activity."
+    },
+    {
+      "id": "MSG-015",
+      "category": "easy",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "Chilled water insulation in MER-2 is 40 percent, crews moving east to west.",
+      "intended_area": "MER-2",
+      "intended_trade": "Mechanical",
+      "intended_activity": "CHW Insulation",
+      "notes": "Directional detail included."
+    },
+    {
+      "id": "MSG-016",
+      "category": "easy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Hall A lighting rough-in is 70 percent, finishing the east rows today.",
+      "intended_area": "Hall A",
+      "intended_trade": "Electrical",
+      "intended_activity": "Lighting Rough-In",
+      "notes": "Sub-area directional detail."
+    },
+    {
+      "id": "MSG-017",
+      "category": "easy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Generator yard grounding is done, 100 percent.",
+      "intended_area": "Generator Yard",
+      "intended_trade": "Electrical",
+      "intended_activity": "Grounding",
+      "notes": "Complete."
+    },
+    {
+      "id": "MSG-018",
+      "category": "easy",
+      "foreman": { "name": "Tomas R.", "trade": "Fire Protection" },
+      "text": "Fire sprinkler mains in Hall B are in, about 80 percent on the overall system.",
+      "intended_area": "Hall B",
+      "intended_trade": "Fire Protection",
+      "intended_activity": "Sprinkler Mains",
+      "notes": "Distinguishes mains from drops."
+    },
+    {
+      "id": "MSG-019",
+      "category": "easy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "ESR grounding grid is 55 percent complete.",
+      "intended_area": "ESR",
+      "intended_trade": "Electrical",
+      "intended_activity": "Grounding",
+      "notes": "Uses ESR abbreviation."
+    },
+    {
+      "id": "MSG-020",
+      "category": "easy",
+      "foreman": { "name": "Aisha K.", "trade": "Low Voltage" },
+      "text": "Hall A overhead cable tray installation is at 45 percent, working north to south.",
+      "intended_area": "Hall A",
+      "intended_trade": "Low Voltage",
+      "intended_activity": "Cable Tray Installation",
+      "notes": "Directional progress detail."
+    },
+
+    {
+      "id": "MSG-021",
+      "category": "fuzzy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Pipe bending on the east side is almost done, just a few more sticks.",
+      "intended_area": "Hall A",
+      "intended_trade": "Electrical",
+      "intended_activity": "Conduit Rough-In",
+      "notes": "'Pipe bending' = conduit work. 'East side' = Hall A. 'Sticks' = conduit lengths."
+    },
+    {
+      "id": "MSG-022",
+      "category": "fuzzy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Pulling wire in the gear room, should be wrapped up by end of day.",
+      "intended_area": "ESR",
+      "intended_trade": "Electrical",
+      "intended_activity": "Wire Pull",
+      "notes": "'Gear room' = ESR. 'Pulling wire' = wire pull."
+    },
+    {
+      "id": "MSG-023",
+      "category": "fuzzy",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "CHW loop on the north mechanical is about three quarters in.",
+      "intended_area": "MER-1",
+      "intended_trade": "Mechanical",
+      "intended_activity": "Chilled Water Piping",
+      "notes": "'CHW loop' = chilled water piping. 'North mechanical' = MER-1."
+    },
+    {
+      "id": "MSG-024",
+      "category": "fuzzy",
+      "foreman": { "name": "Aisha K.", "trade": "Low Voltage" },
+      "text": "Running tray in the B hall, making good progress.",
+      "intended_area": "Hall B",
+      "intended_trade": "Low Voltage",
+      "intended_activity": "Cable Tray Installation",
+      "notes": "'Running tray' = cable tray install. No percentage."
+    },
+    {
+      "id": "MSG-025",
+      "category": "fuzzy",
+      "foreman": { "name": "Priya S.", "trade": "Steel" },
+      "text": "Iron work on the south MER mezzanine is coming along, maybe 60 percent.",
+      "intended_area": "MER-2",
+      "intended_trade": "Steel",
+      "intended_activity": "Mezzanine Framing",
+      "notes": "'Iron work' = steel framing. 'South MER' = MER-2."
+    },
+    {
+      "id": "MSG-026",
+      "category": "fuzzy",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "We're in the duct work up top, got most of the main runs done.",
+      "intended_area": "Roof",
+      "intended_trade": "Mechanical",
+      "intended_activity": "Ductwork",
+      "notes": "'Up top' = Roof. 'Main runs' = primary duct trunks."
+    },
+    {
+      "id": "MSG-027",
+      "category": "fuzzy",
+      "foreman": { "name": "Yuki O.", "trade": "Controls" },
+      "text": "Controls guys are in hall one knocking out sensors, pretty far along.",
+      "intended_area": "Hall A",
+      "intended_trade": "Controls",
+      "intended_activity": "BAS Sensor Rough-In",
+      "notes": "'Hall one' = Hall A. 'Sensors' = BAS sensor rough-in. No numeric percentage."
+    },
+    {
+      "id": "MSG-028",
+      "category": "fuzzy",
+      "foreman": { "name": "Tomas R.", "trade": "Fire Protection" },
+      "text": "Sprinkler drops in the west side are going up, probably halfway.",
+      "intended_area": "Hall B",
+      "intended_trade": "Fire Protection",
+      "intended_activity": "Sprinkler Drops",
+      "notes": "'West side' = Hall B. 'Drops' = sprinkler head drops. Verbal pct only."
+    },
+    {
+      "id": "MSG-029",
+      "category": "fuzzy",
+      "foreman": { "name": "Devon K.", "trade": "Plumbing" },
+      "text": "Plumbing team is finishing the drain work on the A side.",
+      "intended_area": "Hall A",
+      "intended_trade": "Plumbing",
+      "intended_activity": "Drain Rough-In",
+      "notes": "'A side' = Hall A. 'Drain work' = drain rough-in."
+    },
+    {
+      "id": "MSG-030",
+      "category": "fuzzy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Gen yard pipe is about a third done, had a late start this morning.",
+      "intended_area": "Generator Yard",
+      "intended_trade": "Electrical",
+      "intended_activity": "Conduit Rough-In",
+      "notes": "'Gen yard' = Generator Yard. 'Pipe' = conduit. Fractional pct."
+    },
+    {
+      "id": "MSG-031",
+      "category": "fuzzy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Switchgear install in the ESR is almost buttoned up.",
+      "intended_area": "ESR",
+      "intended_trade": "Electrical",
+      "intended_activity": "Switchgear Installation",
+      "notes": "'Buttoned up' = near complete. No numeric percentage."
+    },
+    {
+      "id": "MSG-032",
+      "category": "fuzzy",
+      "foreman": { "name": "Aisha K.", "trade": "Low Voltage" },
+      "text": "Low volt crew is pulling fiber in hall two, maybe 40 percent.",
+      "intended_area": "Hall B",
+      "intended_trade": "Low Voltage",
+      "intended_activity": "Fiber Backbone",
+      "notes": "'Hall two' = Hall B. 'Low volt' = LV trade. 'Pulling fiber' = fiber backbone."
+    },
+    {
+      "id": "MSG-033",
+      "category": "fuzzy",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "MEP rough-in on the south mechanical side is moving, chilled water mostly done.",
+      "intended_area": "MER-2",
+      "intended_trade": "Mechanical",
+      "intended_activity": "Chilled Water Piping",
+      "notes": "'MEP' umbrella term. 'South mechanical' = MER-2. Specifies chilled water."
+    },
+    {
+      "id": "MSG-034",
+      "category": "fuzzy",
+      "foreman": { "name": "Tomas R.", "trade": "Fire Protection" },
+      "text": "We finished the clean agent system in the gear room.",
+      "intended_area": "ESR",
+      "intended_trade": "Fire Protection",
+      "intended_activity": "Suppression Rough-In",
+      "notes": "'Clean agent' = FM200/suppression system. 'Gear room' = ESR."
+    },
+    {
+      "id": "MSG-035",
+      "category": "fuzzy",
+      "foreman": { "name": "Priya S.", "trade": "Steel" },
+      "text": "Welding up the equipment platforms in the north MER, about halfway.",
+      "intended_area": "MER-1",
+      "intended_trade": "Steel",
+      "intended_activity": "Equipment Platform Fabrication",
+      "notes": "'North MER' = MER-1. 'Equipment platforms' = structural steel platforms."
+    },
+    {
+      "id": "MSG-036",
+      "category": "fuzzy",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Home runs to the panels in hall A are 90 percent pulled.",
+      "intended_area": "Hall A",
+      "intended_trade": "Electrical",
+      "intended_activity": "Wire Pull",
+      "notes": "'Home runs' = feeder wire pulls back to panels. Trade-specific jargon."
+    },
+    {
+      "id": "MSG-037",
+      "category": "fuzzy",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "Ductwork in the B side mechanical room is tight quarters, moving slow, maybe 30 percent.",
+      "intended_area": "MER-2",
+      "intended_trade": "Mechanical",
+      "intended_activity": "Ductwork",
+      "notes": "'B side mechanical room' = MER-2. Notes field condition."
+    },
+    {
+      "id": "MSG-038",
+      "category": "fuzzy",
+      "foreman": { "name": "Yuki O.", "trade": "Controls" },
+      "text": "BAS wiring in the west hall is in progress, sensors going in now.",
+      "intended_area": "Hall B",
+      "intended_trade": "Controls",
+      "intended_activity": "BAS Sensor Rough-In",
+      "notes": "'West hall' = Hall B."
+    },
+    {
+      "id": "MSG-039",
+      "category": "fuzzy",
+      "foreman": { "name": "Priya S.", "trade": "Steel" },
+      "text": "Overhead steel in hall A is done, tray supports are all hung.",
+      "intended_area": "Hall A",
+      "intended_trade": "Steel",
+      "intended_activity": "Overhead Steel / Tray Support",
+      "notes": "Compound update — overhead steel + tray support steel."
+    },
+    {
+      "id": "MSG-040",
+      "category": "fuzzy",
+      "foreman": { "name": "Tomas R.", "trade": "Fire Protection" },
+      "text": "Fire side is finishing mains in hall one, drops start tomorrow.",
+      "intended_area": "Hall A",
+      "intended_trade": "Fire Protection",
+      "intended_activity": "Sprinkler Mains",
+      "notes": "'Hall one' = Hall A. Forward-looking note about drops."
+    },
+
+    {
+      "id": "MSG-041",
+      "category": "ambiguous",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "MEP work on the east side is about halfway done.",
+      "intended_area": "Hall A",
+      "intended_trade": null,
+      "intended_activity": null,
+      "notes": "'MEP' = mechanical, electrical, or plumbing. 'East side' = Hall A. Trade is unclear — matcher must use foreman ID to disambiguate."
+    },
+    {
+      "id": "MSG-042",
+      "category": "ambiguous",
+      "foreman": { "name": "Unknown", "trade": "Unknown" },
+      "text": "Level 2 work is moving, crews making progress.",
+      "intended_area": null,
+      "intended_trade": null,
+      "intended_activity": null,
+      "notes": "No trade signal. 'Level 2' not in standard area list. Matcher should return low confidence."
+    },
+    {
+      "id": "MSG-043",
+      "category": "ambiguous",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "We're about 60 percent on the rough-in work in hall B.",
+      "intended_area": "Hall B",
+      "intended_trade": "Electrical",
+      "intended_activity": null,
+      "notes": "Area clear, trade deducible from foreman ID, but 'rough-in' matches electrical conduit, plumbing, and fire protection. Scorer must weight foreman ID."
+    },
+    {
+      "id": "MSG-044",
+      "category": "ambiguous",
+      "foreman": { "name": "Priya S.", "trade": "Steel" },
+      "text": "North side is coming along, got a lot done today.",
+      "intended_area": "MER-1",
+      "intended_trade": "Steel",
+      "intended_activity": null,
+      "notes": "'North side' could be MER-1 or Hall A north rows. No activity signal. Foreman ID narrows to steel."
+    },
+    {
+      "id": "MSG-045",
+      "category": "ambiguous",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Electrical work in the MER is about 70 percent.",
+      "intended_area": null,
+      "intended_trade": "Electrical",
+      "intended_activity": null,
+      "notes": "'The MER' — doesn't specify MER-1 or MER-2. Matcher should flag ambiguity."
+    },
+    {
+      "id": "MSG-046",
+      "category": "ambiguous",
+      "foreman": { "name": "Devon K.", "trade": "Plumbing" },
+      "text": "Piping is 80 percent in the mechanical room.",
+      "intended_area": null,
+      "intended_trade": null,
+      "intended_activity": null,
+      "notes": "'Piping' could be mechanical CHW or plumbing. 'Mechanical room' doesn't specify MER-1 or MER-2."
+    },
+    {
+      "id": "MSG-047",
+      "category": "ambiguous",
+      "foreman": { "name": "Unknown", "trade": "Unknown" },
+      "text": "Hall A is making progress across the board.",
+      "intended_area": "Hall A",
+      "intended_trade": null,
+      "intended_activity": null,
+      "notes": "Area clear, everything else vague. No activity, no trade, no percentage."
+    },
+    {
+      "id": "MSG-048",
+      "category": "ambiguous",
+      "foreman": { "name": "Unknown", "trade": "Unknown" },
+      "text": "We're almost done with the rough-in.",
+      "intended_area": null,
+      "intended_trade": null,
+      "intended_activity": null,
+      "notes": "No area, no trade, no foreman context. Matcher cannot resolve."
+    },
+    {
+      "id": "MSG-049",
+      "category": "ambiguous",
+      "foreman": { "name": "Aisha K.", "trade": "Low Voltage" },
+      "text": "Cable work in the east hall is moving, about halfway.",
+      "intended_area": "Hall A",
+      "intended_trade": null,
+      "intended_activity": null,
+      "notes": "'Cable work' = low voltage cable tray OR electrical wire pull. Foreman ID resolves to LV."
+    },
+    {
+      "id": "MSG-050",
+      "category": "ambiguous",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "The mechanical team finished their work in the yard.",
+      "intended_area": "Generator Yard",
+      "intended_trade": "Mechanical",
+      "intended_activity": null,
+      "notes": "Generator Yard mechanical activity unclear. Complete status but no specific activity named."
+    },
+
+    {
+      "id": "MSG-051",
+      "category": "multi",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Conduit in hall A is done and we moved over to hall B, just started there.",
+      "intended_area": ["Hall A", "Hall B"],
+      "intended_trade": "Electrical",
+      "intended_activity": "Conduit Rough-In",
+      "notes": "Two activities: Hall A conduit = 100%, Hall B conduit = ~5%. Matcher must split."
+    },
+    {
+      "id": "MSG-052",
+      "category": "multi",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "Finished the CHW piping in MER-1 and started on MER-2 this afternoon, about 20 percent on MER-2.",
+      "intended_area": ["MER-1", "MER-2"],
+      "intended_trade": "Mechanical",
+      "intended_activity": "Chilled Water Piping",
+      "notes": "Two activities: MER-1 = 100%, MER-2 = 20%."
+    },
+    {
+      "id": "MSG-053",
+      "category": "multi",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Wire pull in the ESR is done, 100 percent. Hall B wire pull is at 30 percent.",
+      "intended_area": ["ESR", "Hall B"],
+      "intended_trade": "Electrical",
+      "intended_activity": "Wire Pull",
+      "notes": "Two explicit activity updates in one message. Clear area and pct for each."
+    },
+    {
+      "id": "MSG-054",
+      "category": "multi",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "Duct work in hall A and hall B both wrapped up today, 100 percent on both.",
+      "intended_area": ["Hall A", "Hall B"],
+      "intended_trade": "Mechanical",
+      "intended_activity": "Ductwork",
+      "notes": "Same activity, two areas, same completion. Matcher should update both."
+    },
+    {
+      "id": "MSG-055",
+      "category": "multi",
+      "foreman": { "name": "Aisha K.", "trade": "Low Voltage" },
+      "text": "Cable tray in A hall is complete, moved the crew to start fiber backbone, just getting set up.",
+      "intended_area": "Hall A",
+      "intended_trade": "Low Voltage",
+      "intended_activity": ["Cable Tray Installation", "Fiber Backbone"],
+      "notes": "Two different activities in Hall A: tray = 100%, fiber = ~5%."
+    },
+
+    {
+      "id": "MSG-056",
+      "category": "pct_variation",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Hall B conduit rough-in is basically done, just cleaning up.",
+      "intended_area": "Hall B",
+      "intended_trade": "Electrical",
+      "intended_activity": "Conduit Rough-In",
+      "expected_pct": 95,
+      "notes": "'Basically done, just cleaning up' ≈ 95%."
+    },
+    {
+      "id": "MSG-057",
+      "category": "pct_variation",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "Just broke ground on the roof mechanical this morning.",
+      "intended_area": "Roof",
+      "intended_trade": "Mechanical",
+      "intended_activity": "Equipment Pad Installation",
+      "expected_pct": 5,
+      "notes": "'Just broke ground' ≈ 5%."
+    },
+    {
+      "id": "MSG-058",
+      "category": "pct_variation",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "MER-2 chilled water piping is a little past halfway.",
+      "intended_area": "MER-2",
+      "intended_trade": "Mechanical",
+      "intended_activity": "Chilled Water Piping",
+      "expected_pct": 55,
+      "notes": "'A little past halfway' ≈ 55%."
+    },
+    {
+      "id": "MSG-059",
+      "category": "pct_variation",
+      "foreman": { "name": "Tomas R.", "trade": "Fire Protection" },
+      "text": "Almost wrapped up the fire suppression in Hall A, one more day.",
+      "intended_area": "Hall A",
+      "intended_trade": "Fire Protection",
+      "intended_activity": "Suppression Rough-In",
+      "expected_pct": 90,
+      "notes": "'Almost wrapped up, one more day' ≈ 90%."
+    },
+    {
+      "id": "MSG-060",
+      "category": "pct_variation",
+      "foreman": { "name": "Tomas R.", "trade": "Fire Protection" },
+      "text": "Sprinkler mains in hall B — we're in the early stages.",
+      "intended_area": "Hall B",
+      "intended_trade": "Fire Protection",
+      "intended_activity": "Sprinkler Mains",
+      "expected_pct": 15,
+      "notes": "'Early stages' ≈ 15%."
+    },
+    {
+      "id": "MSG-061",
+      "category": "pct_variation",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "ESR wire pull is three quarters done.",
+      "intended_area": "ESR",
+      "intended_trade": "Electrical",
+      "intended_activity": "Wire Pull",
+      "expected_pct": 75,
+      "notes": "Fractional language — three quarters."
+    },
+    {
+      "id": "MSG-062",
+      "category": "pct_variation",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Generator yard conduit is two thirds complete.",
+      "intended_area": "Generator Yard",
+      "intended_trade": "Electrical",
+      "intended_activity": "Conduit Rough-In",
+      "expected_pct": 67,
+      "notes": "Fractional language — two thirds."
+    },
+    {
+      "id": "MSG-063",
+      "category": "pct_variation",
+      "foreman": { "name": "Aisha K.", "trade": "Low Voltage" },
+      "text": "Completely finished the cable tray in the B hall.",
+      "intended_area": "Hall B",
+      "intended_trade": "Low Voltage",
+      "intended_activity": "Cable Tray Installation",
+      "expected_pct": 100,
+      "notes": "'Completely finished' = 100%."
+    },
+    {
+      "id": "MSG-064",
+      "category": "pct_variation",
+      "foreman": { "name": "Yuki O.", "trade": "Controls" },
+      "text": "BAS rough-in in Hall A, we haven't touched it yet.",
+      "intended_area": "Hall A",
+      "intended_trade": "Controls",
+      "intended_activity": "BAS Sensor Rough-In",
+      "expected_pct": 0,
+      "notes": "'Haven't touched it' = 0%. Tests zero-percent detection."
+    },
+    {
+      "id": "MSG-065",
+      "category": "pct_variation",
+      "foreman": { "name": "Rosa V.", "trade": "Mechanical" },
+      "text": "Hall A ductwork, we're about four fifths done.",
+      "intended_area": "Hall A",
+      "intended_trade": "Mechanical",
+      "intended_activity": "Ductwork",
+      "expected_pct": 80,
+      "notes": "Fractional language — four fifths."
+    },
+
+    {
+      "id": "MSG-066",
+      "category": "no_match",
+      "foreman": { "name": "Unknown", "trade": "Unknown" },
+      "text": "Had a concrete pour scheduled today but the truck never showed, we're idle.",
+      "intended_area": null,
+      "intended_trade": null,
+      "intended_activity": null,
+      "notes": "Activity not in schedule. Idle report. Matcher should return no match."
+    },
+    {
+      "id": "MSG-067",
+      "category": "no_match",
+      "foreman": { "name": "Unknown", "trade": "Unknown" },
+      "text": "Waiting on equipment delivery for the generator install, nothing to report.",
+      "intended_area": "Generator Yard",
+      "intended_trade": null,
+      "intended_activity": null,
+      "notes": "Blocked by delivery. Area known but no matchable activity — no progress to log."
+    },
+    {
+      "id": "MSG-068",
+      "category": "no_match",
+      "foreman": { "name": "Unknown", "trade": "Unknown" },
+      "text": "Safety walk took all morning, no work done today.",
+      "intended_area": null,
+      "intended_trade": null,
+      "intended_activity": null,
+      "notes": "Operational message, not a progress update. Matcher should return no match."
+    },
+    {
+      "id": "MSG-069",
+      "category": "no_match",
+      "foreman": { "name": "Unknown", "trade": "Finishes" },
+      "text": "Finished the drywall in the break room, all done.",
+      "intended_area": null,
+      "intended_trade": null,
+      "intended_activity": null,
+      "notes": "Trade and area not in schedule. Out-of-scope work being reported."
+    },
+    {
+      "id": "MSG-070",
+      "category": "no_match",
+      "foreman": { "name": "Marcus T.", "trade": "Electrical" },
+      "text": "Material shortage on conduit, hall A crew is standing by.",
+      "intended_area": "Hall A",
+      "intended_trade": "Electrical",
+      "intended_activity": null,
+      "notes": "Blocked status, not a progress update. No percentage, no activity completion signal."
+    }
+
+  ]
+}

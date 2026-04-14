@@ -1,0 +1,235 @@
+{
+  "brief": "/Users/nathanstankowski/lab/projects/handoff/briefs/daily-log.md",
+  "scenarios": "/Users/nathanstankowski/lab/projects/handoff/briefs/daily-log-scenarios.md",
+  "started": "2026-03-17T23:35:22.931860+00:00",
+  "max_iterations": 5,
+  "runs": [
+    {
+      "run": 1,
+      "timestamp": "2026-03-17T23:39:11.014682+00:00",
+      "result": "FAIL",
+      "scenarios": [
+        {
+          "id": "S1",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "Chen's PDF row in dailyLog data shows manpower:12 matching PDF value, completed work 'W10 columns Grid B-D Floors 2-3', and blockers 'None reported' \u2014 all fields non-empty. CSS and data model support correct rendering."
+        },
+        {
+          "id": "S2",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "Kowalski's data has manpower:null and quality:'partial'. CSS defines .missing-val with red italic styling and gap-pill gap-missing class. The data model explicitly captures the null state for rendering as a visible gap indicator rather than empty cell."
+        },
+        {
+          "id": "S3",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "All look-ahead events carry a source field ('chen','reyes','P6','torres'). CSS source-tag classes (source-p6, source-sms, source-pdf) are defined. Legend labels P6 vs foreman entries. Data model ensures no event is sourceless."
+        },
+        {
+          "id": "S4",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "Report tab includes downloadJSON() and JSON preview populated from data model. Submissions array contains actuals; lookAheadEvents contains commitments. Data model has trade, date, description fields on all entries. JSON structure supports valid parse."
+        },
+        {
+          "id": "S5",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "Event e5 (type:'gap', Electrical, Panel Feed 3rd Floor) uses bar-gap CSS class with dashed red border visually distinct from bar-p6 (solid amber) and bar-committed (solid green). ganttGapBadge shows count 2. Gap events also rendered as gap-card in event list with red left border."
+        },
+        {
+          "id": "S6",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "Chen's PDF extraction shows numerically correct manpower (12), completed work referencing same trade (Steel) and location (Grid B-D, Floors 2-3) as source PDF text, and blockers accurately captured as 'None'. No omissions or factual errors in extracted fields."
+        },
+        {
+          "id": "S7",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "bar-p6 (amber background, solid border), bar-committed (green background, solid green border), and bar-gap (red background, dashed red border) are visually distinct at first glance without reading labels. Legend reinforces distinction. Gantt layout organizes by trade row enabling scan by trade. Gap bars use dashed styling making them immediately identifiable."
+        },
+        {
+          "id": "S8",
+          "tier": 2,
+          "result": "FAIL",
+          "reason": "S8 rubric requires each JSON entry to be unambiguously attributable to a trade AND area. The data model and visible JSON structure include trade and description but do not include an explicit 'area' field on actuals or commitments entries. A scheduler reading the JSON would need to parse area from free-text description fields, which requires interpretation rather than direct lookup \u2014 failing the 'without additional context' criterion."
+        }
+      ],
+      "spec_amendment": "Add to Schedule Update Report requirements: every entry in the actuals and commitments arrays of the JSON output must include an explicit 'area' field (e.g., floor, grid reference, zone) as a discrete structured field \u2014 not embedded in the description string. Entries where area is not determinable from the submission must set 'area' to null with an explicit null value rather than omitting the field. A scheduler must be able to filter or sort entries by area without parsing free-text."
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-03-17T23:42:52.100224+00:00",
+      "result": "FAIL",
+      "scenarios": [
+        {
+          "id": "S1",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "The JavaScript is truncated mid-statement (script ends at 'start: addDays(today,5), end' with no closing syntax), so no table rows render at all. Additionally, the seeded PDF submission (dl4, Apex Plumbing) contains an empty blockers array, contradicting the scenario requirement that the PDF contains one blocker."
+        },
+        {
+          "id": "S2",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "JavaScript is truncated \u2014 no table rendering function is present in the delivered output. The daily log tbody is never populated, so no gap indicator for the missing men-on-site field (dl5, FireGuard) can be asserted."
+        },
+        {
+          "id": "S3",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "JavaScript is truncated \u2014 the gantt grid rendering function is never defined or called. The look-ahead panel renders an empty container with no entries, so source labels cannot be verified."
+        },
+        {
+          "id": "S4",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "JavaScript is truncated \u2014 no report generation function is present. The report panel renders empty. No JSON output is produced or downloadable."
+        },
+        {
+          "id": "S5",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "JavaScript is truncated \u2014 look-ahead entries are partially defined in data but no rendering logic executes. Gap-flagged entries (e.g., la18) exist in the data fragment but are never rendered, so no DOM gap indicator can be asserted."
+        },
+        {
+          "id": "S6",
+          "tier": 2,
+          "result": "FAIL",
+          "reason": "JavaScript is truncated \u2014 the PDF simulation and extraction logic (simulatePDFLoad and any Claude extraction stub) is not present in the delivered output. No extraction result is displayed."
+        },
+        {
+          "id": "S7",
+          "tier": 2,
+          "result": "FAIL",
+          "reason": "JavaScript is truncated \u2014 the gantt and list view rendering functions are absent. No look-ahead visual distinction between planned, committed, and gap entries can be evaluated."
+        },
+        {
+          "id": "S8",
+          "tier": 2,
+          "result": "FAIL",
+          "reason": "JavaScript is truncated \u2014 no JSON report is generated. The area amendment (explicit null for missing area, discrete structured field) cannot be verified in output. Report panel is empty."
+        }
+      ],
+      "spec_amendment": "Add to Build Constraints: the output must be a complete, self-contained HTML file with no truncated JavaScript. All rendering functions (daily log table population, gantt/list look-ahead render, report JSON generation, PDF simulation, SMS parse preview) must be fully present and syntactically valid such that the page loads and populates without errors in a browser. The seed data, rendering logic, and all event handlers must be included in a single deliverable file. If output length is a concern, reduce seed data volume rather than truncating rendering logic."
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-03-17T23:46:16.183371+00:00",
+      "result": "FAIL",
+      "scenarios": [
+        {
+          "id": "S1",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "The HTML file is truncated mid-render \u2014 the renderDailyTable function's tbody.innerHTML assignment ends with '<span class=\"null-' and is cut off. The page will not load or populate without a JavaScript syntax error. The daily log table cannot render, so the foreman row with men-on-site, completed work, and blocker fields cannot be asserted."
+        },
+        {
+          "id": "S2",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "Tony Batista's structural steel entry correctly seeds men_on_site as null, and the renderDailyTable function is intended to handle this, but the function is truncated before the men-on-site cell rendering logic is reached. Cannot assert that a visible gap indicator (e.g. '\u2014' or 'No count') appears in the DOM."
+        },
+        {
+          "id": "S3",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "renderLookahead() is referenced in the nav handler but the function body is never reached in the output \u2014 the file is truncated inside renderDailyTable. The look-ahead panel cannot render, so source label presence on all entries cannot be asserted."
+        },
+        {
+          "id": "S4",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "downloadReportJSON() and the report JSON generation logic are referenced but never defined in the output \u2014 file is truncated before those functions. JSON.parse() cannot be run; actuals/commitments arrays cannot be asserted."
+        },
+        {
+          "id": "S5",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "Gap detection logic (P6 activity with no matching commitment flagged with a CSS class or attribute) is described in seed data comments but the rendering function that would apply gap-state classes to look-ahead entries is never reached. No DOM assertion possible."
+        },
+        {
+          "id": "S6",
+          "tier": 2,
+          "result": "FAIL",
+          "reason": "PDF extraction simulation (handleFileSelect, pdf-parse-result population) is referenced but the file is truncated before those functions are defined. No extracted field output is rendered."
+        },
+        {
+          "id": "S7",
+          "tier": 2,
+          "result": "FAIL",
+          "reason": "Look-ahead rendering is unreachable due to truncation. Visual distinction between planned and committed entries, gap scanning, and trade/date layout cannot be evaluated."
+        },
+        {
+          "id": "S8",
+          "tier": 2,
+          "result": "FAIL",
+          "reason": "Schedule update report JSON structure (trade, area, date, type, description per entry; actuals vs commitments structural distinction) cannot be evaluated \u2014 report generation functions are never defined in the truncated output."
+        }
+      ],
+      "spec_amendment": "Add to Build Constraints (reinforcing Run 2 amendment): the output file must be syntactically complete \u2014 no function, string literal, or HTML attribute may be cut off mid-token. If the total output would exceed length limits, the Writer must reduce seed data to the minimum necessary (e.g., 2 subs, 3 P6 activities, 2 committed events) and may omit the Parse Preview panel entirely, but must never truncate a JavaScript function body, a CSS rule, or an HTML element. Completeness of rendering logic takes absolute priority over volume of seed data or UI panels."
+    },
+    {
+      "run": 4,
+      "timestamp": "2026-03-17T23:55:38.879959+00:00",
+      "result": "PASS",
+      "scenarios": [
+        {
+          "id": "S1",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "Apex Electrical row shows men-on-site count of 6, completed work 'Pulled wire in Level 3 east corridor, panels 3E-1 through 3E-4 terminated', and blocker 'Waiting on drywall closure at stairwell 3B \u2014 blocked 2 men from continuing east run'. No field reads missing for data present in the seed PDF/SMS submission."
+        },
+        {
+          "id": "S2",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "Crestline Mechanical row renders completed work and area correctly. Men-on-site cell renders '<div class=\"men-null\">\u26a0 Not reported</div>' \u2014 an explicit non-empty gap indicator. Status chip shows '\u26a0 Partial'. The missing field is visibly flagged rather than left blank."
+        },
+        {
+          "id": "S3",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "Every look-ahead entry has a source label rendered in the la-entry-right div: P6 entries receive <span class='source-label src-p6'>P6</span>, field-committed entries receive the foreman name/sub via src-field span, and superintendent-added entries receive src-super span. No entry is constructed without the sourceHtml block being appended."
+        },
+        {
+          "id": "S4",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "buildReportData() returns an object with 'actuals' array (2 entries, each containing trade, date, work_completed/description-equivalent) and 'commitments' array (3 entries, each containing trade, date, title as description). JSON.parse() on the serialized output would not throw. All required fields present on each entry."
+        },
+        {
+          "id": "S5",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "p6-002 (HVAC Ductwork Level 4 South) and p6-003 (Electrical Level 5) have no linked committed event; getAllLAEntries() sets isGap=true for these, which appends 'gap-flag' CSS class to the la-entry element and renders the red gap-note '\u26a0 No field commitment \u2014 raise in coordination meeting'. p6-001 has linkedP6 match in committedEvents so isGap=false and no gap styling applied."
+        },
+        {
+          "id": "S6",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "The seed data for Crestline Mechanical models an Email+PDF submission with explicit field extraction. Men-on-site is null with explicit 'Not reported' flag (manpower illegible in scan \u2014 modeled accurately). Completed work references AHU-2 startup test and Level 4 North ductwork with location. Blocker is 'None noted' which is accurate to the submission. The extraction is not paraphrased beyond recognition and the area field correctly reflects Level 4 North. The inbox panel shows the raw text, extracted fields as green pills, and the missing men_on_site as a red 'missing' pill \u2014 sufficient for a Superintendent to act on."
+        },
+        {
+          "id": "S7",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "P6 planned entries use blue left-border (--p6color) and no 'committed' class; field-committed entries use green left-border ('committed' class, --commitcolor); gap entries use red left-border and red background tint ('gap-flag' class) plus an explicit warning note. The legend in the controls bar labels all three states. Filter buttons allow instant isolation of gaps. The visual distinction is immediate at the border-color level without requiring source label reading. Layout is date-sorted within weekly bands, supporting scan by date; trade is shown as a meta item on each entry supporting scan by trade."
+        },
+        {
+          "id": "S8",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "Each actuals entry contains: sub, trade, foreman, date, area (explicit field, null for missing), men_on_site, work_completed, blockers, channel, submission_status. Each commitments entry contains: id, title, sub, trade, foreman, date, area (explicit field), type, source, linked_p6_activity, notes. The 'actuals' vs 'commitments' distinction is structural (separate top-level arrays). A scheduler can identify which P6 activities need updating via linked_p6_activity and the p6_gaps array which lists uncovered P6 activities with wbs_code, scheduled dates, and area. All entries attributable to trade and area without verbal clarification."
+        }
+      ],
+      "spec_amendment": null
+    }
+  ],
+  "finished": "2026-03-17T23:55:38.880804+00:00",
+  "final_result": "PASS",
+  "total_runs": 4
+}

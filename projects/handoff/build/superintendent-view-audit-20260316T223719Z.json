@@ -1,0 +1,99 @@
+{
+  "brief": "/Users/nathanstankowski/lab/projects/handoff/briefs/superintendent-view.md",
+  "scenarios": "/Users/nathanstankowski/lab/projects/handoff/briefs/superintendent-view-scenarios.md",
+  "started": "2026-03-16T22:37:19.539438+00:00",
+  "max_iterations": 5,
+  "runs": [
+    {
+      "run": 1,
+      "timestamp": "2026-03-16T22:38:27.989960+00:00",
+      "result": "FAIL",
+      "scenarios": [
+        {
+          "id": "S1",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "6 activity cards present in #activity-list; each card contains trade, activity name, zone in .card-meta, and a .badge element with status text"
+        },
+        {
+          "id": "S2",
+          "tier": 1,
+          "result": "FAIL",
+          "reason": "A1's proposedPct is 100 instead of 80. extractPercentage tests /\\bdone\\b/ before the numeric '80 percent' pattern; since the message ends with 'done', the done-branch fires and returns 100. The numeric extraction branch is never reached. A2=10, A3=50, A5=100 are correct."
+        },
+        {
+          "id": "S3",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "A4 and A6 have status-gap class; A1, A2, A3, A5 have status-pending; no gap card appears for mapped activities"
+        },
+        {
+          "id": "S4",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "approveActivity sets status to approved and rerenders; resulting card has status-approved class and contains no .btn-approve element"
+        },
+        {
+          "id": "S5",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "mapMessageToActivity uses tokenized alias arrays with zone (+5), trade (+4), foremanId (+3) scoring. 'north' matches A1 zoneAliases, 'mep' matches A3 tradeAliases, 'pour'+'zone'+'1' match A5. All 3 test inputs resolve to correct activities via alias matching, not exact field names."
+        },
+        {
+          "id": "S6",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "Red left border + red badge for gap, amber border + amber badge + prominent green Approve and blue Override buttons for pending, green border + green badge for approved. States are distinguishable by color alone; pending items have clear CTAs that draw the eye."
+        }
+      ],
+      "spec_amendment": "In extractPercentage, the explicit numeric patterns ('80%', '80 percent', word-form numbers) must be evaluated BEFORE the keyword patterns ('done', 'complete', 'finished', 'almost done', etc.). If a numeric percentage signal is present in the text, it takes precedence over any keyword signal. Reorder the checks: parse numeric % first, then word-form numbers, then keywords as fallback."
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-03-16T22:39:41.658658+00:00",
+      "result": "PASS",
+      "scenarios": [
+        {
+          "id": "S1",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "All 6 activity cards render in #activity-list; each card contains card-name, card-meta with trade and zone, and a status badge element"
+        },
+        {
+          "id": "S2",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "A1 maps to 80% (numeric '80 percent' pattern), A2 maps to 10% ('just started'), A3 maps to 50% ('halfway'), A5 maps to 100% ('finished' keyword). All four have status-pending class and display an Approve button with correct proposed percentages"
+        },
+        {
+          "id": "S3",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "A4 and A6 retain status-gap class with red left border and 'No update' badge; A1/A2/A3/A5 have status-pending class \u2014 no status-gap present on those cards"
+        },
+        {
+          "id": "S4",
+          "tier": 1,
+          "result": "PASS",
+          "reason": "approveActivity sets status to 'approved' and re-renders; post-click A1 card receives status-approved class and the approve button is absent from the re-rendered card"
+        },
+        {
+          "id": "S5",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "mapMessageToActivity tokenizes aliases and scores matches: 'north' token matches A1 zoneAliases (+5), 'mep' token matches A3 tradeAliases (+4), 'zone'+'1' tokens match A5 zoneAliases (+5). All 3 test inputs resolve to correct activities via alias array matching without exact field name lookup"
+        },
+        {
+          "id": "S6",
+          "tier": 2,
+          "result": "PASS",
+          "reason": "Three states are visually distinct by color alone: red left border + red badge for gap, amber border + amber badge + green Approve and blue Override buttons for pending, green border + green badge for approved. Pending and gap states are more visually prominent than approved; no legend required to interpret the states"
+        }
+      ],
+      "spec_amendment": null
+    }
+  ],
+  "finished": "2026-03-16T22:39:41.659417+00:00",
+  "final_result": "PASS",
+  "total_runs": 2
+}

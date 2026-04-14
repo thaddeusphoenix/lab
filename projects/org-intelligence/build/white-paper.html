@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Intelligence-First Software Organization — A Vision for CivilGrid</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a1a;
+    --ink-light: #555;
+    --ink-faint: #888;
+    --rule: #e0ddd8;
+    --bg: #faf9f7;
+    --accent: #2a5c45;
+    --accent-light: #e8f2ed;
+    --accent-mid: #4a8c6a;
+    --warm: #c8a96e;
+    --warm-light: #fdf6e8;
+    --col: 680px;
+    --wide: 860px;
+  }
+
+  html { font-size: 17px; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Cover ────────────────────────────────────────────── */
+
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 60px;
+    background: var(--ink);
+    color: #faf9f7;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(42,92,69,0.4) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -100px; left: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(200,169,110,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover-inner {
+    max-width: var(--wide);
+    margin: 0 auto;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--warm);
+    margin-bottom: 32px;
+  }
+
+  .cover h1 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: clamp(2.8rem, 5vw, 4.4rem);
+    line-height: 1.1;
+    font-weight: 400;
+    color: #faf9f7;
+    margin-bottom: 28px;
+    max-width: 700px;
+  }
+
+  .cover-sub {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: rgba(250,249,247,0.65);
+    max-width: 520px;
+    margin-bottom: 60px;
+    font-weight: 300;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 48px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .cover-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cover-meta-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(250,249,247,0.35);
+  }
+
+  .cover-meta-value {
+    font-size: 0.88rem;
+    color: rgba(250,249,247,0.7);
+    font-weight: 400;
+  }
+
+  /* ── Layout ───────────────────────────────────────────── */
+
+  .document {
+    max-width: var(--wide);
+    margin: 0 auto;
+    padding: 80px 60px 120px;
+  }
+
+  /* ── Table of Contents ────────────────────────────────── */
+
+  .toc {
+    padding: 48px;
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    margin-bottom: 80px;
+  }
+
+  .toc-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 24px;
+  }
+
+  .toc ol {
+    list-style: none;
+    counter-reset: toc;
+  }
+
+  .toc ol li {
+    counter-increment: toc;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .toc ol li:last-child { border-bottom: none; }
+
+  .toc ol li::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    font-weight: 500;
+    flex-shrink: 0;
+    width: 28px;
+  }
+
+  .toc ol li a {
+    font-size: 0.92rem;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 400;
+  }
+
+  .toc ol li a:hover { color: var(--accent); }
+
+  /* ── Section structure ────────────────────────────────── */
+
+  .section {
+    margin-bottom: 72px;
+    padding-bottom: 72px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .section-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .section h2 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 28px;
+  }
+
+  .section h3 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink);
+    margin: 40px 0 16px;
+  }
+
+  .section p {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--ink);
+    margin-bottom: 20px;
+    max-width: var(--col);
+  }
+
+  .section p:last-child { margin-bottom: 0; }
+
+  /* ── Pull quote ───────────────────────────────────────── */
+
+  .pull-quote {
+    margin: 40px 0;
+    padding: 32px 40px;
+    border-left: 3px solid var(--accent);
+    background: var(--accent-light);
+    border-radius: 0 4px 4px 0;
+    max-width: var(--col);
+  }
+
+  .pull-quote p {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.2rem;
+    line-height: 1.55;
+    color: var(--ink);
+    font-style: italic;
+    margin: 0;
+  }
+
+  .pull-quote cite {
+    display: block;
+    margin-top: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-style: normal;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Architecture diagram ─────────────────────────────── */
+
+  .arch-diagram {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 40px 0;
+    max-width: var(--wide);
+  }
+
+  .arch-layer {
+    background: white;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .arch-layer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    width: fit-content;
+  }
+
+  .arch-layer-badge.substrate { background: var(--warm-light); color: #8a6830; }
+  .arch-layer-badge.intelligence { background: var(--accent-light); color: var(--accent); }
+  .arch-layer-badge.org { background: #f0eeff; color: #5040a0; }
+
+  .arch-layer h4 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .arch-layer p {
+    font-size: 0.85rem;
+    line-height: 1.65;
+    color: var(--ink-light);
+    max-width: none;
+    margin: 0;
+  }
+
+  /* ── Comparison table ─────────────────────────────────── */
+
+  .compare-table {
+    width: 100%;
+    max-width: var(--wide);
+    border-collapse: collapse;
+    margin: 36px 0;
+    font-size: 0.88rem;
+  }
+
+  .compare-table thead tr {
+    background: var(--ink);
+    color: #faf9f7;
+  }
+
+  .compare-table thead th {
+    padding: 14px 20px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .compare-table thead th:first-child { border-radius: 4px 0 0 0; }
+  .compare-table thead th:last-child { border-radius: 0 4px 0 0; }
+
+  .compare-table tbody tr {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .compare-table tbody tr:nth-child(even) { background: #f7f5f2; }
+
+  .compare-table tbody td {
+    padding: 14px 20px;
+    vertical-align: top;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
+  .compare-table tbody td:first-child {
+    font-weight: 500;
+    color: var(--ink-light);
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  .compare-table .old { color: #b04040; }
+  .compare-table .new { color: var(--accent); font-weight: 500; }
+
+  /* ── Role cards ───────────────────────────────────────── */
+
+  .role-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: 36px 0;
+    max-width: var(--wide);
+  }
+
+  .role-card {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    background: white;
+  }
+
+  .role-card-head {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .role-card-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .role-card h4 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--ink);
+  }
+
+  .role-card-body {
+    padding: 20px 24px;
+  }
+
+  .role-card-body p {
+    font-size: 0.85rem;
+    line-height: 1.65;
+    color: var(--ink-light);
+    margin: 0 0 14px;
+    max-width: none;
+  }
+
+  .role-card-body p:last-child { margin-bottom: 0; }
+
+  .role-attr {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .role-attr-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .role-attr-key {
+    font-weight: 600;
+    color: var(--ink-faint);
+    min-width: 70px;
+    flex-shrink: 0;
+  }
+
+  .role-attr-val { color: var(--ink); }
+
+  /* ── Signal boxes ─────────────────────────────────────── */
+
+  .signal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 36px 0;
+    max-width: var(--col);
+  }
+
+  .signal-box {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 20px 22px;
+  }
+
+  .signal-box-icon {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .signal-box h5 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .signal-box p {
+    font-size: 0.8rem;
+    color: var(--ink-light);
+    line-height: 1.6;
+    margin: 0;
+    max-width: none;
+  }
+
+  /* ── Phase timeline ───────────────────────────────────── */
+
+  .phase-list {
+    list-style: none;
+    margin: 36px 0;
+    max-width: var(--col);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .phase-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 24px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .phase-item:last-child { border-bottom: none; }
+
+  .phase-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-top: 2px;
+  }
+
+  .phase-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .phase-dot.p1 { background: var(--warm-light); color: #8a6830; border: 1px solid #e8d4a0; }
+  .phase-dot.p2 { background: var(--accent-light); color: var(--accent); border: 1px solid #b8d8c8; }
+  .phase-dot.p3 { background: #f0eeff; color: #5040a0; border: 1px solid #c8c0e8; }
+
+  .phase-timeline-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .phase-content h4 {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--ink);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .phase-content p {
+    font-size: 0.88rem;
+    color: var(--ink-light);
+    line-height: 1.65;
+    margin: 0 0 10px;
+    max-width: none;
+  }
+
+  .phase-content p:last-child { margin-bottom: 0; }
+
+  .phase-content ul {
+    padding-left: 16px;
+    margin-top: 8px;
+  }
+
+  .phase-content ul li {
+    font-size: 0.85rem;
+    color: var(--ink-light);
+    line-height: 1.6;
+    margin-bottom: 4px;
+  }
+
+  /* ── Callout box ──────────────────────────────────────── */
+
+  .callout {
+    background: var(--accent);
+    color: white;
+    padding: 40px 48px;
+    border-radius: 4px;
+    margin: 40px 0;
+    max-width: var(--col);
+  }
+
+  .callout h4 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    margin-bottom: 14px;
+    color: white;
+  }
+
+  .callout p {
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.8);
+    margin: 0 0 12px;
+    max-width: none;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── File tree ────────────────────────────────────────── */
+
+  .file-tree {
+    background: #1e1e1e;
+    color: #d4d0c8;
+    padding: 28px 32px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.9;
+    margin: 28px 0;
+    max-width: var(--col);
+    overflow-x: auto;
+  }
+
+  .file-tree .dir { color: #7ec8a0; font-weight: 500; }
+  .file-tree .file { color: #d4d0c8; }
+  .file-tree .comment { color: #666; font-style: italic; }
+  .file-tree .indent { padding-left: 20px; display: block; }
+  .file-tree .indent2 { padding-left: 40px; display: block; }
+
+  /* ── Next steps ───────────────────────────────────────── */
+
+  .next-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: var(--col);
+    margin: 28px 0;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .next-step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--rule);
+    background: white;
+  }
+
+  .next-step:last-child { border-bottom: none; }
+
+  .next-step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+    padding-top: 2px;
+    flex-shrink: 0;
+    width: 24px;
+  }
+
+  .next-step-content h5 {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .next-step-content p {
+    font-size: 0.83rem;
+    color: var(--ink-light);
+    line-height: 1.6;
+    margin: 0;
+    max-width: none;
+  }
+
+  /* ── Footer ───────────────────────────────────────────── */
+
+  .doc-footer {
+    margin-top: 80px;
+    padding-top: 40px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .doc-footer p {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    max-width: none;
+    margin: 0;
+  }
+
+  /* ── Responsive ───────────────────────────────────────── */
+
+  @media (max-width: 900px) {
+    .cover { padding: 60px 32px; }
+    .document { padding: 48px 32px 80px; }
+    .arch-diagram { grid-template-columns: 1fr; }
+    .role-grid { grid-template-columns: 1fr; }
+    .signal-grid { grid-template-columns: 1fr; }
+    .cover-meta { flex-wrap: wrap; gap: 24px; }
+  }
+
+  @media (max-width: 600px) {
+    .cover { padding: 48px 24px; }
+    .document { padding: 40px 20px 60px; }
+    .toc { padding: 28px 24px; }
+    .callout { padding: 28px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ COVER ══════════════════════════════════════════════ -->
+
+<div class="cover">
+  <div class="cover-inner">
+    <p class="cover-eyebrow">White Paper · April 2026</p>
+    <h1>The Intelligence-First Software Organization</h1>
+    <p class="cover-sub">
+      A vision for how CivilGrid can organize its software development operation to compound speed as a competitive advantage — replacing hierarchy with intelligence.
+    </p>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Prepared for</span>
+        <span class="cover-meta-value">CivilGrid</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Date</span>
+        <span class="cover-meta-value">April 2, 2026</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Status</span>
+        <span class="cover-meta-value">For Alignment</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DOCUMENT ═══════════════════════════════════════════ -->
+
+<div class="document">
+
+  <!-- Table of Contents -->
+  <div class="toc">
+    <p class="toc-label">Contents</p>
+    <ol>
+      <li><a href="#s1">The Two-Thousand-Year-Old Problem</a></li>
+      <li><a href="#s2">What Most Companies Are Missing</a></li>
+      <li><a href="#s3">The Architecture</a></li>
+      <li><a href="#s4">CivilGrid's Honest Signal</a></li>
+      <li><a href="#s5">What This Looks Like in Practice</a></li>
+      <li><a href="#s6">The Transition Plan</a></li>
+      <li><a href="#s7">The Vision at 12 Months</a></li>
+      <li><a href="#s8">Proposed Next Steps</a></li>
+    </ol>
+  </div>
+
+
+  <!-- ── Section 1 ──────────────────────────────────────── -->
+
+  <div class="section" id="s1">
+    <span class="section-number">01</span>
+    <h2>The Two-Thousand-Year-Old Problem</h2>
+
+    <p>
+      Two thousand years before the first corporate org chart, the Roman Army solved a problem that every large organization still faces: how do you coordinate thousands of people when no single person can see everything that is happening?
+    </p>
+
+    <p>
+      Their answer was nested hierarchy with a consistent span of control at every level. Eight soldiers under a decanus. Eighty under a centurion. Five thousand under a legate. The structure was not about authority — it was an <em>information routing protocol</em> built around a hard human constraint: one person can effectively track and communicate with roughly five to eight others.
+    </p>
+
+    <p>
+      That constraint has governed every organization since. Managers exist not because leadership demands them, but because information cannot travel from the edge to the top — or from the top to the edge — without human relay stations at every layer. Middle management is not bureaucracy for its own sake. It is the engineering solution to a communications problem.
+    </p>
+
+    <p>
+      Frederick Taylor optimized the work within that hierarchy. McKinsey helped companies go global with it. Spotify squads and Holacracy tried to soften it. None of them broke the underlying constraint: as organizations grow, information slows. You can make the relays more efficient, but you cannot eliminate the need for them.
+    </p>
+
+    <div class="pull-quote">
+      <p>"Companies move fast or slow based on information flow. Hierarchy and middle management impede information flow. For two thousand years we have had no real alternative. They aren't anymore."</p>
+      <cite>Jack Dorsey, Block — March 2026</cite>
+    </div>
+
+    <p>
+      The question was never whether you needed layers. The question was whether humans were the only option for what those layers do. They are not — and for the first time, that is practically true, not theoretically.
+    </p>
+  </div>
+
+
+  <!-- ── Section 2 ──────────────────────────────────────── -->
+
+  <div class="section" id="s2">
+    <span class="section-number">02</span>
+    <h2>What Most Companies Are Missing</h2>
+
+    <p>
+      The dominant response to AI in software organizations today is to give everyone a copilot. Engineers write code faster. PMs draft specs more quickly. CS reps answer tickets with AI-suggested responses. The existing structure works slightly better.
+    </p>
+
+    <p>
+      This is not wrong — but it is insufficient. Giving everyone a faster horse is not the same as building a railroad.
+    </p>
+
+    <p>
+      The opportunity is different in kind: AI as a coordination mechanism, not a personal productivity tool. The distinction matters enormously in practice.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>AI as Copilot</th>
+          <th>AI as Intelligence Layer</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Unit of impact</td>
+          <td class="old">Individual task speed</td>
+          <td class="new">Organizational decision speed</td>
+        </tr>
+        <tr>
+          <td>What changes</td>
+          <td class="old">How fast people do existing work</td>
+          <td class="new">How work flows through the organization</td>
+        </tr>
+        <tr>
+          <td>Management need</td>
+          <td class="old">Unchanged — still routes information</td>
+          <td class="new">Reduced — AI routes context instead</td>
+        </tr>
+        <tr>
+          <td>Compounding effect</td>
+          <td class="old">Linear — each person gets marginally faster</td>
+          <td class="new">Exponential — organizational speed compounds</td>
+        </tr>
+        <tr>
+          <td>Structure required</td>
+          <td class="old">Existing hierarchy, with AI tools added</td>
+          <td class="new">Flat, with AI as the coordination substrate</td>
+        </tr>
+        <tr>
+          <td>Competitive moat</td>
+          <td class="old">None — every competitor has the same tools</td>
+          <td class="new">Organizational — hard to replicate, deepens over time</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      For a Series A company of 50 people, this distinction is existential. At 50 people you still have the ability to choose your structure. At 150 people, the structure chooses you. Every hire from here forward either reinforces hierarchy or builds intelligence. The window to choose deliberately is now.
+    </p>
+  </div>
+
+
+  <!-- ── Section 3 ──────────────────────────────────────── -->
+
+  <div class="section" id="s3">
+    <span class="section-number">03</span>
+    <h2>The Architecture</h2>
+
+    <p>
+      We are proposing an organizational operating model built on three components. Together, they replace the information routing function that hierarchy has always provided — and do it faster, with less overhead, and with a built-in feedback loop that compounds over time.
+    </p>
+
+    <div class="arch-diagram">
+      <div class="arch-layer">
+        <span class="arch-layer-badge substrate">Layer 1</span>
+        <h4>The World Model Substrate</h4>
+        <p>A single flat store of plain markdown files — the organization's living memory. Every decision, brief, research finding, customer signal, and engineering context lives here as a readable, versionable text file. No scattered wikis. No locked PDFs. No institutional knowledge in people's heads.</p>
+      </div>
+      <div class="arch-layer">
+        <span class="arch-layer-badge intelligence">Layer 2</span>
+        <h4>The Intelligence Layer</h4>
+        <p>An AI system that reads the substrate continuously and surfaces context to every person in the organization. It answers the questions that managers used to answer. It replaces the status meeting, the sync call, the "who has context on this?" Slack thread. It gives every IC the context they need to make decisions without waiting.</p>
+      </div>
+      <div class="arch-layer">
+        <span class="arch-layer-badge org">Layer 3</span>
+        <h4>The Org Model</h4>
+        <p>Three roles replace the traditional pyramid. Individual Contributors who go deep on their layer. Directly Responsible Individuals who own outcomes cross-functionally for 90-day windows. Player-coaches who build alongside their team and invest in craft — not information routing. No permanent middle management needed.</p>
+      </div>
+    </div>
+
+    <h3>The World Model Substrate in detail</h3>
+
+    <p>
+      The substrate is deliberately primitive. It is a git repository of markdown files, organized into a small number of top-level categories. Every person in the company reads from it and writes to it. It requires no special tooling, no vendor contracts, no migration. It works with any text editor, any AI model, and any version control system.
+    </p>
+
+    <p>
+      The discipline of the substrate is what makes it powerful — not the technology. Files must be current, concise, and structured. A file that is three months out of date is not neutral; it is actively harmful. The organization must treat the substrate the way engineers treat a test suite: something that is maintained as part of the work, not after the work is done.
+    </p>
+
+    <div class="file-tree">
+<span class="dir">world-model/</span>
+<span class="indent dir">product/</span>
+<span class="indent2 file">prd-layer-picker.md       <span class="comment"># what we're building and why</span></span>
+<span class="indent2 file">roadmap-current.md        <span class="comment"># active bets, owned by DRI</span></span>
+<span class="indent2 file">customer-signals.md       <span class="comment"># updated weekly from CS + analytics</span></span>
+<span class="indent dir">engineering/</span>
+<span class="indent2 file">architecture.md           <span class="comment"># system design, owned by tech lead</span></span>
+<span class="indent2 file">active-work.md            <span class="comment"># what's in flight, updated daily</span></span>
+<span class="indent2 file">decisions/                <span class="comment"># ADRs — one file per decision</span></span>
+<span class="indent dir">data/</span>
+<span class="indent2 file">coverage-matrix.md        <span class="comment"># which datasets live in which states</span></span>
+<span class="indent2 file">demand-signals.md         <span class="comment"># coming-soon clicks, request volume</span></span>
+<span class="indent dir">customers/</span>
+<span class="indent2 file">personas.md               <span class="comment"># developer, engineer, consultant</span></span>
+<span class="indent2 file">accounts-key.md           <span class="comment"># top accounts, health, context</span></span>
+<span class="indent2 file">feedback-log.md           <span class="comment"># rolling CS + support signal</span></span>
+<span class="indent dir">org/</span>
+<span class="indent2 file">metrics-current.md        <span class="comment"># north stars and current reads</span></span>
+<span class="indent2 file">dri-registry.md           <span class="comment"># who owns what outcome right now</span></span>
+    </div>
+
+    <h3>The Intelligence Layer in detail</h3>
+
+    <p>
+      The intelligence layer is an AI that reads the substrate and is available to every person in the organization. Its primary function is not to complete tasks — it is to provide context. When an engineer needs to understand why a product decision was made, they ask the intelligence layer. When a DRI needs to know what the customer signal says about a specific dataset, they ask the intelligence layer. When a new hire joins, they get up to speed through the intelligence layer instead of through a two-week onboarding tour.
+    </p>
+
+    <p>
+      The secondary function is coordination: surfacing blockers, flagging conflicts between active work streams, and proactively notifying DRIs when something in the substrate changes that is relevant to their outcome. This is the function that replaces the weekly sync — not by automating the meeting, but by making the meeting unnecessary.
+    </p>
+
+    <h3>The Org Model in detail</h3>
+
+    <div class="role-grid">
+      <div class="role-card">
+        <div class="role-card-head">
+          <p class="role-card-label">Role 1</p>
+          <h4>Individual Contributor</h4>
+        </div>
+        <div class="role-card-body">
+          <p>Deep specialist in one layer: engineering, data, design, CS, sales. Does the work. The world model provides the context that a manager used to provide — so ICs make decisions about their layer without waiting to be told what to do.</p>
+          <div class="role-attr">
+            <div class="role-attr-row">
+              <span class="role-attr-key">Context from</span>
+              <span class="role-attr-val">Intelligence layer, not manager</span>
+            </div>
+            <div class="role-attr-row">
+              <span class="role-attr-key">Decisions</span>
+              <span class="role-attr-val">Own layer, made independently</span>
+            </div>
+            <div class="role-attr-row">
+              <span class="role-attr-key">Writes to</span>
+              <span class="role-attr-val">Substrate (their domain files)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="role-card">
+        <div class="role-card-head">
+          <p class="role-card-label">Role 2</p>
+          <h4>Directly Responsible Individual</h4>
+        </div>
+        <div class="role-card-body">
+          <p>Owns a specific outcome for a defined window — typically 90 days. Has full authority to pull context and work from any IC in any function. Does not manage people; manages an outcome. The DRI role rotates. It is not a title; it is a temporary assignment.</p>
+          <div class="role-attr">
+            <div class="role-attr-row">
+              <span class="role-attr-key">Scope</span>
+              <span class="role-attr-val">One outcome, 90-day horizon</span>
+            </div>
+            <div class="role-attr-row">
+              <span class="role-attr-key">Authority</span>
+              <span class="role-attr-val">Cross-functional, time-boxed</span>
+            </div>
+            <div class="role-attr-row">
+              <span class="role-attr-key">Writes to</span>
+              <span class="role-attr-val">DRI registry, roadmap files</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="role-card">
+        <div class="role-card-head">
+          <p class="role-card-label">Role 3</p>
+          <h4>Player-Coach</h4>
+        </div>
+        <div class="role-card-body">
+          <p>Builds alongside the team and invests in craft and growth. Does not route information — the world model does that. Spends zero time in status meetings or alignment sessions. Focused entirely on quality and people development.</p>
+          <div class="role-attr">
+            <div class="role-attr-row">
+              <span class="role-attr-key">Replaces</span>
+              <span class="role-attr-val">Traditional manager</span>
+            </div>
+            <div class="role-attr-row">
+              <span class="role-attr-key">Time split</span>
+              <span class="role-attr-val">~60% building, ~40% developing</span>
+            </div>
+            <div class="role-attr-row">
+              <span class="role-attr-key">Writes to</span>
+              <span class="role-attr-val">Substrate + people notes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── Section 4 ──────────────────────────────────────── -->
+
+  <div class="section" id="s4">
+    <span class="section-number">04</span>
+    <h2>CivilGrid's Honest Signal</h2>
+
+    <p>
+      Block's model works because they have an exceptionally honest signal: financial transactions. Every payment, every loan repayment, every merchant's daily revenue — these are facts, not surveys. The world model is only as good as the signal feeding it.
+    </p>
+
+    <p>
+      CivilGrid has its own version of that signal — and it is richer than most software companies at this stage realize.
+    </p>
+
+    <div class="signal-grid">
+      <div class="signal-box">
+        <span class="signal-box-icon">⚡</span>
+        <h5>Layer Activation Patterns</h5>
+        <p>Which datasets users turn on — in what combination, in what sequence — is behavioral proof of what problem they're solving. Fault Lines + Parcels + Easements tells you something different than Transmission Lines + Distribution Lines + Vaults. This data is not just a product metric. It is a continuously updating map of customer needs.</p>
+      </div>
+      <div class="signal-box">
+        <span class="signal-box-icon">📍</span>
+        <h5>Project Location Data</h5>
+        <p>Every project created has a geography. The aggregate of all project locations is a real-time view of where infrastructure development activity is concentrated. This tells CivilGrid where to expand data coverage before customers ask for it — a proactive advantage no competitor can easily replicate.</p>
+      </div>
+      <div class="signal-box">
+        <span class="signal-box-icon">🔲</span>
+        <h5>Coming Soon Clicks</h5>
+        <p>"Coming Soon" interest clicks on uncovered datasets are explicit demand signals — users raising their hand for specific data in specific states. This is the cleanest product roadmap input that exists: observed behavior, not self-reported preference. It should be feeding engineering priorities directly.</p>
+      </div>
+      <div class="signal-box">
+        <span class="signal-box-icon">↩</span>
+        <h5>Session Return Depth</h5>
+        <p>Whether a user returns to the same project, how many sessions a project generates before it closes, and what layers are active at project close — together, these reveal which use cases are sticky and which are transactional. Sticky use cases are where product investment compounds fastest.</p>
+      </div>
+    </div>
+
+    <p>
+      The key question is not whether this signal exists — it does, and it is valuable. The key question is whether it is currently captured in a form that can feed an intelligence layer, or whether it is fragmented across analytics tools, support systems, and people's memory.
+    </p>
+
+    <p>
+      If the signal is fragmented, the first phase of implementation is consolidation: pulling it into the world model substrate as a set of maintained, AI-readable files. This is not a large technical lift. It is a discipline change. And it is the foundation everything else rests on.
+    </p>
+
+    <div class="callout">
+      <h4>The compounding advantage</h4>
+      <p>Block's insight is that signal compounds. The richer the world model, the better the intelligence layer. The better the intelligence layer, the faster the organization moves. The faster the organization moves, the more signal it generates. CivilGrid has the raw material for exactly this loop — geospatial behavioral data that grows more valuable every time a user creates a project.</p>
+      <p>No competitor can buy this signal. It is proprietary by definition: it is only generated by using CivilGrid. The architecture we are proposing is how you turn that signal into organizational speed.</p>
+    </div>
+  </div>
+
+
+  <!-- ── Section 5 ──────────────────────────────────────── -->
+
+  <div class="section" id="s5">
+    <span class="section-number">05</span>
+    <h2>What This Looks Like in Practice</h2>
+
+    <p>
+      Abstract architecture is easy to agree with and hard to implement. Here is what this model looks like for specific, concrete situations at CivilGrid today.
+    </p>
+
+    <h3>Scenario: A new dataset becomes available in Nevada</h3>
+
+    <p>
+      <strong>Today:</strong> The Data team updates the coverage matrix. They tell someone on the PM team in a Slack message. That person may or may not update the layer picker interface. Engineering may or may not know the coverage changed. CS may or may not be able to tell customers. If a Nevada-based customer has been waiting, they may never find out.
+    </p>
+
+    <p>
+      <strong>With this architecture:</strong> The Data team updates <code>coverage-matrix.md</code> in the substrate. The intelligence layer detects the change and automatically: notifies the DRI responsible for the layer picker outcome, updates the demand-signals file to reconcile the newly-covered Coming Soon clicks against existing demand, and flags relevant key accounts in the CS-visible world model. Every person with stake in the change gets context without anyone routing it manually.
+    </p>
+
+    <h3>Scenario: Engineering needs to decide whether to build preset sharing</h3>
+
+    <p>
+      <strong>Today:</strong> An engineer raises the question. A PM meeting gets scheduled. Someone pulls analytics. Someone else asks CS for anecdotes. A decision gets made two weeks later, probably over-informed by whoever was loudest in the room.
+    </p>
+
+    <p>
+      <strong>With this architecture:</strong> The DRI for the layer picker outcome asks the intelligence layer: "What does the signal say about cross-project reuse intent?" The intelligence layer reads the layer activation patterns, session return depth, and feedback log, and surfaces a synthesis: 34% of active users have identical configurations across three or more projects; Coming Soon clicks for Presets do not yet appear; CS feedback log mentions sharing twice in the last 60 days. The DRI makes the call in an afternoon. The decision gets written to the ADR file in the substrate, and everyone has context.
+    </p>
+
+    <h3>Scenario: A new engineer joins the team</h3>
+
+    <p>
+      <strong>Today:</strong> Two-week onboarding. Multiple Loom videos that are already out of date. A buddy who answers the same twenty questions for every new hire. Three weeks before the engineer is genuinely productive.
+    </p>
+
+    <p>
+      <strong>With this architecture:</strong> The engineer reads the substrate. Every architectural decision has an ADR. Every active work stream is documented. Every product decision has a brief that explains the reasoning. On day two, the engineer asks the intelligence layer: "What are the ten most important things I need to understand about how our layer picker data model is architected, and why?" They receive a synthesis that would have taken a senior engineer four hours to reconstruct from memory. They are productive in four days.
+    </p>
+  </div>
+
+
+  <!-- ── Section 6 ──────────────────────────────────────── -->
+
+  <div class="section" id="s6">
+    <span class="section-number">06</span>
+    <h2>The Transition Plan</h2>
+
+    <p>
+      This architecture is not installed in a day. The transition is deliberate, phased, and starts with the team that is both most ready and most impacted by slow information flow: Engineering.
+    </p>
+
+    <ul class="phase-list">
+      <li class="phase-item">
+        <div class="phase-marker">
+          <div class="phase-dot p1">P1</div>
+          <span class="phase-timeline-label">Weeks 1–6</span>
+        </div>
+        <div class="phase-content">
+          <h4>Build the Substrate</h4>
+          <p>Establish the world model repository. Define the file taxonomy (10–15 files to start). Migrate the most critical institutional knowledge out of people's heads, Notion pages, and Slack threads and into the substrate. Identify where the honest signal currently lives and begin routing it into <code>customer-signals.md</code> and <code>demand-signals.md</code>.</p>
+          <ul>
+            <li>Engineering: architecture.md, active-work.md, first ADRs</li>
+            <li>Product: existing PRDs and roadmap as .md files</li>
+            <li>Data: coverage-matrix.md, first version of demand-signals.md</li>
+            <li>CS: feedback-log.md (rolling, updated weekly)</li>
+          </ul>
+        </div>
+      </li>
+      <li class="phase-item">
+        <div class="phase-marker">
+          <div class="phase-dot p2">P2</div>
+          <span class="phase-timeline-label">Weeks 7–14</span>
+        </div>
+        <div class="phase-content">
+          <h4>Activate the Intelligence Layer</h4>
+          <p>Stand up the AI layer on top of the substrate. Begin replacing specific high-friction coordination patterns: the "what's the status of X" Slack thread, the weekly sync, the "who has context on this decision" scramble. Measure time from question to answer before and after.</p>
+          <ul>
+            <li>Start with Engineering team only — highest context density, most to gain</li>
+            <li>Identify the three most time-consuming coordination patterns and eliminate them first</li>
+            <li>Instrument substrate freshness — flag files that haven't been updated in >2 weeks</li>
+          </ul>
+        </div>
+      </li>
+      <li class="phase-item">
+        <div class="phase-marker">
+          <div class="phase-dot p3">P3</div>
+          <span class="phase-timeline-label">Weeks 15–24</span>
+        </div>
+        <div class="phase-content">
+          <h4>Restructure the Org Model</h4>
+          <p>With the substrate current and the intelligence layer working, introduce the DRI model. Assign the first DRI to a specific cross-functional outcome (layer picker GA, for example). Run the DRI for a full 90-day cycle and measure against the traditional cross-functional coordination it replaced. Expand to the full company based on results.</p>
+          <ul>
+            <li>Rename and redefine management roles — player-coaches write code</li>
+            <li>Eliminate status meetings; replace with substrate update discipline</li>
+            <li>First DRI retrospective at 90 days: what worked, what the substrate didn't support</li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+
+  <!-- ── Section 7 ──────────────────────────────────────── -->
+
+  <div class="section" id="s7">
+    <span class="section-number">07</span>
+    <h2>The Vision at 12 Months</h2>
+
+    <p>
+      At 12 months, a CivilGrid running on this architecture looks structurally different from a CivilGrid that added copilots to its existing model. The difference is not in the tools — it is in the speed of decisions and the quality of organizational memory.
+    </p>
+
+    <p>
+      New engineers become productive in days, not weeks, because the substrate holds everything they need to understand the system and its history. Customer signals surface automatically in the engineering decision loop — no PM translation layer required, no signal lost in the relay. Every architectural decision is documented as it is made, not reconstructed months later from memory.
+    </p>
+
+    <p>
+      The product roadmap is no longer hypothesized by a PM team — it emerges directly from the signal. Coming Soon clicks, layer activation gaps, account health patterns: the intelligence layer synthesizes these continuously and surfaces them to whoever owns the relevant outcome. The backlog is generated by customer reality, not internal debate.
+    </p>
+
+    <p>
+      The compounding effect becomes visible in cycle time. The time from a customer need surfacing in the signal to a feature shipping shortens — not because engineers are writing code faster, but because the decision latency that used to sit in between (the meeting, the alignment, the context reconstruction) is gone. Speed compounds: every removed bottleneck reduces the friction on the next decision.
+    </p>
+
+    <div class="pull-quote">
+      <p>"The question was never whether you needed layers. The question was whether humans were the only option for what those layers do."</p>
+    </div>
+
+    <p>
+      At 12 months, CivilGrid has something more valuable than a faster engineering team. It has an organization that learns and coordinates faster than its competitors — and a world model that gets richer every day the product is used. That is a compounding advantage. Competitors can hire the same engineers, use the same AI tools, and follow the same playbooks. They cannot replicate a world model built on three years of proprietary behavioral signal.
+    </p>
+  </div>
+
+
+  <!-- ── Section 8 ──────────────────────────────────────── -->
+
+  <div class="section" id="s8">
+    <span class="section-number">08</span>
+    <h2>Proposed Next Steps</h2>
+
+    <p>
+      This white paper is an alignment document, not an implementation plan. If the direction resonates, the following three steps move the conversation from vision to architecture.
+    </p>
+
+    <div class="next-steps">
+      <div class="next-step">
+        <span class="next-step-num">01</span>
+        <div class="next-step-content">
+          <h5>Signal Audit</h5>
+          <p>A two-hour working session to map where CivilGrid's honest signal currently lives — product analytics, support tickets, CS notes, sales pipeline data. The goal is to understand what is machine-readable today and what needs to be consolidated before the intelligence layer can be built. This is the single most important input to the detailed architecture.</p>
+        </div>
+      </div>
+      <div class="next-step">
+        <span class="next-step-num">02</span>
+        <div class="next-step-content">
+          <h5>Substrate Design Workshop</h5>
+          <p>A half-day session with Engineering and Product leadership to define the initial file taxonomy, ownership rules, and update discipline. The output is a proposed substrate structure — the exact set of files, who owns each, and what "current" means for each file. This becomes the first deliverable of Phase 1.</p>
+        </div>
+      </div>
+      <div class="next-step">
+        <span class="next-step-num">03</span>
+        <div class="next-step-content">
+          <h5>Pilot Team Selection</h5>
+          <p>Identify the five to eight-person Engineering sub-team that will be the first to operate on the new model. The pilot runs for six weeks: substrate built, intelligence layer active, one DRI assigned to a defined outcome. At six weeks, we measure against the baseline and decide whether to expand.</p>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      The architecture detailed in this paper is not a research project. It is a working model, running today in smaller form. The question is not whether it works — the question is how to calibrate it to CivilGrid's specific signal, team, and product context.
+    </p>
+
+    <p>
+      That calibration is the work. We are ready to begin it.
+    </p>
+  </div>
+
+
+  <!-- ── Footer ─────────────────────────────────────────── -->
+
+  <div class="doc-footer">
+    <p>Prepared for CivilGrid · April 2026 · For Alignment</p>
+    <p>Confidential</p>
+  </div>
+
+</div>
+
+</body>
+</html>

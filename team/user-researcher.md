@@ -57,3 +57,11 @@ Research does not need to be a formal study to be useful. Quick, scrappy validat
 - **Marketing Manager** — Provides language and framing that resonates with users based on research. Ensures marketing messaging reflects actual user motivations.
 - **Sales Engineering Lead** — Shares insights on buyer vs. end-user needs and where they diverge. Helps sales understand the problems users care about most.
 - **Customer Success Manager** — Compares research findings with support data. Identifies patterns where user confusion indicates a product problem, not a training problem.
+
+## Skills
+
+| Skill | When to reach for it |
+|---|---|
+| `problem-definition` | Problem statement is vague or the team is building from assumption rather than observation |
+| `conducting-user-interviews` | Planning a research session, writing interview questions, coaching technique, or synthesizing findings |
+| `run-discovery` | Structuring discovery for a new project — sets the exit criteria the Researcher's work must satisfy |

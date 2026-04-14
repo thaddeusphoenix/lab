@@ -3,668 +3,997 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Schedule Update Flow — Field Prototype</title>
+<title>Field Sync — Daily Log + Pull Planning</title>
 <style>
-  /* ── Reset & Base ── */
+  /* ── Reset & tokens ─────────────────────────────────────────────────── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #1c1c1e; color: #fff; overflow: hidden; }
 
-  /* ── App Shell ── */
-  #app { display: flex; height: 100vh; width: 100vw; }
-
-  /* ── Left Panel: Foreman View ── */
-  #foreman-panel {
-    width: 390px;
-    min-width: 320px;
-    display: flex;
-    flex-direction: column;
-    background: #000;
-    border-right: 1px solid #2c2c2e;
-    position: relative;
-  }
-
-  /* Contact List / Foreman Selector */
-  #contact-list {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  #contact-list-header {
-    background: #1c1c1e;
-    padding: 12px 16px 8px;
-    border-bottom: 1px solid #2c2c2e;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  #contact-list-header h2 { font-size: 17px; font-weight: 600; color: #fff; }
-  #contact-list-header .header-sub { font-size: 12px; color: #8e8e93; margin-top: 1px; }
-
-  .foreman-row {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    cursor: pointer;
-    border-bottom: 1px solid #1c1c1e;
-    transition: background 0.15s;
-    gap: 12px;
-    background: #000;
-  }
-  .foreman-row:hover { background: #1c1c1e; }
-  .foreman-row.active { background: #1c3a5c; }
-  .foreman-avatar {
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 700; color: #fff;
-    flex-shrink: 0;
-  }
-  .foreman-info { flex: 1; }
-  .foreman-name { font-size: 15px; font-weight: 600; color: #fff; }
-  .foreman-trade { font-size: 13px; color: #8e8e93; margin-top: 1px; }
-  .foreman-badge {
-    background: #0a84ff;
-    color: #fff;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 7px;
-    min-width: 20px;
-    text-align: center;
+  :root {
+    --bg:          #0f1117;
+    --surface:     #1a1d27;
+    --surface2:    #22263a;
+    --surface3:    #2c3150;
+    --border:      #2e3347;
+    --border2:     #3d4262;
+    --text:        #e8eaf0;
+    --text-muted:  #7c8199;
+    --text-dim:    #4e5370;
+    --accent:      #4f7cff;
+    --accent-dim:  #1e2e5e;
+    --green:       #34c77b;
+    --green-dim:   #0f3224;
+    --yellow:      #f5c842;
+    --yellow-dim:  #3a3010;
+    --red:         #f25c5c;
+    --red-dim:     #3a1212;
+    --orange:      #f5913e;
+    --orange-dim:  #3a2010;
+    --purple:      #a97cf8;
+    --purple-dim:  #2a1a4e;
+    --teal:        #34c9c9;
+    --teal-dim:    #0f2f2f;
+    --radius:      8px;
+    --radius-lg:   12px;
+    --shadow:      0 4px 24px rgba(0,0,0,.45);
+    --font:        'Inter', system-ui, -apple-system, sans-serif;
   }
 
-  /* Messaging Thread */
-  #chat-view {
-    display: none;
-    flex-direction: column;
-    height: 100%;
-    background: #000;
-  }
-  #chat-view.visible { display: flex; }
-  #contact-list.hidden { display: none; }
-
-  #chat-header {
-    background: rgba(28,28,30,0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 10px 16px 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 1px solid #2c2c2e;
-    min-height: 56px;
-  }
-  #chat-back-btn {
-    background: none; border: none; color: #0a84ff;
-    font-size: 16px; cursor: pointer; padding: 4px 0;
-    display: flex; align-items: center; gap: 3px;
-  }
-  #chat-back-btn svg { width: 10px; height: 16px; }
-  #chat-header-info { flex: 1; text-align: center; }
-  #chat-header-name { font-size: 13px; font-weight: 600; color: #fff; }
-  #chat-header-trade { font-size: 11px; color: #8e8e93; }
-  #chat-header-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: #fff;
-  }
-
-  #message-thread {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  #message-thread::-webkit-scrollbar { width: 4px; }
-  #message-thread::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
-
-  .msg-date-divider {
-    text-align: center;
-    font-size: 11px;
-    color: #8e8e93;
-    margin: 8px 0;
-    font-weight: 500;
-  }
-
-  .bubble-row {
-    display: flex;
-    margin-bottom: 2px;
-  }
-  .bubble-row.outgoing { justify-content: flex-end; }
-  .bubble-row.incoming { justify-content: flex-start; }
-
-  .bubble {
-    max-width: 78%;
-    padding: 8px 12px;
-    border-radius: 18px;
-    font-size: 15px;
-    line-height: 1.4;
-    word-break: break-word;
-  }
-  .bubble-row.outgoing .bubble {
-    background: #0a84ff;
-    color: #fff;
-    border-bottom-right-radius: 4px;
-  }
-  .bubble-row.incoming .bubble {
-    background: #2c2c2e;
-    color: #fff;
-    border-bottom-left-radius: 4px;
-  }
-  .bubble-time {
-    font-size: 10px;
-    color: #8e8e93;
-    margin-top: 3px;
-    display: flex;
-  }
-  .bubble-row.outgoing .bubble-time { justify-content: flex-end; }
-  .bubble-row.incoming .bubble-time { justify-content: flex-start; }
-
-  .bubble-group { display: flex; flex-direction: column; max-width: 78%; }
-
-  /* Typing indicator */
-  .typing-indicator {
-    display: flex; align-items: center; gap: 4px;
-    padding: 10px 14px;
-    background: #2c2c2e;
-    border-radius: 18px;
-    border-bottom-left-radius: 4px;
-    width: fit-content;
-  }
-  .typing-dot {
-    width: 7px; height: 7px; background: #8e8e93; border-radius: 50%;
-    animation: typingBounce 1.2s infinite;
-  }
-  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes typingBounce {
-    0%, 60%, 100% { transform: translateY(0); }
-    30% { transform: translateY(-4px); }
-  }
-
-  #compose-bar {
-    display: flex;
-    align-items: flex-end;
-    padding: 8px 12px 20px;
-    background: rgba(28,28,30,0.95);
-    border-top: 1px solid #2c2c2e;
-    gap: 8px;
-  }
-  #compose-input {
-    flex: 1;
-    background: #1c1c1e;
-    border: 1px solid #3a3a3c;
-    border-radius: 20px;
-    padding: 9px 14px;
-    font-size: 15px;
-    color: #fff;
-    outline: none;
-    resize: none;
-    max-height: 100px;
-    line-height: 1.4;
-    font-family: inherit;
-  }
-  #compose-input::placeholder { color: #636366; }
-  #compose-input:focus { border-color: #0a84ff; }
-  #send-btn {
-    width: 34px; height: 34px;
-    background: #0a84ff;
-    border: none; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.15s, transform 0.1s;
-  }
-  #send-btn:hover { background: #0071e3; }
-  #send-btn:active { transform: scale(0.92); }
-  #send-btn:disabled { background: #3a3a3c; cursor: not-allowed; }
-  #send-btn svg { width: 16px; height: 16px; fill: #fff; }
-
-  /* ── Right Panel: Superintendent View ── */
-  #super-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #111;
-    min-width: 0;
-  }
-
-  #super-header {
-    background: #1c1c1e;
-    padding: 16px 24px 14px;
-    border-bottom: 1px solid #2c2c2e;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  #super-header-left h1 { font-size: 20px; font-weight: 700; color: #fff; }
-  #super-header-left .super-date { font-size: 13px; color: #8e8e93; margin-top: 2px; }
-  #super-header-right { display: flex; gap: 10px; align-items: center; }
-
-  .stat-chip {
-    display: flex; align-items: center; gap: 6px;
-    background: #2c2c2e; border-radius: 20px;
-    padding: 5px 12px; font-size: 12px; font-weight: 600;
-  }
-  .stat-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .dot-pending { background: #ff9f0a; }
-  .dot-gap { background: #ff3b30; }
-  .dot-approved { background: #30d158; }
-
-  #bulk-approve-btn {
-    background: #30d158;
-    color: #000;
-    border: none;
-    border-radius: 20px;
-    padding: 7px 16px;
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
     font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.15s, opacity 0.15s;
-  }
-  #bulk-approve-btn:hover { background: #28bb4a; }
-  #bulk-approve-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* Activity List */
-  #activity-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  #activity-list::-webkit-scrollbar { width: 5px; }
-  #activity-list::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 3px; }
-
-  /* Section headers */
-  .section-header {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: #8e8e93;
-    padding: 8px 4px 4px;
-    margin-top: 4px;
+    line-height: 1.5;
   }
 
-  .activity-card {
-    background: #1c1c1e;
-    border-radius: 12px;
-    padding: 14px 16px;
-    border-left: 4px solid transparent;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
-  }
-  .activity-card.status-pending { border-left-color: #ff9f0a; }
-  .activity-card.status-gap { border-left-color: #ff3b30; background: #1c1414; }
-  .activity-card.status-approved { border-left-color: #30d158; opacity: 0.7; }
+  /* ── Typography ─────────────────────────────────────────────────────── */
+  h1 { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+  h2 { font-size: 14px; font-weight: 600; letter-spacing: -.2px; }
+  h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted); }
 
-  .card-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 8px;
-  }
-  .card-title { font-size: 15px; font-weight: 600; color: #fff; flex: 1; }
-  .card-id { font-size: 11px; color: #636366; font-family: 'SF Mono', 'Fira Code', monospace; }
+  /* ── Layout shell ───────────────────────────────────────────────────── */
+  .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-  .card-meta {
-    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+  .topbar {
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 20px; height: 52px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    flex-shrink: 0; z-index: 100;
   }
-  .meta-tag {
-    background: #2c2c2e; border-radius: 6px;
-    padding: 2px 8px; font-size: 11px; color: #ebebf5;
+  .topbar-logo { display: flex; align-items: center; gap: 8px; }
+  .topbar-logo-mark {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #fff; letter-spacing: -1px;
+  }
+  .topbar-project { color: var(--text-muted); font-size: 12px; margin-left: 4px; }
+  .topbar-project strong { color: var(--text); }
+  .topbar-spacer { flex: 1; }
+  .topbar-date { color: var(--text-muted); font-size: 12px; }
+  .topbar-badge {
+    background: var(--red); color: #fff;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 20px;
     display: flex; align-items: center; gap: 4px;
   }
-  .meta-tag.trade { background: #3a2c1e; color: #ff9f0a; }
-  .meta-tag.zone { background: #1e2c3a; color: #64d2ff; }
-  .meta-tag.pct { background: #1e2c1e; color: #30d158; }
+  .topbar-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: #fff; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-  .card-body {
-    display: flex; gap: 12px; margin-bottom: 10px;
+  /* tabs */
+  .tabs {
+    display: flex; align-items: center; gap: 2px;
+    padding: 0 20px; height: 44px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
   }
-  .card-col { flex: 1; }
-  .col-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #636366; margin-bottom: 4px; }
-  .col-value { font-size: 13px; color: #ebebf5; line-height: 1.4; }
-  .col-value.raw-log { font-style: italic; color: #8e8e93; }
-  .col-value.proposed { color: #ff9f0a; }
-  .col-value.gap-label { color: #ff453a; font-weight: 600; }
-
-  /* Progress bar */
-  .progress-row {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
-  }
-  .progress-bar-bg {
-    flex: 1; height: 6px; background: #2c2c2e; border-radius: 3px; overflow: hidden;
-  }
-  .progress-bar-fill {
-    height: 100%; border-radius: 3px; transition: width 0.5s ease;
-  }
-  .progress-label { font-size: 11px; color: #8e8e93; min-width: 36px; text-align: right; }
-  .progress-arrow { font-size: 11px; color: #8e8e93; }
-  .progress-proposed { font-size: 11px; color: #ff9f0a; font-weight: 600; min-width: 36px; }
-
-  .card-actions {
-    display: flex; gap: 8px; align-items: center;
-  }
-  .btn-approve {
-    background: #30d158; color: #000; border: none;
-    border-radius: 8px; padding: 6px 16px;
-    font-size: 13px; font-weight: 700; cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-  }
-  .btn-approve:hover { background: #28bb4a; }
-  .btn-approve:active { transform: scale(0.95); }
-
-  .btn-override {
-    background: #2c2c2e; color: #ebebf5; border: none;
-    border-radius: 8px; padding: 6px 14px;
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    transition: background 0.15s;
-  }
-  .btn-override:hover { background: #3a3a3c; }
-
-  .approved-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: #0d2b15; color: #30d158;
-    border-radius: 8px; padding: 5px 12px;
-    font-size: 13px; font-weight: 600;
-  }
-  .approved-badge svg { width: 14px; height: 14px; }
-
-  .gap-note {
-    background: #2b1515; border-radius: 8px;
-    padding: 8px 12px; font-size: 12px; color: #ff453a;
+  .tab {
+    padding: 6px 14px; border-radius: var(--radius);
+    cursor: pointer; font-size: 12px; font-weight: 500;
+    color: var(--text-muted); border: none; background: none;
+    transition: color .15s, background .15s;
     display: flex; align-items: center; gap: 6px;
   }
-  .gap-note svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { color: var(--text); background: var(--surface2); font-weight: 600; }
+  .tab .tab-badge {
+    font-size: 10px; font-weight: 700;
+    padding: 1px 5px; border-radius: 10px;
+    background: var(--red); color: #fff;
+  }
+  .tab .tab-badge.yellow { background: var(--yellow); color: #111; }
 
-  /* Override modal */
-  #override-modal {
-    display: none;
-    position: fixed; inset: 0; z-index: 100;
-    background: rgba(0,0,0,0.7);
-    align-items: center; justify-content: center;
+  /* main */
+  .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+  .panel.active { display: flex; }
+
+  /* ── Shared components ──────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: var(--radius);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    border: 1px solid transparent; transition: all .15s;
+    background: var(--surface2); color: var(--text); border-color: var(--border);
   }
-  #override-modal.visible { display: flex; }
-  #override-modal-box {
-    background: #1c1c1e;
-    border-radius: 16px;
-    padding: 24px;
-    width: 360px;
-    max-width: 90vw;
+  .btn:hover { background: var(--surface3); border-color: var(--border2); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.1); }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--text-muted); }
+  .btn.ghost:hover { color: var(--text); background: var(--surface2); }
+  .btn.success { background: var(--green); color: #fff; border-color: var(--green); }
+  .btn.success:hover { filter: brightness(1.1); }
+  .btn.sm { padding: 3px 8px; font-size: 11px; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
   }
-  #override-modal-box h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
-  #override-modal-box p { font-size: 13px; color: #8e8e93; margin-bottom: 16px; }
-  #override-input {
-    width: 100%; background: #2c2c2e; border: 1px solid #3a3a3c;
-    border-radius: 10px; padding: 10px 12px;
-    font-size: 15px; color: #fff; font-family: inherit;
-    outline: none; margin-bottom: 12px;
+  .pill.green  { background: var(--green-dim);  color: var(--green); }
+  .pill.yellow { background: var(--yellow-dim); color: var(--yellow); }
+  .pill.red    { background: var(--red-dim);    color: var(--red); }
+  .pill.blue   { background: var(--accent-dim); color: var(--accent); }
+  .pill.purple { background: var(--purple-dim); color: var(--purple); }
+  .pill.teal   { background: var(--teal-dim);   color: var(--teal); }
+  .pill.orange { background: var(--orange-dim); color: var(--orange); }
+  .pill.gray   { background: var(--surface2);   color: var(--text-muted); }
+
+  .source-tag {
+    font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: .4px;
   }
-  #override-input:focus { border-color: #0a84ff; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
-  .modal-cancel {
-    background: #2c2c2e; color: #fff; border: none;
-    border-radius: 10px; padding: 8px 18px;
-    font-size: 15px; cursor: pointer;
-  }
-  .modal-confirm {
-    background: #0a84ff; color: #fff; border: none;
-    border-radius: 10px; padding: 8px 18px;
-    font-size: 15px; font-weight: 600; cursor: pointer;
+  .source-tag.p6       { background: var(--accent-dim); color: var(--accent); }
+  .source-tag.field    { background: var(--green-dim);  color: var(--green); }
+  .source-tag.supt     { background: var(--purple-dim); color: var(--purple); }
+  .source-tag.missing  { background: var(--red-dim);    color: var(--red); }
+
+  .gap-flag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; color: var(--yellow);
+    background: var(--yellow-dim); padding: 2px 7px; border-radius: 4px;
   }
 
-  /* Empty state */
+  /* scrollable content area */
+  .scroll-area { overflow-y: auto; flex: 1; padding: 16px 20px; }
+  .scroll-area::-webkit-scrollbar { width: 6px; }
+  .scroll-area::-webkit-scrollbar-track { background: transparent; }
+  .scroll-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* section header row */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; margin-top: 20px;
+  }
+  .section-header:first-child { margin-top: 0; }
+
+  /* ── Daily Log Panel ────────────────────────────────────────────────── */
+  .dl-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0; flex-wrap: wrap;
+  }
+  .dl-toolbar .toolbar-label { color: var(--text-muted); font-size: 12px; }
+  .dl-summary-chips { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; }
+  .summary-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 20px;
+    background: var(--surface2); border: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .summary-chip .chip-num { font-weight: 700; font-size: 14px; }
+  .summary-chip .chip-label { color: var(--text-muted); }
+
+  /* daily log table */
+  .dl-table-wrap { overflow-x: auto; flex: 1; }
+  .dl-table {
+    width: 100%; border-collapse: collapse; min-width: 900px;
+  }
+  .dl-table thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border2);
+  }
+  .dl-table th {
+    padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 600;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px;
+    white-space: nowrap;
+  }
+  .dl-table td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .dl-table tbody tr:hover { background: var(--surface2); }
+  .dl-table tbody tr.gap-row { background: color-mix(in srgb, var(--yellow-dim) 60%, transparent); }
+  .dl-table tbody tr.gap-row:hover { background: var(--yellow-dim); }
+
+  .sub-cell { display: flex; align-items: flex-start; gap: 8px; }
+  .sub-avatar {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+  }
+  .sub-name { font-weight: 600; font-size: 12px; }
+  .sub-trade { font-size: 11px; color: var(--text-muted); }
+  .sub-channel { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  .men-cell { text-align: center; }
+  .men-num { font-size: 18px; font-weight: 700; line-height: 1; }
+  .men-label { font-size: 10px; color: var(--text-muted); }
+
+  .missing-cell {
+    font-size: 11px; color: var(--red); font-style: italic;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .blocker-cell .blocker-item {
+    display: flex; align-items: flex-start; gap: 5px; margin-bottom: 4px;
+  }
+  .blocker-cell .blocker-item:last-child { margin-bottom: 0; }
+  .blocker-icon { color: var(--red); margin-top: 1px; flex-shrink: 0; }
+
+  .time-tag { font-size: 10px; color: var(--text-dim); }
+
+  /* ── Intake Modal ───────────────────────────────────────────────────── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--radius-lg); width: 100%; max-width: 640px;
+    max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow);
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  }
+  .modal-body { padding: 20px; }
+  .modal-footer {
+    padding: 14px 20px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  }
+
+  .intake-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .intake-tab {
+    flex: 1; padding: 8px; border-radius: var(--radius); cursor: pointer;
+    text-align: center; font-size: 12px; font-weight: 500;
+    background: var(--surface2); color: var(--text-muted);
+    border: 1px solid var(--border); transition: all .15s;
+  }
+  .intake-tab.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+
+  .form-row { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 8px 10px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-size: 13px;
+    outline: none; transition: border-color .15s; font-family: var(--font);
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-select option { background: var(--surface2); }
+
+  .parsed-preview {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px; margin-top: 12px;
+  }
+  .parsed-preview h3 { margin-bottom: 8px; }
+  .parsed-field { display: flex; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+  .parsed-field .pf-label { color: var(--text-muted); width: 100px; flex-shrink: 0; }
+  .parsed-field .pf-val { color: var(--text); font-weight: 500; }
+  .parsed-field .pf-null { color: var(--text-dim); font-style: italic; }
+
+  /* sms sim */
+  .sms-bubble {
+    background: var(--surface3); border-radius: 12px 12px 4px 12px;
+    padding: 10px 14px; font-size: 13px; line-height: 1.5;
+    margin-bottom: 10px; border: 1px solid var(--border2);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .parse-arrow {
+    text-align: center; color: var(--text-dim); font-size: 18px; margin: 8px 0;
+  }
+
+  /* ── Look-ahead Panel ───────────────────────────────────────────────── */
+  .la-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0; flex-wrap: wrap;
+  }
+  .la-legend { display: flex; gap: 12px; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; }
+  .legend-swatch.p6-sw    { background: var(--accent); opacity: .7; }
+  .legend-swatch.comm-sw  { background: var(--green); }
+  .legend-swatch.gap-sw   { background: var(--yellow); }
+
+  /* gantt */
+  .gantt-wrap { overflow: auto; flex: 1; }
+  .gantt {
+    min-width: 1100px; display: grid;
+    /* col 0 = label, cols 1..21 = days */
+  }
+
+  .gantt-header {
+    display: contents;
+  }
+  .gantt-cell-label {
+    position: sticky; left: 0; z-index: 10;
+    background: var(--surface); padding: 0 12px;
+    border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    font-size: 11px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .5px;
+    min-width: 180px;
+  }
+  .gantt-day-header {
+    padding: 6px 4px; text-align: center; border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    font-size: 10px; font-weight: 600; color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .gantt-day-header.today { color: var(--accent); background: var(--accent-dim); border-bottom-color: var(--accent); }
+  .gantt-day-header.weekend { background: rgba(0,0,0,.15); color: var(--text-dim); }
+
+  .gantt-row-label {
+    position: sticky; left: 0; z-index: 5;
+    background: var(--surface); padding: 6px 12px;
+    border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    min-width: 180px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .gantt-row-label:hover { background: var(--surface2); }
+  .row-trade-name { font-size: 12px; font-weight: 600; }
+  .row-trade-sub  { font-size: 10px; color: var(--text-muted); }
+
+  .gantt-day-cell {
+    border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 3px; min-height: 44px; position: relative;
+    background: var(--surface);
+  }
+  .gantt-day-cell.today { background: color-mix(in srgb, var(--accent-dim) 40%, var(--surface)); }
+  .gantt-day-cell.weekend { background: rgba(0,0,0,.12); }
+
+  .gantt-bar {
+    border-radius: 4px; padding: 2px 6px;
+    font-size: 10px; font-weight: 600;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    cursor: pointer; transition: filter .12s; margin-bottom: 2px;
+    display: flex; align-items: center; gap: 4px;
+    min-height: 20px;
+  }
+  .gantt-bar:hover { filter: brightness(1.15); }
+  .gantt-bar.p6-bar    { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); opacity: .85; }
+  .gantt-bar.comm-bar  { background: var(--green-dim);  color: var(--green);  border: 1px solid var(--green); }
+  .gantt-bar.gap-bar   { background: var(--yellow-dim); color: var(--yellow); border: 1px solid var(--yellow); border-style: dashed; }
+  .gantt-bar.event-bar { background: var(--purple-dim); color: var(--purple); border: 1px solid var(--purple); }
+  .gantt-bar.delivery-bar { background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal); }
+
+  /* span bars across multiple cells */
+  .gantt-span-cell {
+    border-bottom: 1px solid var(--border);
+    padding: 3px; background: var(--surface); position: relative;
+  }
+  .gantt-span-cell.today { background: color-mix(in srgb, var(--accent-dim) 40%, var(--surface)); }
+
+  /* week dividers */
+  .gantt-week-divider {
+    border-left: 2px solid var(--border2) !important;
+  }
+
+  /* look-ahead list (alt view) */
+  .la-list { padding: 16px 20px; }
+  .la-week-group { margin-bottom: 24px; }
+  .la-week-label {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .6px;
+    margin-bottom: 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .la-entry {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--surface2);
+    margin-bottom: 6px; cursor: pointer; transition: border-color .15s;
+  }
+  .la-entry:hover { border-color: var(--border2); }
+  .la-entry.has-gap { border-color: var(--yellow); background: var(--yellow-dim); }
+  .la-entry-date {
+    flex-shrink: 0; text-align: center; width: 44px;
+    background: var(--surface3); border-radius: 6px; padding: 4px;
+  }
+  .la-entry-date .day-num { font-size: 16px; font-weight: 700; line-height: 1; }
+  .la-entry-date .day-name { font-size: 10px; color: var(--text-muted); }
+  .la-entry-body { flex: 1; }
+  .la-entry-title { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+  .la-entry-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .la-entry-area { font-size: 11px; color: var(--text-muted); }
+  .la-entry-area strong { color: var(--text); }
+  .la-entry-area.null-area { color: var(--text-dim); font-style: italic; }
+  .la-entry-actions { display: flex; align-items: center; gap: 6px; }
+
+  /* ── Report Panel ───────────────────────────────────────────────────── */
+  .report-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0; flex-wrap: wrap;
+  }
+
+  .report-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .report-sections { grid-template-columns: 1fr; } }
+
+  .report-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .report-card-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .report-card-body { padding: 14px 16px; }
+
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--text-muted); }
+  .stat-val { font-weight: 600; }
+
+  .json-block {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px; font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px; line-height: 1.7; overflow-x: auto; color: var(--text-muted);
+    max-height: 420px; overflow-y: auto;
+  }
+  .json-key    { color: #7aa2f7; }
+  .json-str    { color: #9ece6a; }
+  .json-num    { color: #ff9e64; }
+  .json-null   { color: #565f89; font-style: italic; }
+  .json-bool   { color: #bb9af7; }
+  .json-block::-webkit-scrollbar { width: 5px; height: 5px; }
+  .json-block::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  .gap-alert {
+    background: var(--yellow-dim); border: 1px solid var(--yellow);
+    border-radius: var(--radius); padding: 10px 14px;
+    margin-bottom: 10px; font-size: 12px;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .gap-alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .gap-alert-body strong { color: var(--yellow); display: block; margin-bottom: 2px; }
+
+  .approve-strip {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: var(--green-dim);
+    border: 1px solid var(--green); border-radius: var(--radius);
+    margin-bottom: 16px;
+  }
+  .approve-strip .strip-label { color: var(--green); font-weight: 600; font-size: 13px; }
+  .approve-strip .strip-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* notification toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--radius-lg); padding: 12px 16px;
+    box-shadow: var(--shadow); max-width: 320px;
+    display: none; z-index: 300; animation: slideIn .25s ease;
+  }
+  .toast.show { display: block; }
+  .toast-title { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+  .toast-body { font-size: 12px; color: var(--text-muted); }
+  @keyframes slideIn { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  /* ── Submission detail drawer ───────────────────────────────────────── */
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    display: none; z-index: 150;
+  }
+  .drawer-overlay.open { display: block; }
+  .drawer {
+    position: fixed; right: 0; top: 0; bottom: 0; width: 400px;
+    background: var(--surface); border-left: 1px solid var(--border2);
+    box-shadow: var(--shadow); display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform .25s ease;
+    z-index: 160;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .drawer-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+  .drawer-section { margin-bottom: 20px; }
+  .drawer-section h3 { margin-bottom: 8px; }
+  .drawer-field { margin-bottom: 10px; }
+  .drawer-field label { display: block; font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+  .drawer-field .field-val { font-size: 13px; }
+  .drawer-field .field-null { font-size: 12px; color: var(--text-dim); font-style: italic; }
+
+  /* empty state */
   .empty-state {
-    text-align: center; padding: 40px 20px; color: #636366;
-    font-size: 14px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 48px 20px; text-align: center;
+    color: var(--text-muted); gap: 8px;
   }
-
-  /* Responsive: stack on narrow viewport */
-  @media (max-width: 700px) {
-    #app { flex-direction: column; overflow: auto; }
-    #foreman-panel { width: 100%; min-width: unset; height: 50vh; border-right: none; border-bottom: 1px solid #2c2c2e; }
-    #super-panel { height: 50vh; }
-  }
-
-  /* Panel labels */
-  .panel-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 1px;
-    text-transform: uppercase; color: #636366;
-    padding: 6px 16px 2px;
-    background: #0a0a0a;
-  }
+  .empty-state .empty-icon { font-size: 32px; opacity: .4; }
+  .empty-state p { max-width: 280px; line-height: 1.6; font-size: 12px; }
 </style>
 </head>
 <body>
 
-<div id="app">
+<!-- ── TOP BAR ──────────────────────────────────────────────────────── -->
+<div class="app">
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="topbar-logo-mark">FS</div>
+    <span style="font-weight:700;font-size:15px;">FieldSync</span>
+  </div>
+  <div class="topbar-project"><strong>Meridian Tower — Tower Crane Pkg</strong></div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-date" id="topbar-date"></div>
+  <div class="topbar-badge"><span class="dot"></span> 3 new submissions</div>
+  <button class="btn primary" onclick="openIntakeModal()">+ Log Submission</button>
+</div>
 
-  <!-- ═══════════════════════════════════════════
-       LEFT: FOREMAN VIEW (iOS Messages clone)
-  ════════════════════════════════════════════ -->
-  <div id="foreman-panel">
-    <div class="panel-label">Foreman View</div>
+<!-- ── TABS ─────────────────────────────────────────────────────────── -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('daily-log',this)">
+    Daily Log <span class="tab-badge yellow" id="badge-gaps">2 gaps</span>
+  </button>
+  <button class="tab" onclick="switchTab('lookahead',this)">
+    3-Week Look-Ahead <span class="tab-badge" id="badge-flagged">4 flagged</span>
+  </button>
+  <button class="tab" onclick="switchTab('report',this)">
+    Schedule Update Report
+  </button>
+</div>
 
-    <!-- Contact / Foreman chooser (no form elements — tap chips) -->
-    <div id="contact-list">
-      <div id="contact-list-header">
-        <div>
-          <h2>Messages</h2>
-          <div class="header-sub">Select your name to log progress</div>
-        </div>
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 1: DAILY LOG                                                -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="panel active" id="panel-daily-log">
+  <div class="dl-toolbar">
+    <span class="toolbar-label">Today's Actuals</span>
+    <div class="dl-summary-chips">
+      <div class="summary-chip">
+        <span class="chip-num" id="chip-men">47</span>
+        <span class="chip-label">men on site</span>
       </div>
-      <!-- Foreman rows populated by JS -->
-    </div>
-
-    <!-- Chat thread (hidden until foreman selected) -->
-    <div id="chat-view">
-      <div id="chat-header">
-        <button id="chat-back-btn" aria-label="Back to contact list">
-          <svg viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.5 1.5L2 8L8.5 14.5" stroke="#0a84ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Back
-        </button>
-        <div id="chat-header-info">
-          <div id="chat-header-name">Site Bot</div>
-          <div id="chat-header-trade"></div>
-        </div>
-        <div id="chat-header-avatar"></div>
+      <div class="summary-chip">
+        <span class="chip-num" id="chip-submitted">6</span>
+        <span class="chip-label">of 8 subs submitted</span>
       </div>
-
-      <div id="message-thread">
-        <div class="msg-date-divider" id="thread-date"></div>
-      </div>
-
-      <div id="compose-bar">
-        <textarea
-          id="compose-input"
-          placeholder="iMessage"
-          rows="1"
-          aria-label="Type a progress update"
-        ></textarea>
-        <button id="send-btn" aria-label="Send message">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-          </svg>
-        </button>
+      <div class="summary-chip" style="border-color:var(--red);">
+        <span class="chip-num" style="color:var(--red);" id="chip-blockers">3</span>
+        <span class="chip-label">active blockers</span>
       </div>
     </div>
+    <button class="btn sm" onclick="openIntakeModal()">+ Add Update</button>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       RIGHT: SUPERINTENDENT VIEW
-  ════════════════════════════════════════════ -->
-  <div id="super-panel">
-    <div class="panel-label">Superintendent View</div>
-    <div id="super-header">
-      <div id="super-header-left">
-        <h1>Daily Schedule Review</h1>
-        <div class="super-date" id="super-date"></div>
+  <div class="dl-table-wrap">
+    <table class="dl-table" id="dl-table">
+      <thead>
+        <tr>
+          <th style="min-width:160px;">Subcontractor</th>
+          <th style="width:70px;text-align:center;">Men On Site</th>
+          <th style="min-width:220px;">Work Completed</th>
+          <th style="min-width:200px;">Blockers / Issues</th>
+          <th style="min-width:180px;">Forward Commitments</th>
+          <th style="width:90px;">Area</th>
+          <th style="width:80px;">Source</th>
+          <th style="width:80px;">Time</th>
+          <th style="width:60px;"></th>
+        </tr>
+      </thead>
+      <tbody id="dl-tbody">
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 2: LOOK-AHEAD                                               -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-lookahead">
+  <div class="la-toolbar">
+    <div class="la-legend">
+      <div class="legend-item"><div class="legend-swatch p6-sw"></div> P6 Planned</div>
+      <div class="legend-item"><div class="legend-swatch comm-sw"></div> Committed (field)</div>
+      <div class="legend-item"><div class="legend-swatch gap-sw"></div> P6 gap — no commitment</div>
+    </div>
+    <div style="flex:1;"></div>
+    <button class="btn sm ghost" onclick="toggleLaView()" id="la-view-toggle">⊞ List View</button>
+    <button class="btn sm" onclick="openAddCommitmentModal()">+ Add Commitment</button>
+  </div>
+
+  <!-- Gantt view -->
+  <div class="gantt-wrap" id="la-gantt">
+    <div id="gantt-grid"></div>
+  </div>
+
+  <!-- List view (hidden by default) -->
+  <div class="scroll-area" id="la-listview" style="display:none;">
+    <div class="la-list" id="la-list-content"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 3: SCHEDULE UPDATE REPORT                                   -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-report">
+  <div class="report-toolbar">
+    <span style="font-size:12px;color:var(--text-muted);">Report Date: <strong style="color:var(--text);" id="report-date-label"></strong></span>
+    <div style="flex:1;"></div>
+    <button class="btn sm" onclick="copyReport()">⎘ Copy JSON</button>
+    <button class="btn sm primary" onclick="approveReport()">✓ Approve & Send to PM</button>
+  </div>
+  <div class="scroll-area">
+    <div id="report-content"></div>
+  </div>
+</div>
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- INTAKE MODAL                                                      -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="intake-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Log Field Submission</h2>
+      <button class="btn ghost sm" onclick="closeIntakeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="intake-tabs">
+        <div class="intake-tab active" onclick="switchIntakeTab('sms',this)">📱 SMS</div>
+        <div class="intake-tab" onclick="switchIntakeTab('email',this)">✉ Email</div>
+        <div class="intake-tab" onclick="switchIntakeTab('pdf',this)">📄 PDF Scan</div>
+        <div class="intake-tab" onclick="switchIntakeTab('manual',this)">✏ Manual</div>
       </div>
-      <div id="super-header-right">
-        <div class="stat-chip"><span class="dot dot-pending"></span><span id="stat-pending">0</span> Pending</div>
-        <div class="stat-chip"><span class="dot dot-gap"></span><span id="stat-gap">0</span> No Report</div>
-        <div class="stat-chip"><span class="dot dot-approved"></span><span id="stat-approved">0</span> Approved</div>
-        <button id="bulk-approve-btn" onclick="bulkApprove()">Approve All Pending</button>
+
+      <!-- SMS tab -->
+      <div id="intake-sms" class="intake-content">
+        <div class="form-row">
+          <label class="form-label">Foreman / Sub</label>
+          <select class="form-select" id="sms-sub">
+            <option value="">Select subcontractor…</option>
+            <option value="mech">Caldwell Mechanical — Mike T.</option>
+            <option value="elec">Summit Electric — Ray D.</option>
+            <option value="frame">ProFrame Structural — Carlos V.</option>
+            <option value="plumb">Apex Plumbing — Jim H.</option>
+            <option value="fire">FireGuard Systems — Dana K.</option>
+            <option value="glazing">Hartwell Glazing — Pete S.</option>
+            <option value="concrete">Allied Concrete — Sam L.</option>
+            <option value="drywall">InteriorPro — Tony R.</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Raw SMS Text</label>
+          <textarea class="form-textarea" id="sms-text" placeholder="Paste or type the foreman's text message…" rows="4"></textarea>
+        </div>
+        <button class="btn primary" onclick="parseSMS()" style="margin-bottom:12px;">⚡ Extract Fields</button>
+        <div id="sms-preview" style="display:none;">
+          <div class="parse-arrow">↓ Extracted</div>
+          <div class="parsed-preview" id="sms-parsed-content"></div>
+        </div>
+      </div>
+
+      <!-- Email tab -->
+      <div id="intake-email" class="intake-content" style="display:none;">
+        <div class="form-row">
+          <label class="form-label">From (Foreman Name / Sub)</label>
+          <input class="form-input" id="email-from" placeholder="e.g. Ray Davidson — Summit Electric" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Email Body</label>
+          <textarea class="form-textarea" id="email-body" placeholder="Paste email body…" rows="5"></textarea>
+        </div>
+        <button class="btn primary" onclick="parseEmail()">⚡ Extract Fields</button>
+        <div id="email-preview" style="display:none;">
+          <div class="parse-arrow">↓ Extracted</div>
+          <div class="parsed-preview" id="email-parsed-content"></div>
+        </div>
+      </div>
+
+      <!-- PDF tab -->
+      <div id="intake-pdf" class="intake-content" style="display:none;">
+        <div style="border:2px dashed var(--border2); border-radius:var(--radius-lg); padding:32px; text-align:center; color:var(--text-muted); margin-bottom:12px;">
+          <div style="font-size:28px; margin-bottom:8px;">📄</div>
+          <div style="font-size:13px; margin-bottom:4px;">Drop daily log PDF / photo here</div>
+          <div style="font-size:11px;">or <span style="color:var(--accent);cursor:pointer;" onclick="simulatePDFLoad()">simulate extraction</span></div>
+        </div>
+        <div id="pdf-preview" style="display:none;">
+          <div class="parsed-preview" id="pdf-parsed-content"></div>
+        </div>
+      </div>
+
+      <!-- Manual tab -->
+      <div id="intake-manual" class="intake-content" style="display:none;">
+        <div class="form-row">
+          <label class="form-label">Subcontractor</label>
+          <select class="form-select" id="manual-sub">
+            <option value="">Select…</option>
+            <option value="mech">Caldwell Mechanical — Mike T.</option>
+            <option value="elec">Summit Electric — Ray D.</option>
+            <option value="frame">ProFrame Structural — Carlos V.</option>
+            <option value="plumb">Apex Plumbing — Jim H.</option>
+            <option value="fire">FireGuard Systems — Dana K.</option>
+            <option value="glazing">Hartwell Glazing — Pete S.</option>
+            <option value="concrete">Allied Concrete — Sam L.</option>
+            <option value="drywall">InteriorPro — Tony R.</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-row">
+            <label class="form-label">Men On Site</label>
+            <input class="form-input" type="number" id="manual-men" placeholder="e.g. 8" />
+          </div>
+          <div class="form-row">
+            <label class="form-label">Area / Zone</label>
+            <input class="form-input" id="manual-area" placeholder="e.g. Floor 14, Grid C-D" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Work Completed</label>
+          <textarea class="form-textarea" id="manual-completed" rows="2" placeholder="What was accomplished today…"></textarea>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Blockers / Issues</label>
+          <textarea class="form-textarea" id="manual-blockers" rows="2" placeholder="Any blockers, issues, or RFIs…"></textarea>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Forward Commitments</label>
+          <textarea class="form-textarea" id="manual-commitments" rows="2" placeholder="Upcoming inspections, deliveries, handoffs…"></textarea>
+        </div>
       </div>
     </div>
-    <div id="activity-list">
-      <!-- Populated by JS -->
+    <div class="modal-footer">
+      <button class="btn ghost" onclick="closeIntakeModal()">Cancel</button>
+      <button class="btn success" onclick="submitIntake()">✓ Add to Log</button>
     </div>
   </div>
 </div>
 
-<!-- Override Modal -->
-<div id="override-modal" role="dialog" aria-modal="true" aria-labelledby="override-title">
-  <div id="override-modal-box">
-    <h3 id="override-title">Override Agent Proposal</h3>
-    <p>Enter the corrected completion percentage or a note for this activity.</p>
-    <input type="number" id="override-input" min="0" max="100" placeholder="e.g. 75" />
-    <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeOverrideModal()">Cancel</button>
-      <button class="modal-confirm" onclick="confirmOverride()">Apply Override</button>
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- ADD COMMITMENT MODAL                                               -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="commitment-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Add Commitment to Look-Ahead</h2>
+      <button class="btn ghost sm" onclick="closeCommitmentModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-row">
+          <label class="form-label">Trade / Sub</label>
+          <select class="form-select" id="c-sub">
+            <option value="mech">Caldwell Mechanical</option>
+            <option value="elec">Summit Electric</option>
+            <option value="frame">ProFrame Structural</option>
+            <option value="plumb">Apex Plumbing</option>
+            <option value="fire">FireGuard Systems</option>
+            <option value="glazing">Hartwell Glazing</option>
+            <option value="concrete">Allied Concrete</option>
+            <option value="drywall">InteriorPro</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="c-type">
+            <option>Inspection</option>
+            <option>Material Delivery</option>
+            <option>Trade Handoff</option>
+            <option>Milestone</option>
+            <option>Activity</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Description</label>
+        <input class="form-input" id="c-desc" placeholder="e.g. Rough-in inspection Level 14" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div class="form-row">
+          <label class="form-label">Start Date</label>
+          <input class="form-input" type="date" id="c-start" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">End Date</label>
+          <input class="form-input" type="date" id="c-end" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Area / Zone</label>
+          <input class="form-input" id="c-area" placeholder="e.g. L14, Grid B" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn ghost" onclick="closeCommitmentModal()">Cancel</button>
+      <button class="btn success" onclick="submitCommitment()">+ Add to Look-Ahead</button>
     </div>
   </div>
 </div>
 
+<!-- Drawer overlay -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="detail-drawer">
+  <div class="drawer-header">
+    <h2 id="drawer-title">Submission Detail</h2>
+    <button class="btn ghost sm" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toast-title"></div>
+  <div class="toast-body" id="toast-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT                                                         -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
 <script>
-/* ═══════════════════════════════════════════════════════════════════
-   1. STUBBED P6 SCHEDULE DATASET
-   Minimum 5 activities, 2+ trades, realistic field language targets
-═══════════════════════════════════════════════════════════════════ */
-const P6_SCHEDULE = [
+/* ── Helpers ──────────────────────────────────────────────────────── */
+function fmt(d) {
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function fmtFull(d) {
+  return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+const today = new Date();
+today.setHours(0,0,0,0);
+function addDays(d, n) { const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function sameDay(a,b){ return a.toDateString()===b.toDateString(); }
+function isWeekend(d){ return d.getDay()===0||d.getDay()===6; }
+
+document.getElementById('topbar-date').textContent = fmtFull(today);
+document.getElementById('report-date-label').textContent = fmtFull(today);
+
+/* ── Seed Data ────────────────────────────────────────────────────── */
+// Daily log rows
+const dailyLog = [
   {
-    id: "ACT-101",
-    name: "Zone 4 North — Electrical Conduit Rough-In",
-    trade: "Electrical",
-    tradeCode: "ELEC",
-    zone: "Zone 4 North",
-    zoneAliases: ["zone 4", "zone four", "z4", "north side", "north wing", "n4"],
-    tradeAliases: ["electrical", "electric", "elec", "conduit", "rough-in", "roughin", "rough in", "wiring", "wire"],
-    baselinePct: 40,
-    currentPct: 40,
-    proposedPct: null,
-    plannedFinish: "2026-03-12",
-    status: "gap",        // gap | pending | approved
-    foremanId: "F1",
-    rawLog: null,
-    agentNote: null,
+    id:'dl1', sub:'Caldwell Mechanical', trade:'Mechanical', foreman:'Mike T.',
+    channel:'SMS', time:'6:48 AM',
+    men:8, area:'Floor 14–15',
+    completed:'Completed rough-in ductwork on L14 east wing. Hangers set on L15 grid A–C.',
+    blockers:['Waiting on structural steel clearance at L15 grid D — cannot proceed until ProFrame signs off.'],
+    commitments:'Pressure test inspection L14 scheduled Thursday. L15 rough-in ready for inspection by end of week.',
+    source:'field', avatar:'CM', avatarColor:'#4f7cff'
   },
   {
-    id: "ACT-102",
-    name: "Zone 4 South — Electrical Panel Install",
-    trade: "Electrical",
-    tradeCode: "ELEC",
-    zone: "Zone 4 South",
-    zoneAliases: ["zone 4 south", "zone four south", "z4s", "south side", "south wing", "s4", "panel room"],
-    tradeAliases: ["electrical", "electric", "elec", "panel", "switchboard", "breaker"],
-    baselinePct: 20,
-    currentPct: 20,
-    proposedPct: null,
-    plannedFinish: "2026-03-14",
-    status: "gap",
-    foremanId: "F1",
-    rawLog: null,
-    agentNote: null,
+    id:'dl2', sub:'Summit Electric', trade:'Electrical', foreman:'Ray D.',
+    channel:'Email', time:'7:12 AM',
+    men:11, area:'Floor 12–14',
+    completed:'Pulled conduit runs L12–L13 corridor. 90% complete on L13 panel rough-in.',
+    blockers:[],
+    commitments:'L13 panel inspection Thursday AM. Material delivery — switchgear panels arriving Friday 7 AM dock C.',
+    source:'field', avatar:'SE', avatarColor:'#34c77b'
   },
   {
-    id: "ACT-201",
-    name: "Zone 2 — Structural Steel Erection Level 3",
-    trade: "Steel / Ironwork",
-    tradeCode: "STEEL",
-    zone: "Zone 2",
-    zoneAliases: ["zone 2", "zone two", "z2", "grid b", "grid-b"],
-    tradeAliases: ["steel", "iron", "ironwork", "erection", "beam", "column", "structural", "metal"],
-    baselinePct: 55,
-    currentPct: 55,
-    proposedPct: null,
-    plannedFinish: "2026-03-13",
-    status: "gap",
-    foremanId: "F2",
-    rawLog: null,
-    agentNote: null,
+    id:'dl3', sub:'ProFrame Structural', trade:'Structural Steel', foreman:'Carlos V.',
+    channel:'SMS', time:'6:55 AM',
+    men:14, area:'Floor 15–16',
+    completed:'Set W14 columns L16 bays 3–5. Started beam connections bay 3. Welding crew on-site.',
+    blockers:['Crane availability conflict Tuesday PM — coordinating with Allied Concrete for crane share.'],
+    commitments:'Bay 4–5 beam connections complete by Wednesday EOD. L15 sign-off to Mechanical by Thursday.',
+    source:'field', avatar:'PS', avatarColor:'#f5913e'
   },
   {
-    id: "ACT-301",
-    name: "Zone 1 — Concrete Deck Pour Level 2",
-    trade: "Concrete",
-    tradeCode: "CONC",
-    zone: "Zone 1",
-    zoneAliases: ["zone 1", "zone one", "z1", "level 2", "deck", "slab"],
-    tradeAliases: ["concrete", "pour", "deck", "slab", "finishing", "cement", "placement"],
-    baselinePct: 0,
-    currentPct: 0,
-    proposedPct: null,
-    plannedFinish: "2026-03-12",
-    status: "gap",
-    foremanId: "F3",
-    rawLog: null,
-    agentNote: null,
+    id:'dl4', sub:'Apex Plumbing', trade:'Plumbing', foreman:'Jim H.',
+    channel:'PDF', time:'7:31 AM',
+    men:6, area:'Floor 13',
+    completed:'Roughed-in domestic water risers L13. Cast iron waste stack L13 complete.',
+    blockers:[],
+    commitments:'Rough plumbing inspection L13 scheduled Wednesday.',
+    source:'field', avatar:'AP', avatarColor:'#a97cf8'
   },
   {
-    id: "ACT-302",
-    name: "Zone 3 — Formwork Stripping & Prep",
-    trade: "Concrete",
-    tradeCode: "CONC",
-    zone: "Zone 3",
-    zoneAliases: ["zone 3", "zone three", "z3", "formwork area", "form"],
-    tradeAliases: ["concrete", "formwork", "form", "strip", "stripping", "shoring", "falsework", "prep"],
-    baselinePct: 70,
-    currentPct: 70,
-    proposedPct: null,
-    plannedFinish: "2026-03-11",
-    status: "gap",
-    foremanId: "F3",
-    rawLog: null,
-    agentNote: null,
+    id:'dl5', sub:'FireGuard Systems', trade:'Fire Protection', foreman:'Dana K.',
+    channel:'SMS', time:'8:02 AM',
+    men:null, area:null,
+    completed:'Continued sprinkler rough-in.',
+    blockers:['Need ceiling grid confirmation from InteriorPro before L12 heads can be set.'],
+    commitments:null,
+    source:'field', avatar:'FG', avatarColor:'#f25c5c',
+    gaps:['men-on-site','area','commitments']
   },
   {
-    id: "ACT-401",
-    name: "Zone 5 — MEP Overhead Rough-In Corridor",
-    trade: "Mechanical",
-    tradeCode: "MECH",
-    zone: "Zone 5",
-    zoneAliases: ["zone 5", "zone five", "z5", "corridor", "hallway", "mep corridor"],
-    tradeAliases: ["mechanical", "mep", "hvac", "duct", "ductwork", "piping", "pipe", "overhead", "plumbing"],
-    baselinePct: 30,
-    currentPct: 30,
-    proposedPct: null,
-    plannedFinish: "2026-03-15",
-    status: "gap",
-    foremanId: "F4",
-    rawLog: null,
-    agentNote: null,
+    id:'dl6', sub:'Hartwell Glazing', trade:'Glazing / Curtainwall', foreman:'Pete S.',
+    channel:'Email', time:'7:55 AM',
+    men:9, area:'Floors 10–12, West Facade',
+    completed:'Installed curtainwall panels L10 bays 1–6. Sealant crew behind by 1 day due to wind.',
+    blockers:['Wind hold forecast Wednesday — monitoring NOAA. May impact Thursday install schedule.'],
+    commitments:'L11 panel install complete by Friday if weather permits.',
+    source:'field', avatar:'HG', avatarColor:'#34c9c9'
+  },
+  {
+    id:'dl7', sub:'Allied Concrete', trade:'Concrete', foreman:'Sam L.',
+    channel:'Manual', time:'8:15 AM',
+    men:null, area:null,
+    completed:null,
+    blockers:null,
+    commitments:null,
+    source:'missing', avatar:'AC', avatarColor:'#7c8199',
+    gaps:['all — no submission received']
+  },
+  {
+    id:'dl8', sub:'InteriorPro', trade:'Drywall / Framing', foreman:'Tony R.',
+    channel:'SMS', time:'8:30 AM',
+    men:7, area:'Floor 11',
+    completed:'Metal stud framing L11 partition walls 60% complete.',
+    blockers:[],
+    commitments:'Framing inspection L11 Friday. Drywall start L11 next Monday pending inspection.',
+    source:'field', avatar:'IP', avatarColor:'#f5c842'
   },
 ];
 
-/* ═══════════════════════════════════════════════════════════════════
-   2. FOREMAN ROSTER
-═══════════════════════════════════════════════════════════════════ */
-const FOREMEN = [
-  { id: "F1", name: "Marcus Webb",    trade: "Electrical",     initials: "MW", color: "#ff9f0a" },
-  { id: "F2", name: "Darnell Ortiz",  trade: "Steel / Ironwork", initials: "DO", color: "#64d2ff" },
-  { id: "F3", name: "Ray Kowalski",   trade: "Concrete",       initials: "RK", color: "#bf5af2" },
-  { id: "F4", name: "Sanjay Mehta",   trade: "Mechanical",     initials: "SM", color: "#ff6369" },
-];
+// Look-ahead entries
+// type: 'p6' | 'committed' | 'gap'
+const lookAheadEntries = [
+  // P6 planned
+  { id:'la1', type:'p6', trade:'Structural Steel', sub:'ProFrame Structural',
+    title:'L16 Beam Connections', area:'Floor 16, Bays 3–5',
+    start: addDays(today,0), end: addDays(today,2), color:'p6-bar' },
+  { id:'la2', type:'p6', trade:'Structural Steel', sub:'ProFrame Structural',
+    title:'L17 Column Set', area:'Floor 17',
+    start: addDays(today,3), end: addDays(today,5), color:'p6-bar' },
+  { id:'la3', type:'p6', trade:'Mechanical', sub:'Caldwell Mechanical',
+    title:'L15 Ductwork Rough-in', area:'Floor 15',
+    start: addDays(today,1), end: addDays(today,4), color:'p6-bar' },
+  { id:'la4', type:'p6', trade:'Electrical', sub:'Summit Electric',
+    title:'L14 Panel Rough-in', area:'Floor 14',
+    start: addDays(today,0), end: addDays(today,2), color:'p6-bar' },
+  { id:'la5', type:'p6', trade:'Concrete', sub:'Allied Concrete',
+    title:'L17 Deck Pour', area:'Floor 17',
+    start: addDays(today,5), end: addDays(today,6), color:'p6-bar' },
+  { id:'la6', type:'p6', trade:'Concrete', sub:'Allied Concrete',
+    title:'L18 Deck Formwork', area:'Floor 18',
+    start: addDays(today,8), end: addDays(today,11), color:'p6-bar' },
+  { id:'la7', type:'p6', trade:'Glazing / Curtainwall', sub:'Hartwell Glazing',
+    title:'L11–12 Curtainwall Install', area:'Floors 11–12, West Facade',
+    start: addDays(today,0), end: addDays(today,4), color:'p6-bar' },
+  { id:'la8', type:'p6', trade:'Fire Protection', sub:'FireGuard Systems',
+    title:'L12–13 Sprinkler Rough-in', area:'Floors 12–13',
+    start: addDays(today,1), end: addDays(today,6), color:'p6-bar' },
+  { id:'la9', type:'p6', trade:'Plumbing', sub:'Apex Plumbing',
+    title:'L14 Plumbing Rough-in', area:'Floor 14',
+    start: addDays(today,3), end: addDays(today,7), color:'p6-bar' },
+  { id:'la10', type:'p6', trade:'Drywall / Framing', sub:'InteriorPro',
+    title:'L10 Drywall Start', area:'Floor 10',
+    start: addDays(today,7), end: addDays(today,10), color:'p6-bar' },
 
-/* Per-foreman message thread state */
-const threadState = {};
-FOREMEN.forEach(f => { threadState[f.id] = []; });
+  // Committed (field-confirmed)
+  { id:'la11', type:'committed', trade:'Mechanical', sub:'Caldwell Mechanical', foreman:'Mike T.',
+    title:'L14 Pressure Test Inspection', area:'Floor 14',
+    start: addDays(today,3), end: addDays(today,3), color:'comm-bar', entryType:'Inspection' },
+  { id:'la12', type:'committed', trade:'Electrical', sub:'Summit Electric', foreman:'Ray D.',
+    title:'L13 Panel Inspection', area:'Floor 13',
+    start: addDays(today,3), end: addDays(today,3), color:'comm-bar', entryType:'Inspection' },
+  { id:'la13', type:'committed', trade:'Electrical', sub:'Summit Electric', foreman:'Ray D.',
+    title:'Switchgear Delivery — Dock C', area:null,
+    start: addDays(today,4), end: addDays(today,4), color:'delivery-bar', entryType:'Material Delivery' },
+  { id:'la14', type:'committed', trade:'Plumbing', sub:'Apex Plumbing', foreman:'Jim H.',
+    title:'L13 Rough Plumbing Inspection', area:'Floor 13',
+    start: addDays(today,2), end: addDays(today,2), color:'comm-bar', entryType:'Inspection' },
+  { id:'la15', type:'committed', trade:'Structural Steel', sub:'ProFrame Structural', foreman:'Carlos V.',
+    title:'L15 Handoff to Mechanical', area:'Floor 15',
+    start: addDays(today,3), end: addDays(today,3), color:'event-bar', entryType:'Trade Handoff' },
+  { id:'la16', type:'committed', trade:'Drywall / Framing', sub:'InteriorPro', foreman:'Tony R.',
+    title:'L11 Framing Inspection', area:'Floor 11',
+    start: addDays(today,4), end: addDays(today,4), color:'comm-bar', entryType:'Inspection' },
+  { id:'la17', type:'committed', trade:'Glazing / Curtainwall', sub:'Hartwell Glazing', foreman:'Pete S.',
+    title:'L11 Panel Install Complete', area:'Floors 11, West Facade',
+    start: addDays(today,4), end: addDays(today,4), color:'event-bar', entryType:'Milestone' },
 
-let activeForemanId = null;
-let overrideTargetId = null;
-
-/* ═══════════════════════════════════════════════════════════════════
-   3. AGENT NLP MAPPING — keyword/token extraction
-   Maps natural-language message to the best-matching P6 activity.
-   Uses zone tokens + trade/type tokens + optional pct extraction.
-═══════════════════════════════════════════════════════════════════ */
-function tokenize(str) {
-  return str.toLowerCase()
+  // GAP flags — P6 activity with no foreman commitment
+  { id:'la18', type:'gap', trade:'Concrete', sub:'Allied Concrete',
+    title:'⚑ No commitment — L17 Deck Pour (P6 Day +5)', area:'Floor 17',
+    start: addDays(today,5), end

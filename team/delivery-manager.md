@@ -56,3 +56,9 @@ When the team is stuck on planning or scope, the Delivery Manager should push to
 - **Marketing Manager** — Communicates delivery timelines for launch planning. Ensures marketing is not surprised by delays or scope changes.
 - **Sales Engineering Lead** — Provides visibility into what is shipping and when, so sales can set accurate expectations with prospects.
 - **Customer Success Manager** — Coordinates rollout plans and communicates release schedules. Ensures Customer Success is prepared for changes before users encounter them.
+
+## Skills
+
+| Skill | When to reach for it |
+|---|---|
+| `ai-build-loop` | Understanding the Coordinator role — Delivery Manager is the closest human analogue; owns iteration sequencing and loop health |

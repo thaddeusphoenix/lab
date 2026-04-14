@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2D5016">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Camps">
+  <title>Camps</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:          #F7F3EE;
+      --white:          #FFFFFF;
+      --forest:         #2D5016;
+      --forest-light:   #E4EDDA;
+      --terra:          #C4540A;
+      --terra-light:    #FEF0E6;
+      --gold:           #9A6B00;
+      --gold-light:     #FEF7E0;
+      --emerald:        #1A6B35;
+      --emerald-light:  #E3F5EA;
+      --text-primary:   #1C1712;
+      --text-secondary: #6B6259;
+      --border:         #E5DDD5;
+      --shadow:         rgba(28,23,18,0.07);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text-primary);
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--white);
+      padding: 14px 20px 0;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .app-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--forest);
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .app-title-sun {
+      width: 22px; height: 22px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .child-switcher {
+      display: flex;
+      gap: 7px;
+      padding-bottom: 12px;
+      overflow-x: auto;
+    }
+    .child-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px 6px 8px;
+      border-radius: 100px;
+      border: 1.5px solid var(--border);
+      background: var(--cream);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .child-pill.active {
+      background: var(--forest);
+      border-color: var(--forest);
+      color: var(--white);
+    }
+    .child-avatar {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── Bottom nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 8px;
+      min-height: 64px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      transition: color 0.15s;
+      gap: 4px;
+      position: relative;
+    }
+    .nav-tab.active { color: var(--forest); }
+    .nav-tab svg { opacity: 0.55; transition: opacity 0.15s; }
+    .nav-tab.active svg { opacity: 1; }
+    .nav-badge {
+      position: absolute;
+      top: 8px; right: calc(50% - 18px);
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--terra);
+      color: white;
+      font-size: 10px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Main content ── */
+    .main-content { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Budget card ── */
+    .budget-card {
+      background: var(--white);
+      margin: 16px 16px 0;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 1px 4px var(--shadow);
+    }
+    .budget-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .budget-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .budget-total {
+      font-family: 'Fraunces', serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .budget-edit-btn {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--forest);
+      background: var(--forest-light);
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .budget-bar {
+      height: 8px;
+      border-radius: 100px;
+      background: var(--border);
+      overflow: hidden;
+      display: flex;
+      margin-bottom: 12px;
+    }
+    .budget-bar-committed { background: var(--emerald); height: 100%; transition: width 0.4s ease; }
+    .budget-bar-potential { background: var(--gold); height: 100%; transition: width 0.4s ease; }
+    .budget-stats { display: flex; }
+    .budget-stat { flex: 1; text-align: center; }
+    .budget-stat-val {
+      font-size: 14px; font-weight: 600; color: var(--text-primary);
+    }
+    .budget-stat-val.over { color: var(--terra); }
+    .budget-stat-lbl { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .budget-dot {
+      display: inline-block; width: 7px; height: 7px;
+      border-radius: 50%; margin-right: 3px; vertical-align: middle;
+    }
+
+    /* ── Section header ── */
+    .section-hdr {
+      padding: 18px 20px 8px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .section-hdr-title {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
+      text-transform: uppercase; color: var(--text-secondary);
+    }
+    .section-hdr-count {
+      font-size: 12px; font-weight: 600;
+      color: var(--white);
+      background: var(--text-secondary);
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Program cards ── */
+    .program-card {
+      background: var(--white);
+      margin: 0 16px 8px;
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 1px 3px var(--shadow);
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .program-card:active { transform: scale(0.985); box-shadow: 0 0 2px var(--shadow); }
+    .prog-child-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%; flex-shrink: 0; align-self: flex-start; margin-top: 5px;
+    }
+    .prog-body { flex: 1; min-width: 0; }
+    .prog-name {
+      font-size: 15px; font-weight: 600; color: var(--text-primary);
+      letter-spacing: -0.2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+    .prog-meta { font-size: 13px; color: var(--text-secondary); }
+    .prog-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+    .status-badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 9px; border-radius: 100px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.2px;
+    }
+    .s-considering { background: var(--gold-light); color: var(--gold); }
+    .s-registered   { background: var(--emerald-light); color: var(--emerald); }
+    .s-waitlisted   { background: #F3E8FF; color: #7C3AED; }
+    .s-cancelled    { background: #F3F4F6; color: #6B7280; }
+    .deadline-tag {
+      font-size: 11px; font-weight: 600;
+    }
+    .dl-urgent { color: var(--terra); }
+    .dl-soon   { color: var(--gold); }
+    .dl-ok     { color: var(--text-secondary); }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 52px 32px;
+    }
+    .empty-icon { font-size: 44px; margin-bottom: 14px; }
+    .empty-title {
+      font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 8px;
+    }
+    .empty-body { font-size: 14px; color: var(--text-secondary); line-height: 1.55; }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed;
+      bottom: calc(76px + env(safe-area-inset-bottom));
+      right: max(20px, calc(50% - 195px));
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--forest);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(45,80,22,0.4);
+      cursor: pointer; z-index: 50;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .fab:active { transform: scale(0.92); box-shadow: 0 2px 8px rgba(45,80,22,0.4); }
+
+    /* ── Sheet overlay ── */
+    .sheet-overlay {
+      position: fixed; inset: 0;
+      background: rgba(28,23,18,0.48);
+      z-index: 200;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+
+    /* ── Bottom sheet ── */
+    .bottom-sheet {
+      position: fixed; bottom: 0;
+      left: 50%; transform: translateX(-50%) translateY(100%);
+      width: 100%; max-width: 430px;
+      background: var(--white);
+      border-radius: 24px 24px 0 0;
+      z-index: 201;
+      max-height: 92dvh;
+      overflow-y: auto;
+      transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .bottom-sheet.open { transform: translateX(-50%) translateY(0); }
+    .sheet-handle {
+      width: 36px; height: 4px; border-radius: 100px;
+      background: var(--border);
+      margin: 12px auto 8px;
+    }
+    .sheet-hdr {
+      padding: 2px 20px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .sheet-title {
+      font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600;
+      color: var(--text-primary);
+    }
+    .sheet-close-btn {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-secondary); font-size: 16px;
+    }
+
+    /* ── Add method selector ── */
+    .add-methods { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .method-btn {
+      display: flex; align-items: center; gap: 14px;
+      padding: 15px 16px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .method-btn:active { background: var(--cream); }
+    .method-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .mi-link    { background: var(--forest-light); color: var(--forest); }
+    .mi-paste   { background: var(--gold-light); color: var(--gold); }
+    .mi-manual  { background: var(--cream); color: var(--text-secondary); }
+    .method-text { flex: 1; text-align: left; }
+    .method-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+    .method-desc  { font-size: 13px; color: var(--text-secondary); }
+    .method-chevron { color: var(--border); }
+
+    /* ── Extract form ── */
+    .extract-pad { padding: 20px; }
+    .extract-hint {
+      font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5;
+    }
+    .extract-box {
+      border: 1.5px solid var(--border);
+      border-radius: 14px; overflow: hidden; margin-bottom: 14px;
+    }
+    .extract-box input,
+    .extract-box textarea {
+      width: 100%; border: none; outline: none;
+      padding: 14px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; color: var(--text-primary);
+      background: var(--white);
+      resize: none;
+      display: block;
+    }
+    .extract-box textarea { min-height: 130px; }
+    .extract-btn {
+      width: 100%; padding: 15px;
+      border-radius: 14px;
+      background: var(--forest); color: white;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .back-link {
+      display: block; text-align: center;
+      color: var(--text-secondary); font-size: 14px;
+      padding: 14px; cursor: pointer;
+    }
+
+    /* ── Extracting loader ── */
+    .extracting-pad { padding: 48px 20px; text-align: center; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--forest-light);
+      border-top-color: var(--forest);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin: 0 auto 18px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .extracting-title {
+      font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 6px;
+    }
+    .extracting-sub { font-size: 13px; color: var(--text-secondary); }
+
+    /* ── Program form ── */
+    .prog-form { padding: 0 20px 20px; }
+    .field-grp { margin-bottom: 16px; }
+    .field-lbl {
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      color: var(--text-secondary); margin-bottom: 7px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .req-star { color: var(--terra); }
+    .auto-badge {
+      font-size: 10px; padding: 1px 6px;
+      border-radius: 4px; background: var(--forest-light); color: var(--forest);
+      font-weight: 600; letter-spacing: 0.2px;
+    }
+    .field-inp {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif; font-size: 15px;
+      color: var(--text-primary); background: var(--white);
+      outline: none;
+      transition: border-color 0.15s, background 0.2s;
+      -webkit-appearance: none;
+    }
+    .field-inp:focus { border-color: var(--forest); }
+    .field-inp.auto { border-color: var(--forest); background: var(--forest-light); }
+    .field-row { display: flex; gap: 10px; }
+    .field-row .field-grp { flex: 1; }
+    .field-hint { font-size: 12px; color: var(--text-secondary); margin-top: 5px; line-height: 1.4; font-style: italic; }
+    .form-sep { height: 1px; background: var(--border); margin: 20px 0; }
+    .form-sec-lbl {
+      font-family: 'Fraunces', serif; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); letter-spacing: 0.3px; margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    /* ── Status selector ── */
+    .status-sel { display: flex; gap: 8px; }
+    .status-opt {
+      flex: 1; padding: 10px 6px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      text-align: center; font-size: 13px; font-weight: 500;
+      cursor: pointer; color: var(--text-secondary);
+      transition: all 0.12s;
+    }
+    .status-opt.sel-considering { background: var(--gold-light); border-color: var(--gold); color: var(--gold); }
+    .status-opt.sel-registered  { background: var(--emerald-light); border-color: var(--emerald); color: var(--emerald); }
+    .status-opt.sel-waitlisted  { background: #F3E8FF; border-color: #7C3AED; color: #7C3AED; }
+
+    /* ── Child selector (in form) ── */
+    .child-sel { display: flex; gap: 8px; }
+    .child-sel-pill {
+      flex: 1; padding: 10px 8px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      text-align: center; font-size: 14px; font-weight: 500;
+      cursor: pointer; color: var(--text-secondary);
+      transition: all 0.12s;
+    }
+    .child-sel-pill.active {
+      background: var(--forest); border-color: var(--forest); color: white;
+    }
+
+    /* ── Save / delete ── */
+    .save-btn {
+      width: 100%; padding: 15px;
+      border-radius: 14px; background: var(--forest); color: white;
+      font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600;
+      border: none; cursor: pointer; margin-top: 8px;
+      transition: opacity 0.15s;
+    }
+    .save-btn:active { opacity: 0.82; }
+    .delete-lnk {
+      display: block; text-align: center;
+      color: var(--terra); font-size: 14px; font-weight: 500;
+      padding: 14px; cursor: pointer;
+    }
+
+    /* ── Calendar tab ── */
+    .cal-hdr { padding: 20px 20px 12px; }
+    .cal-title {
+      font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 3px;
+    }
+    .cal-sub { font-size: 14px; color: var(--text-secondary); }
+
+    .cov-summary {
+      margin: 0 16px 14px;
+      background: var(--white);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+      box-shadow: 0 1px 3px var(--shadow);
+    }
+    .cov-num {
+      font-family: 'Fraunces', serif; font-size: 34px; font-weight: 600;
+      color: var(--text-primary); line-height: 1;
+    }
+    .cov-of { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .cov-bar-wrap { flex: 1; }
+    .mini-bar {
+      height: 7px; border-radius: 100px; background: var(--border);
+      overflow: hidden; margin-bottom: 7px;
+    }
+    .mini-bar-fill { height: 100%; border-radius: 100px; background: var(--forest); transition: width 0.4s; }
+    .cov-legend { display: flex; flex-wrap: wrap; gap: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-secondary); }
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+    .week-row {
+      margin: 0 16px 7px;
+      background: var(--white);
+      border-radius: 12px;
+      display: flex; align-items: center;
+      box-shadow: 0 1px 2px var(--shadow);
+      overflow: hidden;
+    }
+    .week-lbl {
+      padding: 13px 10px 13px 14px;
+      font-size: 13px; font-weight: 500; color: var(--text-secondary);
+      width: 62px; flex-shrink: 0;
+    }
+    .week-cov {
+      flex: 1; padding: 13px 14px 13px 0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .week-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 100px;
+      font-size: 12px; font-weight: 600;
+    }
+    .wp-covered   { background: var(--emerald-light); color: var(--emerald); }
+    .wp-tentative { background: var(--gold-light); color: var(--gold); }
+    .wp-gap       { background: var(--terra-light); color: var(--terra); }
+    .week-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .week-prog-name {
+      font-size: 12px; color: var(--text-secondary);
+      max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      text-align: right;
+    }
+    .conflict-tag {
+      font-size: 10px; font-weight: 700; padding: 2px 5px;
+      border-radius: 4px; background: var(--terra-light); color: var(--terra);
+      margin-left: 5px;
+    }
+
+    /* ── Decisions tab ── */
+    .dec-section { padding: 16px 16px 0; }
+
+    .prep-card {
+      background: var(--white);
+      border-radius: 16px;
+      border-left: 4px solid var(--terra);
+      padding: 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(196,84,10,0.1);
+    }
+    .prep-urgency {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 12px; font-weight: 700; color: var(--terra);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 9px;
+    }
+    .days-bubble {
+      background: var(--terra); color: white;
+      padding: 2px 8px; border-radius: 100px;
+      font-size: 11px;
+    }
+    .prep-name {
+      font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 4px;
+    }
+    .prep-meta { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; }
+    .prep-link {
+      display: block; width: 100%;
+      padding: 12px 16px; border-radius: 10px;
+      background: var(--forest); color: white;
+      font-size: 14px; font-weight: 600;
+      text-decoration: none; text-align: center;
+      margin-bottom: 13px;
+    }
+    .prep-link.no-url {
+      background: var(--cream); color: var(--text-secondary);
+      border: 1.5px dashed var(--border);
+    }
+    .checklist { display: flex; flex-direction: column; gap: 11px; }
+    .chk-item {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+    }
+    .chk-box {
+      width: 22px; height: 22px; border-radius: 6px;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.15s;
+    }
+    .chk-item.done .chk-box { background: var(--emerald); border-color: var(--emerald); }
+    .chk-text { font-size: 14px; color: var(--text-primary); }
+    .chk-item.done .chk-text { text-decoration: line-through; color: var(--text-secondary); }
+
+    .warn-card {
+      background: var(--white);
+      border-radius: 14px;
+      border-left: 4px solid var(--gold);
+      padding: 14px 16px;
+      margin-bottom: 9px;
+      box-shadow: 0 1px 4px rgba(154,107,0,0.1);
+    }
+    .warn-lbl {
+      font-size: 12px; font-weight: 700; color: var(--gold);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;
+    }
+
+    .upcoming-card {
+      background: var(--white);
+      border-radius: 13px;
+      padding: 14px 16px; margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 3px var(--shadow);
+    }
+    .upcoming-days { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+
+    .all-clear { text-align: center; padding: 52px 32px; }
+    .all-clear-icon { font-size: 44px; margin-bottom: 16px; }
+    .all-clear-title {
+      font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 8px;
+    }
+    .all-clear-body { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+  // ── PWA manifest ──
+  (function() {
+    const m = {
+      name: "Camp Planner", short_name: "Camps",
+      display: "standalone",
+      background_color: "#F7F3EE", theme_color: "#2D5016",
+      start_url: ".",
+      icons: [{
+        src: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><circle cx="96" cy="96" r="96" fill="#2D5016"/><text x="96" y="128" font-size="80" font-family="Georgia,serif" text-anchor="middle" fill="#F7F3EE">C</text></svg>'),
+        sizes: "192x192", type: "image/svg+xml"
+      }]
+    };
+    const blob = new Blob([JSON.stringify(m)], {type:'application/json'});
+    const el = document.createElement('link');
+    el.rel = 'manifest'; el.href = URL.createObjectURL(blob);
+    document.head.appendChild(el);
+  })();
+
+  // ── Static config ──
+  const CHILDREN = [
+    { id: 'c1', name: 'Mia',  age: 3,  color: '#E8948A' },
+    { id: 'c2', name: 'Jake', age: 9,  color: '#6FA858' }
+  ];
+
+  const SUMMER_WEEKS = [
+    { label: 'Jun 8',  start: '2026-06-08', end: '2026-06-12' },
+    { label: 'Jun 15', start: '2026-06-15', end: '2026-06-19' },
+    { label: 'Jun 22', start: '2026-06-22', end: '2026-06-26' },
+    { label: 'Jun 29', start: '2026-06-29', end: '2026-07-03' },
+    { label: 'Jul 6',  start: '2026-07-06', end: '2026-07-10' },
+    { label: 'Jul 13', start: '2026-07-13', end: '2026-07-17' },
+    { label: 'Jul 20', start: '2026-07-20', end: '2026-07-24' },
+    { label: 'Jul 27', start: '2026-07-27', end: '2026-07-31' },
+    { label: 'Aug 3',  start: '2026-08-03', end: '2026-08-07' },
+    { label: 'Aug 10', start: '2026-08-10', end: '2026-08-14' },
+    { label: 'Aug 17', start: '2026-08-17', end: '2026-08-21' },
+  ];
+
+  const SEED_PROGRAMS = [
+    {
+      id:'p1', childId:'c1',
+      name:'Little Explorers Nature Camp',
+      startDate:'2026-07-06', endDate:'2026-07-10',
+      signUpDeadline:'2026-03-25', refundDeadline:'2026-04-15',
+      fee:320, dropOffLocation:'Riverside Park, Main Entrance',
+      pickUpLocation:'Riverside Park, Main Entrance',
+      registrationUrl:'https://example.com',
+      status:'Considering', taxBenefitInfo:'FSA eligible', notes:''
+    },
+    {
+      id:'p2', childId:'c1',
+      name:'Tiny Artists Studio',
+      startDate:'2026-06-15', endDate:'2026-06-19',
+      signUpDeadline:'2026-05-01', refundDeadline:null,
+      fee:180, dropOffLocation:'123 Art Street, Studio B',
+      pickUpLocation:'123 Art Street, Studio B',
+      registrationUrl:'https://example.com',
+      status:'Registered', taxBenefitInfo:'', notes:''
+    },
+    {
+      id:'p3', childId:'c2',
+      name:'Galileo Innovation Camp',
+      startDate:'2026-07-06', endDate:'2026-07-10',
+      signUpDeadline:'2026-03-25', refundDeadline:'2026-04-15',
+      fee:650, dropOffLocation:'Tech Campus, Building A',
+      pickUpLocation:'Tech Campus, Building A, Front Lobby',
+      registrationUrl:'https://galileo-camps.com',
+      status:'Considering', taxBenefitInfo:'', notes:''
+    },
+    {
+      id:'p4', childId:'c2',
+      name:'YMCA Summer Day Camp',
+      startDate:'2026-06-15', endDate:'2026-06-26',
+      signUpDeadline:'2026-05-01', refundDeadline:null,
+      fee:420, dropOffLocation:'YMCA Downtown, Gym Entrance',
+      pickUpLocation:'YMCA Downtown, Front Desk',
+      registrationUrl:'https://ymca.org/summer',
+      status:'Registered', taxBenefitInfo:'Dependent care FSA eligible', notes:''
+    },
+    {
+      id:'p5', childId:'c2',
+      name:'City Arts Summer Intensive',
+      startDate:'2026-07-27', endDate:'2026-08-07',
+      signUpDeadline:'2026-04-30', refundDeadline:null,
+      fee:890, dropOffLocation:'', pickUpLocation:'',
+      registrationUrl:'',
+      status:'Considering', taxBenefitInfo:'', notes:''
+    }
+  ];
+
+  const MOCK_EXTRACTIONS = [
+    {
+      name:'Mountain Valley Science Camp',
+      startDate:'2026-07-13', endDate:'2026-07-17',
+      signUpDeadline:'2026-04-15', refundDeadline:'2026-05-15',
+      fee:545,
+      dropOffLocation:'Valley Community Center, East Entrance',
+      pickUpLocation:'Valley Community Center, East Entrance',
+      registrationUrl:'https://example.com/register',
+      taxBenefitInfo:'FSA eligible',
+      status:'Considering'
+    },
+    {
+      name:'Westside Soccer Academy',
+      startDate:'2026-06-22', endDate:'2026-06-26',
+      signUpDeadline:'2026-05-10', refundDeadline:null,
+      fee:280,
+      dropOffLocation:'Westside Athletic Fields, Gate B',
+      pickUpLocation:'Westside Athletic Fields, Gate B',
+      registrationUrl:'https://example.com/soccer',
+      taxBenefitInfo:'',
+      status:'Considering'
+    },
+    {
+      name:'Lakeview Creative Writing Camp',
+      startDate:'2026-08-10', endDate:'2026-08-14',
+      signUpDeadline:'2026-06-01', refundDeadline:'2026-07-01',
+      fee:410,
+      dropOffLocation:'Lakeview Library, 3rd Floor',
+      pickUpLocation:'Lakeview Library, Main Entrance',
+      registrationUrl:'https://example.com/writing',
+      taxBenefitInfo:'Check with your FSA provider',
+      status:'Considering'
+    }
+  ];
+
+  const TODAY = new Date('2026-03-18');
+
+  // ── State ──
+  function loadPersisted() {
+    try {
+      return {
+        programs: JSON.parse(localStorage.getItem('camps_v3_programs')) || SEED_PROGRAMS,
+        budget:   JSON.parse(localStorage.getItem('camps_v3_budget'))   || { total: 3000 },
+        checklist:JSON.parse(localStorage.getItem('camps_v3_checklist'))|| {}
+      };
+    } catch(e) {
+      return { programs: SEED_PROGRAMS, budget: { total: 3000 }, checklist: {} };
+    }
+  }
+
+  const P = loadPersisted();
+  const S = {
+    tab:         'programs',
+    child:       'c1',
+    programs:    P.programs,
+    budget:      P.budget,
+    checklist:   P.checklist,
+    sheet:       { open: false, step: 'closed', editId: null },
+    form:        {},
+    autofilled:  {},
+    extractInput:''
+  };
+
+  function persist() {
+    localStorage.setItem('camps_v3_programs', JSON.stringify(S.programs));
+    localStorage.setItem('camps_v3_budget',   JSON.stringify(S.budget));
+    localStorage.setItem('camps_v3_checklist',JSON.stringify(S.checklist));
+  }
+
+  // ── Helpers ──
+  function daysUntil(ds) {
+    if (!ds) return null;
+    return Math.ceil((new Date(ds) - TODAY) / 864e5);
+  }
+  function fmt(ds) {
+    if (!ds) return '';
+    return new Date(ds+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  }
+  function fmtRange(s,e) { return fmt(s)+' – '+fmt(e); }
+  function fmtMoney(n) { return '$'+Math.abs(n).toLocaleString(); }
+
+  function budgetStats() {
+    const committed = S.programs.filter(p=>p.status==='Registered').reduce((t,p)=>t+(p.fee||0),0);
+    const potential = S.programs.filter(p=>p.status==='Considering'||p.status==='Waitlisted').reduce((t,p)=>t+(p.fee||0),0);
+    const total = S.budget.total;
+    return { committed, potential, total, remaining: total-committed-potential };
+  }
+
+  function weekCov(week, programs) {
+    const ws=new Date(week.start), we=new Date(week.end);
+    const covering = programs.filter(p=> new Date(p.startDate)<=we && new Date(p.endDate)>=ws);
+    return {
+      registered:  covering.filter(p=>p.status==='Registered'),
+      considering: covering.filter(p=>p.status==='Considering'||p.status==='Waitlisted'),
+      all:         covering
+    };
+  }
+
+  function urgentCount() {
+    return S.programs.filter(p=>{
+      const d=daysUntil(p.signUpDeadline);
+      return p.status==='Considering' && d!==null && d>=0 && d<=14;
+    }).length;
+  }
+
+  // ── Render ──
+  function render() {
+    document.getElementById('app').innerHTML = html_app();
+    bind();
+  }
+
+  function html_app() {
+    return html_header() + `
+      <div class="main-content">
+        <div class="tab-content ${S.tab==='programs' ?'active':''}">${html_programs()}</div>
+        <div class="tab-content ${S.tab==='calendar' ?'active':''}">${html_calendar()}</div>
+        <div class="tab-content ${S.tab==='decisions'?'active':''}">${html_decisions()}</div>
+      </div>
+      ${html_nav()}
+      ${S.tab==='programs' ? html_fab() : ''}
+      ${html_sheet()}
+    `;
+  }
+
+  function html_header() {
+    return `
+      <div class="app-header">
+        <div class="header-row">
+          <div class="app-title">
+            <div class="app-title-sun">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="5"/><line x1="12" y1="2" x2="12" y2="5" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="22" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="12" x2="5" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="19" y1="12" x2="22" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            Camps
+          </div>
+        </div>
+        <div class="child-switcher">
+          ${CHILDREN.map(c=>`
+            <div class="child-pill ${S.child===c.id?'active':''}" data-child="${c.id}">
+              <div class="child-avatar" style="background:${S.child===c.id?'rgba(255,255,255,0.22)':c.color+'28'};color:${S.child===c.id?'white':c.color}">
+                ${c.name[0]}
+              </div>
+              ${c.name}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function html_nav() {
+    const uc = urgentCount();
+    return `
+      <nav class="bottom-nav">
+        <div class="nav-tab ${S.tab==='programs'?'active':''}" data-tab="programs">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="1"/>
+            <line x1="9" y1="12" x2="15" y2="12"/>
+            <line x1="9" y1="16" x2="12" y2="16"/>
+          </svg>
+          Programs
+        </div>
+        <div class="nav-tab ${S.tab==='calendar'?'active':''}" data-tab="calendar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Calendar
+        </div>
+        <div class="nav-tab ${S.tab==='decisions'?'active':''}" data-tab="decisions">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Deadlines
+          ${uc>0?`<span class="nav-badge">${uc}</span>`:''}
+        </div>
+      </nav>
+    `;
+  }
+
+  function html_fab() {
+    return `
+      <div class="fab" id="fab">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </div>
+    `;
+  }
+
+  // ── Programs tab ──
+  function html_programs() {
+    const child = CHILDREN.find(c=>c.id===S.child);
+    const progs = S.programs.filter(p=>p.childId===S.child);
+    const st = budgetStats();
+    const cpct = Math.min(100, st.committed/st.total*100);
+    const ppct = Math.min(100-cpct, st.potential/st.total*100);
+    const over = st.remaining < 0;
+
+    const budgetEdit = S.budget.editing ? `
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <input id="budget-inp" type="number" value="${st.total}"
+          style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:DM Sans,sans-serif;font-size:16px;outline:none;-webkit-appearance:none;" />
+        <button id="budget-save" style="padding:10px 16px;border-radius:10px;background:var(--forest);color:white;border:none;font-size:14px;font-weight:600;cursor:pointer;">Save</button>
+      </div>
+    ` : '';
+
+    let body = `
+      <div class="budget-card">
+        <div class="budget-top">
+          <div>
+            <div class="budget-label">Summer Budget</div>
+            <div class="budget-total">${fmtMoney(st.total)}</div>
+          </div>
+          <div class="budget-edit-btn" id="budget-edit">Edit</div>
+        </div>
+        <div class="budget-bar">
+          <div class="budget-bar-committed" style="width:${cpct}%"></div>
+          <div class="budget-bar-potential" style="width:${ppct}%"></div>
+        </div>
+        <div class="budget-stats">
+          <div class="budget-stat">
+            <div class="budget-stat-val"><span class="budget-dot" style="background:var(--emerald)"></span>${fmtMoney(st.committed)}</div>
+            <div class="budget-stat-lbl">Committed</div>
+          </div>
+          <div class="budget-stat">
+            <div class="budget-stat-val"><span class="budget-dot" style="background:var(--gold)"></span>${fmtMoney(st.potential)}</div>
+            <div class="budget-stat-lbl">Potential</div>
+          </div>
+          <div class="budget-stat">
+            <div class="budget-stat-val ${over?'over':''}">${over?'–':''}${fmtMoney(st.remaining)}</div>
+            <div class="budget-stat-lbl">${over?'Over':'Remaining'}</div>
+          </div>
+        </div>
+        ${budgetEdit}
+      </div>
+    `;
+
+    const considering = progs.filter(p=>p.status==='Considering'||p.status==='Waitlisted');
+    const registered  = progs.filter(p=>p.status==='Registered');
+
+    function card(p) {
+      const d = daysUntil(p.signUpDeadline);
+      let dlClass='dl-ok', dlText='';
+      if (d!==null && d>=0) {
+        if (d<=7)      { dlClass='dl-urgent'; dlText=`${d}d left`; }
+        else if (d<=14){ dlClass='dl-soon';   dlText=`${d}d left`; }
+        else           {                       dlText=`Due ${fmt(p.signUpDeadline)}`; }
+      }
+      return `
+        <div class="program-card" data-edit="${p.id}">
+          <div class="prog-child-dot" style="background:${child.color}"></div>
+          <div class="prog-body">
+            <div class="prog-name">${p.name}</div>
+            <div class="prog-meta">${fmtRange(p.startDate,p.endDate)}${p.fee?' · $'+p.fee:''}</div>
+          </div>
+          <div class="prog-right">
+            <span class="status-badge s-${p.status.toLowerCase()}">${p.status}</span>
+            ${dlText?`<span class="deadline-tag ${dlClass}">${dlText}</span>`:''}
+          </div>
+        </div>
+      `;
+    }
+
+    if (progs.length === 0) {
+      body += `
+        <div class="empty-state">
+          <div class="empty-icon">🌿</div>
+          <div class="empty-title">Nothing for ${child.name} yet</div>
+          <div class="empty-body">Tap + to add a program you're considering. Paste a link and we'll fill in the details.</div>
+        </div>
+      `;
+    } else {
+      if (considering.length) {
+        body += `<div class="section-hdr"><span class="section-hdr-title">Considering</span><span class="section-hdr-count">${considering.length}</span></div>`;
+        body += considering.map(card).join('');
+      }
+      if (registered.length) {
+        body += `<div class="section-hdr"><span class="section-hdr-title">Registered</span><span class="section-hdr-count">${registered.length}</span></div>`;
+        body += registered.map(card).join('');
+      }
+    }
+
+    return body;
+  }
+
+  // ── Calendar tab ──
+  function html_calendar() {
+    const child = CHILDREN.find(c=>c.id===S.child);
+    const progs = S.programs.filter(p=>p.childId===S.child);
+    const data  = SUMMER_WEEKS.map(w=>({ week:w, ...weekCov(w,progs) }));
+
+    const regCount = data.filter(d=>d.registered.length>0).length;
+    const anyCount = data.filter(d=>d.registered.length>0||d.considering.length>0).length;
+    const pct = Math.round(regCount/11*100);
+
+    let html = `
+      <div class="cal-hdr">
+        <div class="cal-title">Summer 2026</div>
+        <div class="cal-sub">${child.name}'s week-by-week · Jun – Aug</div>
+      </div>
+      <div class="cov-summary">
+        <div>
+          <div class="cov-num">${regCount}</div>
+          <div class="cov-of">of 11 registered</div>
+        </div>
+        <div class="cov-bar-wrap">
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+          <div class="cov-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--emerald)"></div>Registered</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Maybe</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--terra)"></div>Gap</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    html += data.map(d=>{
+      let pillCls, pillTxt, progName='';
+      if (d.registered.length>0) {
+        pillCls='wp-covered'; pillTxt='Covered';
+        progName = d.registered.length===1
+          ? d.registered[0].name.slice(0,24)+(d.registered[0].name.length>24?'…':'')
+          : `${d.registered.length} programs`;
+      } else if (d.considering.length>0) {
+        pillCls='wp-tentative'; pillTxt='Maybe';
+        progName = d.considering.length===1
+          ? d.considering[0].name.slice(0,24)+(d.considering[0].name.length>24?'…':'')
+          : `${d.considering.length} programs`;
+      } else {
+        pillCls='wp-gap'; pillTxt='Gap';
+      }
+      const conflict = d.all.length>1 ? '<span class="conflict-tag">Overlap</span>' : '';
+      return `
+        <div class="week-row">
+          <div class="week-lbl">${d.week.label}</div>
+          <div class="week-cov">
+            <div>
+              <span class="week-pill ${pillCls}"><span class="week-dot"></span>${pillTxt}</span>${conflict}
+            </div>
+            ${progName?`<div class="week-prog-name">${progName}</div>`:''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return html;
+  }
+
+  // ── Decisions tab ──
+  function html_decisions() {
+    const urgent = S.programs.filter(p=>{
+      const d=daysUntil(p.signUpDeadline);
+      return p.status==='Considering' && d!==null && d>=0 && d<=14;
+    });
+    const cancels = S.programs.filter(p=>{
+      const d=daysUntil(p.refundDeadline);
+      return p.status==='Registered' && d!==null && d>=0 && d<=14;
+    });
+    const upcoming = S.programs.filter(p=>{
+      const d=daysUntil(p.signUpDeadline);
+      return p.status==='Considering' && d!==null && d>14;
+    }).sort((a,b)=>new Date(a.signUpDeadline)-new Date(b.signUpDeadline));
+
+    if (!urgent.length && !cancels.length && !upcoming.length) {
+      return `
+        <div class="all-clear">
+          <div class="all-clear-icon">✅</div>
+          <div class="all-clear-title">All clear</div>
+          <div class="all-clear-body">No deadlines need attention right now. Check back as registration dates approach.</div>
+        </div>
+      `;
+    }
+
+    let html = '<div class="dec-section">';
+
+    if (urgent.length) {
+      html += `<div class="section-hdr"><span class="section-hdr-title">Act now</span></div>`;
+      urgent.forEach(p=>{
+        const d = daysUntil(p.signUpDeadline);
+        const child = CHILDREN.find(c=>c.id===p.childId);
+        const cl = S.checklist[p.id] || {};
+        html += `
+          <div class="prep-card">
+            <div class="prep-urgency">
+              Register by ${fmt(p.signUpDeadline)}
+              <span class="days-bubble">${d}d left</span>
+            </div>
+            <div class="prep-name">${p.name}</div>
+            <div class="prep-meta">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${child.color};margin-right:4px;vertical-align:middle;"></span>
+              ${child.name} · ${fmtRange(p.startDate,p.endDate)}${p.fee?' · $'+p.fee:''}
+            </div>
+            ${p.registrationUrl
+              ? `<a href="${p.registrationUrl}" target="_blank" class="prep-link">Open Registration Page →</a>`
+              : `<div class="prep-link no-url">No link saved — tap to edit and add one</div>`
+            }
+            <div class="checklist">
+              ${['Account logged in','Payment method ready','Dates and session confirmed'].map((txt,i)=>{
+                const key='item'+(i+1);
+                const done=!!cl[key];
+                return `
+                  <div class="chk-item ${done?'done':''}" data-check="${p.id}" data-item="${key}">
+                    <div class="chk-box">
+                      ${done?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+                    </div>
+                    <div class="chk-text">${txt}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    if (cancels.length) {
+      html += `<div class="section-hdr"><span class="section-hdr-title">Cancellation Windows</span></div>`;
+      cancels.forEach(p=>{
+        const d=daysUntil(p.refundDeadline);
+        html += `
+          <div class="warn-card">
+            <div class="warn-lbl">⚠ Cancel by ${fmt(p.refundDeadline)} · ${d}d left</div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px;">${p.name}</div>
+            <div style="font-size:13px;color:var(--text-secondary);">After this date your refund window closes</div>
+          </div>
+        `;
+      });
+    }
+
+    if (upcoming.length) {
+      html += `<div class="section-hdr"><span class="section-hdr-title">Upcoming</span></div>`;
+      upcoming.forEach(p=>{
+        const d=daysUntil(p.signUpDeadline);
+        const child=CHILDREN.find(c=>c.id===p.childId);
+        html += `
+          <div class="upcoming-card">
+            <div>
+              <div style="font-size:15px;font-weight:600;margin-bottom:3px;">${p.name}</div>
+              <div style="font-size:13px;color:var(--text-secondary);">
+                <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${child.color};margin-right:3px;vertical-align:middle;"></span>
+                ${child.name} · Due ${fmt(p.signUpDeadline)}
+              </div>
+            </div>
+            <div class="upcoming-days">${d}d</div>
+          </div>
+        `;
+      });
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  // ── Sheet ──
+  function html_sheet() {
+    return `
+      <div class="sheet-overlay ${S.sheet.open?'open':''}" id="overlay"></div>
+      <div class="bottom-sheet ${S.sheet.open?'open':''}" id="bsheet">
+        ${S.sheet.open ? html_sheet_content() : ''}
+      </div>
+    `;
+  }
+
+  function html_sheet_content() {
+    const { step } = S.sheet;
+
+    if (step==='method') return `
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr">
+        <span class="sheet-title">Add Program</span>
+        <div class="sheet-close-btn" id="sclose">✕</div>
+      </div>
+      <div class="add-methods">
+        <div class="method-btn" id="m-link">
+          <div class="method-icon mi-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </div>
+          <div class="method-text">
+            <div class="method-title">Paste a link</div>
+            <div class="method-desc">Auto-fill from the program website</div>
+          </div>
+          <svg class="method-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="method-btn" id="m-paste">
+          <div class="method-icon mi-paste">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M14 2h3a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h3"/></svg>
+          </div>
+          <div class="method-text">
+            <div class="method-title">Paste program text</div>
+            <div class="method-desc">Copy any text from a website and paste it here</div>
+          </div>
+          <svg class="method-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="method-btn" id="m-manual">
+          <div class="method-icon mi-manual">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="method-text">
+            <div class="method-title">Enter manually</div>
+            <div class="method-desc">Fill in the details yourself</div>
+          </div>
+          <svg class="method-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    `;
+
+    if (step==='link') return `
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr">
+        <span class="sheet-title">Paste a Link</span>
+        <div class="sheet-close-btn" id="sclose">✕</div>
+      </div>
+      <div class="extract-pad">
+        <div class="extract-hint">Paste the URL of the program's registration or info page. We'll pull out the name, dates, deadlines, and more.</div>
+        <div class="extract-box">
+          <input type="url" id="ex-url" placeholder="https://summercamps.com/register" value="${S.extractInput}" />
+        </div>
+        <button class="extract-btn" id="ex-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Extract Program Details
+        </button>
+        <div class="back-link" id="back-to-method">← Back</div>
+      </div>
+    `;
+
+    if (step==='paste') return `
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr">
+        <span class="sheet-title">Paste Program Info</span>
+        <div class="sheet-close-btn" id="sclose">✕</div>
+      </div>
+      <div class="extract-pad">
+        <div class="extract-hint">Copy any text from the program's page — registration details, an email, a brochure — and paste it here.</div>
+        <div class="extract-box">
+          <textarea id="ex-text" placeholder="Paste text here…">${S.extractInput}</textarea>
+        </div>
+        <button class="extract-btn" id="ex-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Extract Program Details
+        </button>
+        <div class="back-link" id="back-to-method">← Back</div>
+      </div>
+    `;
+
+    if (step==='extracting') return `
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr">
+        <span class="sheet-title">Reading…</span>
+        <div class="sheet-close-btn" id="sclose">✕</div>
+      </div>
+      <div class="extracting-pad">
+        <div class="spinner"></div>
+        <div class="extracting-title">Extracting program details</div>
+        <div class="extracting-sub">Finding dates, deadlines, fees, and locations</div>
+      </div>
+    `;
+
+    if (step==='form' || step==='edit') {
+      return html_program_form(step==='edit');
+    }
+
+    return '';
+  }
+
+  function html_program_form(isEdit) {
+    const fd = S.form;
+    const af = S.autofilled;
+
+    function inp(id, type, val, placeholder, autoKey) {
+      return `<input type="${type}" id="${id}" class="field-inp${af[autoKey]?' auto':''}" placeholder="${placeholder}" value="${val||''}" />`;
+    }
+
+    const childPills = CHILDREN.map(c=>`
+      <div class="child-sel-pill ${fd.childId===c.id?'active':''}" data-sc="${c.id}">${c.name} (${c.age}yr)</div>
+    `).join('');
+
+    const statusSel = ['Considering','Registered','Waitlisted'].map(s=>`
+      <div class="status-opt ${fd.status===s?'sel-'+s.toLowerCase():''}" data-st="${s}">${s}</div>
+    `).join('');
+
+    return `
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr">
+        <span class="sheet-title">${isEdit?'Edit Program':'Program Details'}</span>
+        <div class="sheet-close-btn" id="sclose">✕</div>
+      </div>
+      <div class="prog-form">
+        <div class="field-grp" style="margin-top:18px;">
+          <div class="field-lbl">For <span class="req-star">*</span></div>
+          <div class="child-sel">${childPills}</div>
+        </div>
+        <div class="field-grp">
+          <div class="field-lbl">Program Name <span class="req-star">*</span></div>
+          ${inp('f-name','text',fd.name,'e.g. Galileo Innovation Camp','name')}
+        </div>
+        <div class="field-row">
+          <div class="field-grp">
+            <div class="field-lbl">Start <span class="req-star">*</span></div>
+            ${inp('f-start','date',fd.startDate,'','startDate')}
+          </div>
+          <div class="field-grp">
+            <div class="field-lbl">End <span class="req-star">*</span></div>
+            ${inp('f-end','date',fd.endDate,'','endDate')}
+          </div>
+        </div>
+        <div class="field-grp">
+          <div class="field-lbl">Sign-Up Deadline <span class="req-star">*</span></div>
+          ${inp('f-deadline','date',fd.signUpDeadline,'','signUpDeadline')}
+        </div>
+        <div class="field-grp">
+          <div class="field-lbl">Status</div>
+          <div class="status-sel">${statusSel}</div>
+        </div>
+
+        <div class="form-sep"></div>
+        <div class="form-sec-lbl">Optional Details</div>
+
+        <div class="field-grp">
+          <div class="field-lbl">Program Fee</div>
+          ${inp('f-fee','number',fd.fee,'0','fee')}
+        </div>
+        <div class="field-grp">
+          <div class="field-lbl">Registration URL ${af.registrationUrl?'<span class="auto-badge">auto-filled</span>':''}</div>
+          ${inp('f-url','url',fd.registrationUrl,'https://','registrationUrl')}
+        </div>
+        <div class="field-grp">
+          <div class="field-lbl">Refund Deadline ${af.refundDeadline?'<span class="auto-badge">auto-filled</span>':''}</div>
+          ${inp('f-refund','date',fd.refundDeadline,'','refundDeadline')}
+        </div>
+        <div class="field-row">
+          <div class="field-grp">
+            <div class="field-lbl">Drop-Off ${af.dropOffLocation?'<span class="auto-badge">auto-filled</span>':''}</div>
+            ${inp('f-dropoff','text',fd.dropOffLocation,'Location','dropOffLocation')}
+          </div>
+          <div class="field-grp">
+            <div class="field-lbl">Pick-Up ${af.pickUpLocation?'<span class="auto-badge">auto-filled</span>':''}</div>
+            ${inp('f-pickup','text',fd.pickUpLocation,'Location','pickUpLocation')}
+          </div>
+        </div>
+        <div class="field-grp">
+          <div class="field-lbl">Tax Benefit Info ${af.taxBenefitInfo?'<span class="auto-badge">auto-filled</span>':''}</div>
+          ${inp('f-tax','text',fd.taxBenefitInfo,'e.g. FSA eligible','taxBenefitInfo')}
+          <div class="field-hint">e.g. FSA or dependent care FSA eligibility</div>
+        </div>
+
+        <button class="save-btn" id="save-prog">${isEdit?'Save Changes':'Add Program'}</button>
+        ${isEdit?`<div class="delete-lnk" id="del-prog">Delete this program</div>`:''}
+      </div>
+    `;
+  }
+
+  // ── Event binding ──
+  function bind() {
+    q('[data-child]',  el=>el.addEventListener('click',()=>{ S.child=el.dataset.child; render(); }));
+    q('[data-tab]',    el=>el.addEventListener('click',()=>{ S.tab=el.dataset.tab;     render(); }));
+    q('[data-edit]',   el=>el.addEventListener('click',()=>{
+      const p=S.programs.find(x=>x.id===el.dataset.edit);
+      if(p){ S.form={...p}; S.autofilled={}; S.sheet={open:true,step:'edit',editId:p.id}; render(); }
+    }));
+    q('[data-check]',  el=>el.addEventListener('click',()=>{
+      const pid=el.dataset.check, item=el.dataset.item;
+      if(!S.checklist[pid]) S.checklist[pid]={};
+      S.checklist[pid][item]=!S.checklist[pid][item];
+      persist(); render();
+    }));
+    q('[data-sc]', el=>el.addEventListener('click',()=>{ S.form.childId=el.dataset.sc; render(); }));
+    q('[data-st]', el=>el.addEventListener('click',()=>{ S.form.status=el.dataset.st;  render(); }));
+
+    on('overlay',    'click', closeSheet);
+    on('sclose',     'click', closeSheet);
+    on('fab',        'click', openSheet);
+    on('m-link',     'click', ()=>{ S.sheet.step='link';  S.extractInput=''; render(); });
+    on('m-paste',    'click', ()=>{ S.sheet.step='paste'; S.extractInput=''; render(); });
+    on('m-manual',   'click', ()=>{ S.form={childId:S.child,status:'Considering'}; S.autofilled={}; S.sheet.step='form'; render(); });
+    on('back-to-method','click',()=>{ S.sheet.step='method'; render(); });
+    on('ex-btn',     'click', runExtract);
+    on('ex-url',     'input', e=>{ S.extractInput=e.target.value; });
+    on('ex-text',    'input', e=>{ S.extractInput=e.target.value; });
+    on('save-prog',  'click', saveProgram);
+    on('del-prog',   'click', ()=>{
+      S.programs=S.programs.filter(p=>p.id!==S.sheet.editId);
+      persist(); closeSheet();
+    });
+    on('budget-edit','click', ()=>{ S.budget.editing=!S.budget.editing; render(); });
+    on('budget-save','click', ()=>{
+      const v=parseFloat(document.getElementById('budget-inp')?.value);
+      if(!isNaN(v)) S.budget.total=v;
+      S.budget.editing=false; persist(); render();
+    });
+  }
+
+  function q(sel, fn) { document.querySelectorAll(sel).forEach(fn); }
+  function on(id, ev, fn) { const el=document.getElementById(id); if(el) el.addEventListener(ev,fn); }
+
+  function openSheet() {
+    S.sheet={open:true,step:'method',editId:null};
+    S.form={childId:S.child,status:'Considering'};
+    S.autofilled={};
+    render();
+  }
+
+  function closeSheet() {
+    S.sheet={open:false,step:'closed',editId:null};
+    S.form={}; S.autofilled={};
+    render();
+  }
+
+  function runExtract() {
+    S.sheet.step='extracting'; render();
+    setTimeout(()=>{
+      const mock=MOCK_EXTRACTIONS[Math.floor(Math.random()*MOCK_EXTRACTIONS.length)];
+      S.form={ ...mock, childId:S.child };
+      S.autofilled={
+        name:true, startDate:true, endDate:true,
+        signUpDeadline:true,
+        refundDeadline:!!mock.refundDeadline,
+        fee:true,
+        dropOffLocation:!!mock.dropOffLocation,
+        pickUpLocation:!!mock.pickUpLocation,
+        registrationUrl:!!mock.registrationUrl,
+        taxBenefitInfo:!!mock.taxBenefitInfo
+      };
+      S.sheet.step='form'; render();
+    }, 1800);
+  }
+
+  function collectForm() {
+    const g=id=>document.getElementById(id);
+    return {
+      childId:         S.form.childId||S.child,
+      name:            g('f-name')?.value?.trim()||'',
+      startDate:       g('f-start')?.value||'',
+      endDate:         g('f-end')?.value||'',
+      signUpDeadline:  g('f-deadline')?.value||'',
+      refundDeadline:  g('f-refund')?.value||null,
+      fee:             parseFloat(g('f-fee')?.value)||null,
+      registrationUrl: g('f-url')?.value?.trim()||'',
+      dropOffLocation: g('f-dropoff')?.value?.trim()||'',
+      pickUpLocation:  g('f-pickup')?.value?.trim()||'',
+      taxBenefitInfo:  g('f-tax')?.value?.trim()||'',
+      status:          S.form.status||'Considering',
+      notes:           ''
+    };
+  }
+
+  function saveProgram() {
+    const d=collectForm();
+    if(!d.name||!d.startDate||!d.endDate||!d.signUpDeadline) {
+      alert('Please fill in: name, start/end dates, and sign-up deadline.');
+      return;
+    }
+    if(S.sheet.editId) {
+      S.programs=S.programs.map(p=>p.id===S.sheet.editId?{...p,...d}:p);
+    } else {
+      d.id='p'+Date.now(); S.programs.push(d);
+    }
+    persist(); closeSheet();
+  }
+
+  render();
+</script>
+</body>
+</html>

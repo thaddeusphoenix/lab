@@ -57,3 +57,12 @@ Design decisions should be tested with artifacts, not debated in meetings. Defau
 - **Marketing Manager** — Ensures brand and product experience feel cohesive. Provides visual and messaging assets that align with the product's design language.
 - **Sales Engineering Lead** — Understands how the product is demonstrated. Designs flows that are compelling in a demo context without sacrificing real-world usability.
 - **Customer Success Manager** — Learns which workflows cause support requests. Treats support friction as a design problem to solve.
+
+## Skills
+
+| Skill | When to reach for it |
+|---|---|
+| `create-prototype` | Decision is uncertain or a debate is going in circles — make something tangible |
+| `frontend-design` | Building any web component, page, or UI — produces distinctive, production-grade interfaces |
+| `ui-ux-pro-max` | Designing or reviewing UI for quality, accessibility, and consistency — 50+ styles, 161 palettes, 99 guidelines |
+| `vibe-coding` | Building functional prototypes fast through iterative AI prompting instead of static mockups |

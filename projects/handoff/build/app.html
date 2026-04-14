@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Handoff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #F8FAFC;
+  --surface:     #FFFFFF;
+  --surface-2:   #F1F5F9;
+  --border:      #E2E8F0;
+  --border-hi:   #CBD5E1;
+  --text:        #1E293B;
+  --text-dim:    #64748B;
+  --text-muted:  #94A3B8;
+  --amber:       #D97706;
+  --amber-dim:   #92400E;
+  --amber-bg:    #FFFBEB;
+  --amber-border:#FDE68A;
+  --green:       #16A34A;
+  --green-dim:   #15803D;
+  --green-bg:    #F0FDF4;
+  --green-border:#BBF7D0;
+  --red:         #DC2626;
+  --red-dim:     #991B1B;
+  --red-bg:      #FEF2F2;
+  --red-border:  #FECACA;
+  --blue:        #2563EB;
+  --blue-dim:    #1D4ED8;
+  --blue-bg:     #EFF6FF;
+  --blue-border: #BFDBFE;
+  --fd: 'Fira Sans', sans-serif;
+  --fb: 'Fira Sans', sans-serif;
+  --fm: 'Fira Code', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--fb);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+header h1 {
+  font-family: var(--fb);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text);
+  flex: 1;
+  line-height: 1;
+}
+
+header h1 em {
+  font-style: normal;
+  color: var(--blue);
+}
+
+#sms-badge {
+  display: none;
+  font-family: var(--fm);
+  font-size: .7rem;
+  font-weight: 500;
+  background: var(--amber-bg);
+  color: var(--amber);
+  border: 1px solid var(--amber-border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  letter-spacing: .04em;
+}
+
+
+
+#rules-badge {
+  font-family: var(--fm);
+  font-size: .7rem;
+  color: var(--text-muted);
+}
+
+header span.date {
+  font-family: var(--fm);
+  font-size: .7rem;
+  color: var(--text-muted);
+}
+
+/* ── Stats bar ───────────────────────────────────────────────────────────────── */
+#stats-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 20px 0 0;
+  font-family: var(--fb);
+  font-size: .8rem;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.stat:first-child { padding-left: 0; }
+
+.vsep {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+  margin: 0 20px 0 0;
+  flex-shrink: 0;
+}
+
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot-u { background: var(--amber); }
+.dot-g { background: var(--border-hi); }
+.dot-a { background: var(--green); }
+
+#cnt-u { color: var(--amber); font-weight: 600; }
+#cnt-g { color: var(--text-muted); }
+#cnt-a { color: var(--green); font-weight: 600; }
+
+#bulk-btn {
+  margin-left: auto;
+  font-family: var(--fb);
+  font-size: .78rem;
+  font-weight: 600;
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green-border);
+  border-radius: 6px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+
+#bulk-btn:hover { background: #dcfce7; border-color: var(--green-dim); }
+#bulk-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+#bulk-btn.hidden { display: none; }
+
+/* ── Main ────────────────────────────────────────────────────────────────────── */
+#main {
+  padding: 20px 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.sec-title {
+  font-family: var(--fb);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+#loading {
+  padding: 80px;
+  text-align: center;
+  font-family: var(--fm);
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+/* ── Activity cards ──────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-hi);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 4px;
+  opacity: 0;
+  animation: cardIn .25s ease-out forwards;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: none; opacity: 1; }
+}
+
+#activity-list > .card:nth-child(1)  { animation-delay: 20ms; }
+#activity-list > .card:nth-child(2)  { animation-delay: 40ms; }
+#activity-list > .card:nth-child(3)  { animation-delay: 60ms; }
+#activity-list > .card:nth-child(4)  { animation-delay: 80ms; }
+#activity-list > .card:nth-child(5)  { animation-delay: 100ms; }
+#activity-list > .card:nth-child(6)  { animation-delay: 120ms; }
+#activity-list > .card:nth-child(7)  { animation-delay: 140ms; }
+#activity-list > .card:nth-child(8)  { animation-delay: 160ms; }
+#activity-list > .card:nth-child(9)  { animation-delay: 180ms; }
+#activity-list > .card:nth-child(10) { animation-delay: 200ms; }
+#activity-list > .card:nth-child(n+11) { animation-delay: 220ms; }
+
+.card:hover { border-color: var(--border-hi); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+
+.card.has-update {
+  border-left-color: var(--amber);
+  background: linear-gradient(90deg, #fffbeb 0%, var(--surface) 140px);
+}
+
+.card.approved {
+  border-left-color: var(--green);
+  background: linear-gradient(90deg, #f0fdf4 0%, var(--surface) 140px);
+  opacity: .85;
+}
+
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card-name {
+  font-family: var(--fb);
+  font-weight: 600;
+  font-size: .92rem;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.card.approved .card-name { color: var(--text-dim); }
+
+.card-meta {
+  font-family: var(--fb);
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.card-pct {
+  font-family: var(--fm);
+  font-size: .7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.card.has-update .card-pct { color: var(--amber); }
+.card.approved   .card-pct { color: var(--green); }
+
+/* ── Pills ───────────────────────────────────────────────────────────────────── */
+.pill {
+  font-family: var(--fb);
+  font-size: .72rem;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: .01em;
+}
+
+.pill-update {
+  background: var(--amber-bg);
+  color: var(--amber);
+  border: 1px solid var(--amber-border);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.pill-update:hover { background: #fef3c7; border-color: #fbbf24; }
+.pill-update:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.pill-approved {
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green-border);
+}
+
+.pill-gap {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* ── Review panel ────────────────────────────────────────────────────────────── */
+.review-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--amber-border);
+}
+
+.sms-origin {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-family: var(--fm);
+  font-size: .72rem;
+  color: var(--text-dim);
+  line-height: 1.9;
+}
+
+.sms-origin b {
+  color: var(--text-muted);
+  font-weight: 500;
+  display: inline-block;
+  width: 54px;
+  text-transform: uppercase;
+  font-size: .65rem;
+  letter-spacing: .06em;
+}
+
+/* ── PCT comparison ──────────────────────────────────────────────────────────── */
+.pct-compare {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.pct-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pct-row:last-child { margin-bottom: 0; }
+
+.pct-label {
+  font-family: var(--fb);
+  font-size: .68rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  width: 58px;
+  flex-shrink: 0;
+}
+
+.pct-track {
+  flex: 1;
+  background: var(--border);
+  border-radius: 2px;
+  height: 5px;
+  overflow: hidden;
+}
+
+.pct-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+
+.pct-fill.current  { background: var(--border-hi); }
+.pct-fill.proposed { background: var(--blue); }
+
+.pct-val {
+  font-family: var(--fm);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--text);
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.conf-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.conf-bar {
+  flex: 1;
+  background: var(--border);
+  border-radius: 2px;
+  height: 4px;
+  overflow: hidden;
+}
+
+.conf-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--blue);
+  transition: width .4s;
+}
+
+.conf-label {
+  font-family: var(--fb);
+  font-size: .7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────────── */
+.actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.btn-a {
+  font-family: var(--fb);
+  font-size: .78rem;
+  font-weight: 600;
+  background: var(--green);
+  color: #fff;
+  border: 1px solid var(--green-dim);
+  border-radius: 6px;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: background .15s;
+  min-height: 32px;
+}
+.btn-a:hover { background: var(--green-dim); }
+.btn-a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.btn-o {
+  font-family: var(--fb);
+  font-size: .78rem;
+  font-weight: 500;
+  background: var(--blue-bg);
+  color: var(--blue);
+  border: 1px solid var(--blue-border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background .15s;
+  min-height: 32px;
+}
+.btn-o:hover { background: #dbeafe; }
+.btn-o:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.btn-dismiss {
+  font-family: var(--fb);
+  font-size: .76rem;
+  font-weight: 400;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+  min-height: 32px;
+}
+.btn-dismiss:hover { color: var(--text-dim); border-color: var(--border-hi); background: var(--surface-2); }
+.btn-dismiss:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.btn-undo {
+  font-family: var(--fb);
+  font-size: .72rem;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: color .15s, border-color .15s;
+}
+.btn-undo:hover { color: var(--text-dim); border-color: var(--border-hi); }
+.btn-undo:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.ov-form {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  margin-top: 9px;
+}
+
+.ov-form input {
+  background: var(--surface);
+  border: 1px solid var(--border-hi);
+  color: var(--text);
+  font-family: var(--fm);
+  font-size: .82rem;
+  border-radius: 4px;
+  padding: 6px 9px;
+  width: 80px;
+  outline: none;
+  transition: border-color .15s;
+}
+.ov-form input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-border); }
+
+.ov-form button {
+  font-family: var(--fb);
+  font-size: .78rem;
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  border: 1px solid var(--border-hi);
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.ov-form button:hover { background: var(--border); color: var(--text); }
+.ov-form button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* ── Unmatched queue ─────────────────────────────────────────────────────────── */
+#queue-section { margin-top: 28px; }
+
+.q-card {
+  background: var(--surface);
+  border: 1px solid var(--red-border);
+  border-left: 3px solid var(--red);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.q-body { flex: 1; }
+
+.q-from {
+  font-family: var(--fb);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--red);
+}
+
+.q-text {
+  font-size: .82rem;
+  color: var(--text-dim);
+  font-style: italic;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.q-note {
+  font-family: var(--fm);
+  font-size: .68rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.q-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: color .15s, background .15s;
+}
+.q-dismiss:hover { color: var(--red); background: var(--red-bg); }
+.q-dismiss:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* ── Reassign picker ─────────────────────────────────────────────────────────── */
+.btn-reassign {
+  font-family: var(--fb);
+  font-size: .76rem;
+  font-weight: 500;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+  min-height: 32px;
+}
+.btn-reassign:hover { color: var(--blue); border-color: var(--blue-border); background: var(--blue-bg); }
+.btn-reassign:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.reassign-panel {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+.reassign-panel input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--fb);
+  font-size: .82rem;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-bottom-color .15s;
+}
+.reassign-panel input:focus { border-bottom-color: var(--blue); }
+.reassign-panel input::placeholder { color: var(--text-muted); }
+
+.reassign-list { max-height: 200px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-hi) var(--surface); }
+
+.reassign-item {
+  padding: 9px 12px;
+  font-size: .82rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background .1s;
+}
+.reassign-item:hover { background: var(--blue-bg); }
+.reassign-item:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+.reassign-item:last-child { border-bottom: none; }
+
+.reassign-item-name {
+  font-family: var(--fb);
+  font-weight: 600;
+  font-size: .85rem;
+  color: var(--text);
+}
+
+.reassign-item-meta { font-size: .7rem; color: var(--text-muted); margin-top: 1px; }
+
+.reassign-none {
+  padding: 16px;
+  font-family: var(--fb);
+  font-size: .75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>HAND<em>OFF</em></h1>
+  <span id="sms-badge">SMS</span>
+  <span id="rules-badge">0 rules</span>
+  <span class="date" id="hdr-date"></span>
+</header>
+<div id="stats-bar">
+  <div class="stat"><div class="dot dot-u"></div><span id="cnt-u">0 Updates</span></div>
+  <div class="vsep"></div>
+  <div class="stat"><div class="dot dot-g"></div><span id="cnt-g">0 No update</span></div>
+  <div class="vsep"></div>
+  <div class="stat"><div class="dot dot-a"></div><span id="cnt-a">0 Approved</span></div>
+  <button id="bulk-btn" class="hidden" onclick="bulkApprove()">Approve All</button>
+</div>
+<div id="main">
+  <div id="loading">Connecting to OpenProject…</div>
+  <div id="schedule" style="display:none">
+    <div class="sec-title">Schedule — <span id="act-count">0</span> activities</div>
+    <div id="activity-list"></div>
+    <div id="queue-section"></div>
+  </div>
+</div>
+
+<script>
+var wpList = [];          // [{id, subject, area, trade, activity_id, pct, status, smsEntry}]
+var reviewOpen = {};
+var ovOpen = {};
+var unmatchedSms = [];
+var reassignState = null; // {smsEntry, originalWpId, search}
+var rendered = false;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+  loadSchedule();
+  refreshRules();
+  setInterval(pollSms, 3000);
+});
+
+async function loadSchedule() {
+  try {
+    var res = await fetch('/api/work_packages');
+    var wps = await res.json();
+    wpList = wps.map(function(wp) {
+      return Object.assign({}, wp, {status: 'gap', smsEntry: null});
+    });
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('schedule').style.display = 'block';
+    render();
+  } catch(e) {
+    document.getElementById('loading').textContent = 'Could not reach server — is Flask running?';
+  }
+}
+
+// ── SMS polling ───────────────────────────────────────────────────────────────
+
+async function pollSms() {
+  try {
+    var res = await fetch('/api/sms/queue');
+    var queue = await res.json();
+
+    var badge = document.getElementById('sms-badge');
+    if (queue.length) {
+      badge.style.display = 'inline';
+      badge.textContent = queue.length + ' SMS';
+    } else {
+      badge.style.display = 'none';
+    }
+
+    // Track which WP IDs are currently pending
+    var pendingIds = {};
+    var newUnmatched = [];
+
+    for (var i = 0; i < queue.length; i++) {
+      var entry = queue[i];
+      if (entry.matches && entry.matches.length > 0) {
+        var wpId = entry.matches[0].id;
+        pendingIds[wpId] = entry;
+      } else {
+        newUnmatched.push(entry);
+      }
+    }
+
+    // Attach/detach update state
+    for (var j = 0; j < wpList.length; j++) {
+      var wp = wpList[j];
+      if (pendingIds[wp.id] && wp.status !== 'approved') {
+        wp.status = 'update';
+        wp.smsEntry = pendingIds[wp.id];
+      } else if (wp.status === 'update' && !pendingIds[wp.id]) {
+        wp.status = 'gap';
+        wp.smsEntry = null;
+      }
+    }
+
+    unmatchedSms = newUnmatched;
+    render();
+  } catch(e) { /* server restarting */ }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
+function render() {
+  var list = document.getElementById('activity-list');
+  list.innerHTML = '';
+  var nu = 0, ng = 0, na = 0;
+
+  for (var i = 0; i < wpList.length; i++) {
+    var wp = wpList[i];
+    if (wp.status === 'update') nu++;
+    else if (wp.status === 'gap') ng++;
+    else na++;
+
+    var cls = 'card' + (wp.status === 'update' ? ' has-update' : wp.status === 'approved' ? ' approved' : '');
+    var pill = wp.status === 'update'
+      ? '<button class="pill pill-update" onclick="toggleReview(\'' + wp.id + '\')">📩 Update received</button>'
+      : wp.status === 'approved'
+        ? '<span class="pill pill-approved">✓ Approved</span>'
+        : '<span class="pill pill-gap">No update</span>';
+
+    var pctLine = '<div class="card-pct">' + (wp.pct > 0 ? wp.pct + '% complete' : 'Not started') + '</div>';
+    var h = '<div class="card-head"><div><div class="card-name">' + wp.subject + '</div>'
+          + '<div class="card-meta">' + wp.trade + (wp.area ? ' — ' + wp.area : '') + '</div>'
+          + pctLine + '</div>' + pill + '</div>';
+
+    if (wp.status === 'update' && reviewOpen[wp.id]) {
+      var entry = wp.smsEntry;
+      var match = entry.matches[0];
+      var pct = match.proposed_pct;
+      var conf = match.confidence || 0;
+      h += '<div class="review-panel">';
+      h += '<div class="sms-origin"><b>From</b> ' + entry.foreman_name + ' (' + entry.foreman_trade + ')<br>'
+         + '<b>Message</b> \u201c' + entry.message + '\u201d</div>';
+      var curPct = wp.pct || 0;
+      h += '<div class="pct-compare">'
+         + '<div class="pct-row"><span class="pct-label">Current</span><div class="pct-track"><div class="pct-fill current" style="width:' + curPct + '%"></div></div><span class="pct-val">' + curPct + '%</span></div>'
+         + '<div class="pct-row"><span class="pct-label">Proposed</span><div class="pct-track"><div class="pct-fill proposed" style="width:' + (pct !== null ? pct : 0) + '%"></div></div><span class="pct-val">' + (pct !== null ? pct + '%' : '—') + '</span></div>'
+         + '<div class="conf-row"><div class="conf-bar"><div class="conf-fill" style="width:' + conf + '%"></div></div><span class="conf-label">' + conf + '% confidence</span></div>'
+         + '</div>';
+      h += '<div class="actions"><button class="btn-a" onclick="approve(\'' + wp.id + '\')">✓ Approve</button>'
+         + '<button class="btn-o" onclick="toggleOv(\'' + wp.id + '\')">✎ Override %</button>'
+         + '<button class="btn-reassign" onclick="toggleReassign(\'' + entry.id + '\',\'' + wp.id + '\')">↔ Reassign</button>'
+         + '<button class="btn-dismiss" onclick="dismiss(\'' + wp.id + '\')">Dismiss</button></div>';
+      if (ovOpen[wp.id]) {
+        h += '<div class="ov-form"><input type="number" id="ov-' + wp.id + '" min="0" max="100" placeholder="0–100" value="' + (pct !== null ? pct : '') + '">'
+           + '<button onclick="submitOv(\'' + wp.id + '\')">Set & Approve</button></div>';
+      }
+      if (reassignState && reassignState.smsEntry.id === entry.id) {
+        h += renderReassignPicker();
+      }
+      h += '</div>';
+    }
+
+    if (wp.status === 'approved') {
+      h += '<button class="btn-undo" onclick="undo(\'' + wp.id + '\')">↩ Undo</button>';
+    }
+
+    var card = document.createElement('div');
+    card.className = cls;
+    card.id = 'card-' + wp.id;
+    card.innerHTML = h;
+    if (rendered) { card.style.opacity = '1'; card.style.animation = 'none'; }
+    list.appendChild(card);
+  }
+  rendered = true;
+
+  document.getElementById('cnt-u').textContent = nu + ' Updates';
+  document.getElementById('cnt-g').textContent = ng + ' No update';
+  document.getElementById('cnt-a').textContent = na + ' Approved';
+  document.getElementById('act-count').textContent = wpList.length;
+  document.getElementById('bulk-btn').classList.toggle('hidden', nu === 0);
+  renderQueue();
+}
+
+function renderQueue() {
+  var sec = document.getElementById('queue-section');
+  if (!unmatchedSms.length) { sec.innerHTML = ''; return; }
+  var h = '<div class="sec-title" style="margin-top:4px">Unmatched messages (' + unmatchedSms.length + ')</div>';
+  for (var i = 0; i < unmatchedSms.length; i++) {
+    var m = unmatchedSms[i];
+    h += '<div class="q-card"><div class="q-body">'
+       + '<div class="q-from">' + m.foreman_name + ' · ' + m.foreman_trade + '</div>'
+       + '<div class="q-text">\u201c' + m.message + '\u201d</div>'
+       + '<div style="margin-top:7px"><button class="btn-reassign" onclick="toggleReassign(\'' + m.id + '\',null)">↔ Assign to activity</button></div>'
+       + (reassignState && reassignState.smsEntry.id === m.id ? renderReassignPicker() : '')
+       + '</div><button class="q-dismiss" onclick="dismissUnmatched(\'' + m.id + '\')" title="Dismiss">×</button></div>';
+  }
+  sec.innerHTML = h;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+
+function toggleReview(id) { reviewOpen[id] = !reviewOpen[id]; render(); }
+function toggleOv(id) { ovOpen[id] = !ovOpen[id]; render(); }
+function undo(id) { var wp = find(id); if (wp) { wp.status = 'gap'; wp.approvedPct = null; } render(); }
+
+function toggleReassign(entryId, originalWpId) {
+  if (reassignState && reassignState.smsEntry.id === entryId) {
+    reassignState = null;
+  } else {
+    var entry = findEntry(entryId);
+    if (!entry) return;
+    reassignState = {smsEntry: entry, originalWpId: originalWpId, search: ''};
+    if (originalWpId) reviewOpen[originalWpId] = true;
+  }
+  render();
+}
+
+function updateReassignSearch(val) {
+  if (reassignState) { reassignState.search = val; render(); }
+}
+
+function renderReassignPicker() {
+  var q = reassignState.search.toLowerCase();
+  var filtered = wpList.filter(function(wp) {
+    if (reassignState.originalWpId && wp.id == reassignState.originalWpId) return false;
+    if (!q) return true;
+    return (wp.subject + ' ' + wp.trade + ' ' + wp.area).toLowerCase().indexOf(q) !== -1;
+  });
+  var items = filtered.slice(0, 20).map(function(wp) {
+    return '<div class="reassign-item" onclick="doReassign(' + wp.id + ')">'
+         + '<div><div class="reassign-item-name">' + wp.subject + '</div>'
+         + '<div class="reassign-item-meta">' + wp.trade + (wp.area ? ' — ' + wp.area : '') + '</div></div>'
+         + '<span style="font-size:.72rem;color:#2563EB;font-weight:600;font-family:\'Fira Sans\',sans-serif">Assign →</span></div>';
+  }).join('');
+  return '<div class="reassign-panel">'
+       + '<input type="text" placeholder="Search activities…" value="' + reassignState.search + '" oninput="updateReassignSearch(this.value)">'
+       + '<div class="reassign-list">' + (items || '<div class="reassign-none">No matching activities</div>') + '</div>'
+       + '</div>';
+}
+
+function findEntry(entryId) {
+  for (var i = 0; i < unmatchedSms.length; i++) if (unmatchedSms[i].id === entryId) return unmatchedSms[i];
+  for (var j = 0; j < wpList.length; j++) if (wpList[j].smsEntry && wpList[j].smsEntry.id === entryId) return wpList[j].smsEntry;
+  return null;
+}
+
+async function doReassign(newWpId) {
+  var state = reassignState;
+  if (!state) return;
+  var entry = state.smsEntry;
+  var newWp = find(newWpId);
+  if (!newWp) return;
+
+  var type = state.originalWpId ? 'correct' : 'confirm';
+  var payload = {
+    type: type,
+    message: entry.message,
+    foreman_id: entry.foreman_id,
+    foreman_name: entry.foreman_name,
+    wp_id: newWp.id,
+    wp_name: newWp.subject,
+    pct: entry.matches && entry.matches.length ? entry.matches[0].proposed_pct : null
+  };
+  if (type === 'correct') {
+    payload.original_wp_id = state.originalWpId;
+  }
+
+  await fetch('/api/decision', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+  await fetch('/api/sms/' + entry.id + '/resolve', {method:'POST'});
+
+  // Clear the old WP's update state if it was matched
+  if (state.originalWpId) {
+    var oldWp = find(state.originalWpId);
+    if (oldWp) { oldWp.status = 'gap'; oldWp.smsEntry = null; delete reviewOpen[oldWp.id]; }
+  } else {
+    unmatchedSms = unmatchedSms.filter(function(e) { return e.id !== entry.id; });
+  }
+
+  newWp.status = 'approved';
+  newWp.smsEntry = null;
+  reassignState = null;
+  refreshRules();
+  render();
+}
+
+async function approve(id) {
+  var wp = find(id);
+  if (!wp || !wp.smsEntry) return;
+  var entry = wp.smsEntry;
+  var match = entry.matches[0];
+  var pct = match.proposed_pct;
+  await callDecision('confirm', entry, wp, pct);
+  await fetch('/api/sms/' + entry.id + '/resolve', {method:'POST'});
+  wp.status = 'approved';
+  wp.smsEntry = null;
+  delete reviewOpen[id];
+  delete ovOpen[id];
+  refreshRules();
+  render();
+}
+
+async function submitOv(id) {
+  var wp = find(id);
+  if (!wp || !wp.smsEntry) return;
+  var input = document.getElementById('ov-' + id);
+  var val = parseInt(input.value, 10);
+  if (isNaN(val) || val < 0 || val > 100) return;
+  var entry = wp.smsEntry;
+  await callDecision('confirm', entry, wp, val);
+  await fetch('/api/sms/' + entry.id + '/resolve', {method:'POST'});
+  wp.status = 'approved';
+  wp.smsEntry = null;
+  delete reviewOpen[id];
+  delete ovOpen[id];
+  refreshRules();
+  render();
+}
+
+async function dismiss(id) {
+  var wp = find(id);
+  if (!wp || !wp.smsEntry) return;
+  await fetch('/api/sms/' + wp.smsEntry.id + '/resolve', {method:'POST'});
+  wp.status = 'gap';
+  wp.smsEntry = null;
+  delete reviewOpen[id];
+  render();
+}
+
+async function dismissUnmatched(entryId) {
+  await fetch('/api/sms/' + entryId + '/resolve', {method:'POST'});
+  unmatchedSms = unmatchedSms.filter(function(e) { return e.id !== entryId; });
+  renderQueue();
+}
+
+async function bulkApprove() {
+  for (var i = 0; i < wpList.length; i++) {
+    var wp = wpList[i];
+    if (wp.status === 'update' && wp.smsEntry) {
+      var entry = wp.smsEntry;
+      var pct = entry.matches[0].proposed_pct;
+      await callDecision('confirm', entry, wp, pct);
+      await fetch('/api/sms/' + entry.id + '/resolve', {method:'POST'});
+      wp.status = 'approved';
+      wp.smsEntry = null;
+      delete reviewOpen[wp.id];
+      delete ovOpen[wp.id];
+    }
+  }
+  refreshRules();
+  render();
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function find(id) {
+  for (var i = 0; i < wpList.length; i++) if (wpList[i].id == id) return wpList[i];
+  return null;
+}
+
+async function callDecision(type, entry, wp, pct) {
+  await fetch('/api/decision', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      type: type,
+      message: entry.message,
+      foreman_id: entry.foreman_id,
+      foreman_name: entry.foreman_name,
+      wp_id: wp.id,
+      wp_name: wp.subject,
+      pct: pct
+    })
+  });
+}
+
+async function refreshRules() {
+  try {
+    var res = await fetch('/api/rules');
+    var rules = await res.json();
+    document.getElementById('rules-badge').textContent = rules.length + ' rule' + (rules.length !== 1 ? 's' : '');
+  } catch(e) {}
+}
+</script>
+</body>
+</html>

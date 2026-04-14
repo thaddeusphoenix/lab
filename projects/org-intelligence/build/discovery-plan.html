@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>30-Day Discovery Plan — CivilGrid Intelligence Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a1a;
+    --ink-light: #555;
+    --ink-faint: #888;
+    --rule: #e0ddd8;
+    --bg: #faf9f7;
+    --accent: #2a5c45;
+    --accent-light: #e8f2ed;
+    --accent-mid: #4a8c6a;
+    --warm: #c8a96e;
+    --warm-light: #fdf6e8;
+    --warm-mid: #e8c888;
+    --amber: #d4822a;
+    --amber-light: #fef3e8;
+    --indigo: #3d4fa0;
+    --indigo-light: #eef0fb;
+    --col: 680px;
+    --wide: 900px;
+  }
+
+  html { font-size: 17px; scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Cover ─────────────────────────────────────────────── */
+
+  .cover {
+    background: #0f1a15;
+    min-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 72px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(42,92,69,0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(42,92,69,0.12) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  }
+
+  .cover-glow-1 {
+    position: absolute;
+    top: -120px; right: -80px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(42,92,69,0.35) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .cover-glow-2 {
+    position: absolute;
+    bottom: 80px; left: 100px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(200,169,110,0.18) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .cover-inner {
+    max-width: var(--wide);
+    margin: 0 auto;
+    width: 100%;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cover-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(42,92,69,0.3);
+    border: 1px solid rgba(42,92,69,0.5);
+    padding: 5px 14px;
+    border-radius: 2px;
+    margin-bottom: 36px;
+  }
+
+  .cover-tag span {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7ec8a0;
+  }
+
+  .cover-tag-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #7ec8a0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .cover h1 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: clamp(2.6rem, 5vw, 4.2rem);
+    line-height: 1.08;
+    font-weight: 400;
+    color: #faf9f7;
+    margin-bottom: 24px;
+    max-width: 640px;
+  }
+
+  .cover h1 em {
+    font-style: italic;
+    color: #7ec8a0;
+  }
+
+  .cover-sub {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: rgba(250,249,247,0.5);
+    max-width: 500px;
+    margin-bottom: 56px;
+    font-weight: 300;
+  }
+
+  .cover-stats {
+    display: flex;
+    gap: 0;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    width: fit-content;
+  }
+
+  .cover-stat {
+    padding: 18px 32px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cover-stat:last-child { border-right: none; }
+
+  .cover-stat-val {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 2rem;
+    color: #faf9f7;
+    line-height: 1;
+  }
+
+  .cover-stat-label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(250,249,247,0.35);
+  }
+
+  /* ── Page layout ─────────────────────────────────────── */
+
+  .page {
+    max-width: var(--wide);
+    margin: 0 auto;
+    padding: 80px 64px 120px;
+  }
+
+  /* ── Section ─────────────────────────────────────────── */
+
+  .section {
+    margin-bottom: 80px;
+    padding-bottom: 80px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .section-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .section-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+    max-width: 60px;
+  }
+
+  .section h2 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: clamp(1.7rem, 2.8vw, 2.2rem);
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+
+  .section-intro {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--ink-light);
+    max-width: var(--col);
+    margin-bottom: 40px;
+    font-weight: 300;
+  }
+
+  .section h3 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink);
+    margin: 44px 0 16px;
+  }
+
+  p {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--ink);
+    margin-bottom: 16px;
+    max-width: var(--col);
+  }
+
+  p:last-child { margin-bottom: 0; }
+
+  /* ── Unknowns grid ───────────────────────────────────── */
+
+  .unknowns-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 32px 0;
+  }
+
+  .unknown-card {
+    background: white;
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .unknown-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--rule);
+    line-height: 1;
+  }
+
+  .unknown-card h4 {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  .unknown-card p {
+    font-size: 0.82rem;
+    color: var(--ink-light);
+    line-height: 1.65;
+    margin: 0;
+    max-width: none;
+  }
+
+  .unknown-answer {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--accent-light);
+    border-radius: 3px;
+    margin-top: auto;
+  }
+
+  .unknown-answer-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    white-space: nowrap;
+    padding-top: 1px;
+  }
+
+  .unknown-answer p {
+    font-size: 0.78rem;
+    color: var(--accent);
+    margin: 0;
+    line-height: 1.5;
+    max-width: none;
+  }
+
+  /* ── Week banner ─────────────────────────────────────── */
+
+  .week-banner {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 36px;
+  }
+
+  .week-banner-accent {
+    width: 5px;
+    flex-shrink: 0;
+  }
+
+  .week-banner-accent.w1 { background: var(--warm); }
+  .week-banner-accent.w2 { background: var(--accent); }
+  .week-banner-accent.w3 { background: var(--indigo); }
+  .week-banner-accent.w4 { background: var(--amber); }
+
+  .week-banner-body {
+    padding: 20px 24px;
+    background: white;
+    flex: 1;
+  }
+
+  .week-banner-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+
+  .week-banner-title {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .week-banner-goal {
+    font-size: 0.85rem;
+    color: var(--ink-light);
+    line-height: 1.5;
+  }
+
+  /* ── Day rows ────────────────────────────────────────── */
+
+  .day-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .day-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    border-bottom: 1px solid var(--rule);
+    background: white;
+  }
+
+  .day-row:last-child { border-bottom: none; }
+  .day-row:nth-child(even) { background: #faf9f7; }
+
+  .day-label {
+    padding: 20px 20px;
+    border-right: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 2px;
+    background: inherit;
+  }
+
+  .day-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--ink-faint);
+  }
+
+  .day-range {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .day-content {
+    padding: 20px 24px;
+  }
+
+  .day-content h4 {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .day-content p {
+    font-size: 0.85rem;
+    color: var(--ink-light);
+    line-height: 1.65;
+    margin: 0 0 10px;
+    max-width: none;
+  }
+
+  .day-content p:last-child { margin-bottom: 0; }
+
+  .day-output {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 3px 10px;
+    border-radius: 2px;
+    margin-top: 8px;
+  }
+
+  /* ── Interview table ─────────────────────────────────── */
+
+  .interview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin: 20px 0 28px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .interview-table thead tr {
+    background: var(--ink);
+  }
+
+  .interview-table thead th {
+    padding: 12px 18px;
+    text-align: left;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(250,249,247,0.6);
+  }
+
+  .interview-table tbody tr {
+    border-bottom: 1px solid var(--rule);
+    background: white;
+  }
+
+  .interview-table tbody tr:nth-child(even) { background: #faf9f7; }
+  .interview-table tbody tr:last-child { border-bottom: none; }
+
+  .interview-table tbody td {
+    padding: 14px 18px;
+    vertical-align: top;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
+  .interview-table tbody td:first-child {
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 0.85rem;
+  }
+
+  .interview-table tbody td:last-child {
+    color: var(--ink-light);
+    font-size: 0.85rem;
+  }
+
+  /* ── Signal map table ────────────────────────────────── */
+
+  .signal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    margin: 20px 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .signal-table thead tr {
+    background: #1e1e1e;
+  }
+
+  .signal-table thead th {
+    padding: 10px 16px;
+    text-align: left;
+    color: #7ec8a0;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  .signal-table tbody tr {
+    border-bottom: 1px solid #2a2a2a;
+    background: #252525;
+  }
+
+  .signal-table tbody tr:nth-child(even) { background: #1e1e1e; }
+  .signal-table tbody tr:last-child { border-bottom: none; }
+
+  .signal-table tbody td {
+    padding: 10px 16px;
+    color: #d4d0c8;
+    vertical-align: middle;
+  }
+
+  .signal-table tbody td:first-child { color: #faf9f7; font-weight: 500; }
+  .signal-table tbody td:nth-child(2) { color: #7ec8a0; }
+
+  .blank-cell {
+    color: #444 !important;
+    font-style: italic;
+  }
+
+  /* ── Question list ───────────────────────────────────── */
+
+  .question-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+
+  .question-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--rule);
+    background: white;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
+  .question-item:last-child { border-bottom: none; }
+  .question-item:nth-child(even) { background: #faf9f7; }
+
+  .question-mark {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.1rem;
+    color: var(--warm);
+    flex-shrink: 0;
+    line-height: 1.4;
+  }
+
+  /* ── Artifacts grid ──────────────────────────────────── */
+
+  .artifacts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 28px 0;
+  }
+
+  .artifact-card {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 18px 20px;
+    background: white;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .artifact-week {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .artifact-week.w1 { background: var(--warm-light); color: #8a6830; }
+  .artifact-week.w2 { background: var(--accent-light); color: var(--accent); }
+  .artifact-week.w3 { background: var(--indigo-light); color: var(--indigo); }
+  .artifact-week.w4 { background: var(--amber-light); color: var(--amber); }
+
+  .artifact-body { flex: 1; }
+
+  .artifact-filename {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .artifact-desc {
+    font-size: 0.8rem;
+    color: var(--ink-light);
+    line-height: 1.55;
+  }
+
+  /* ── Decision gates ──────────────────────────────────── */
+
+  .gate-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 28px 0;
+  }
+
+  .gate-card {
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+  }
+
+  .gate-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .gate-header.g1 { background: var(--warm-light); border-bottom-color: #e8d4a0; }
+  .gate-header.g2 { background: var(--accent-light); border-bottom-color: #b8d8c8; }
+  .gate-header.g3 { background: var(--indigo-light); border-bottom-color: #c0c8e8; }
+
+  .gate-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .gate-badge.g1 { color: #8a6830; }
+  .gate-badge.g2 { color: var(--accent); }
+  .gate-badge.g3 { color: var(--indigo); }
+
+  .gate-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+
+  .gate-timing {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+  .gate-body {
+    padding: 18px 22px;
+    background: white;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .gate-col-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+
+  .gate-body p {
+    font-size: 0.84rem;
+    color: var(--ink-light);
+    line-height: 1.65;
+    margin: 0;
+    max-width: none;
+  }
+
+  /* ── Observation table ───────────────────────────────── */
+
+  .observe-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin: 20px 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .observe-table thead tr { background: var(--ink); }
+
+  .observe-table thead th {
+    padding: 12px 18px;
+    text-align: left;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(250,249,247,0.6);
+  }
+
+  .observe-table tbody tr {
+    border-bottom: 1px solid var(--rule);
+    background: white;
+  }
+
+  .observe-table tbody tr:nth-child(even) { background: #faf9f7; }
+  .observe-table tbody tr:last-child { border-bottom: none; }
+
+  .observe-table tbody td {
+    padding: 14px 18px;
+    vertical-align: top;
+    line-height: 1.6;
+    color: var(--ink);
+    font-size: 0.85rem;
+  }
+
+  .observe-table tbody td:first-child { font-weight: 600; white-space: nowrap; }
+  .observe-table tbody td:last-child { color: var(--ink-light); }
+
+  /* ── Pull quote ──────────────────────────────────────── */
+
+  .pull-quote {
+    margin: 36px 0;
+    padding: 28px 36px;
+    border-left: 3px solid var(--accent);
+    background: var(--accent-light);
+    border-radius: 0 4px 4px 0;
+    max-width: var(--col);
+  }
+
+  .pull-quote p {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.15rem;
+    line-height: 1.5;
+    color: var(--ink);
+    font-style: italic;
+    margin: 0;
+    max-width: none;
+  }
+
+  /* ── Timeline bar ────────────────────────────────────── */
+
+  .timeline-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 0 0 56px;
+  }
+
+  .timeline-seg {
+    padding: 18px 20px;
+    border-right: 1px solid var(--rule);
+    background: white;
+  }
+
+  .timeline-seg:last-child { border-right: none; }
+
+  .timeline-seg-week {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .timeline-seg-week.w1 { color: #8a6830; }
+  .timeline-seg-week.w2 { color: var(--accent); }
+  .timeline-seg-week.w3 { color: var(--indigo); }
+  .timeline-seg-week.w4 { color: var(--amber); }
+
+  .timeline-seg-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--ink);
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+
+  .timeline-seg-days {
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+  }
+
+  .timeline-progress {
+    height: 3px;
+    border-radius: 2px;
+    margin-top: 12px;
+  }
+
+  .timeline-progress.w1 { background: var(--warm); width: 100%; }
+  .timeline-progress.w2 { background: var(--accent-mid); width: 100%; }
+  .timeline-progress.w3 { background: var(--indigo); width: 100%; }
+  .timeline-progress.w4 { background: var(--amber); width: 100%; }
+
+  /* ── Footer ──────────────────────────────────────────── */
+
+  .doc-footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .doc-footer p {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    max-width: none;
+    margin: 0;
+  }
+
+  /* ── Responsive ──────────────────────────────────────── */
+
+  @media (max-width: 900px) {
+    .cover { padding: 52px 32px; }
+    .page { padding: 56px 32px 80px; }
+    .unknowns-grid { grid-template-columns: 1fr; }
+    .artifacts-grid { grid-template-columns: 1fr; }
+    .gate-body { grid-template-columns: 1fr; }
+    .timeline-bar { grid-template-columns: 1fr 1fr; }
+    .cover-stats { flex-wrap: wrap; }
+  }
+
+  @media (max-width: 600px) {
+    .cover { padding: 40px 20px; }
+    .page { padding: 40px 20px 64px; }
+    .day-row { grid-template-columns: 80px 1fr; }
+    .timeline-bar { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ COVER ══════════════════════════════════════════════ -->
+
+<div class="cover">
+  <div class="cover-grid"></div>
+  <div class="cover-glow-1"></div>
+  <div class="cover-glow-2"></div>
+  <div class="cover-inner">
+    <div class="cover-tag">
+      <div class="cover-tag-dot"></div>
+      <span>Discovery Engagement · CivilGrid · April 2026</span>
+    </div>
+    <h1>30 Days to an <em>Actionable</em> Architecture</h1>
+    <p class="cover-sub">
+      A discovery plan for transforming the intelligence-first vision into a specific, validated, implementable operating model grounded in how CivilGrid actually works today.
+    </p>
+    <div class="cover-stats">
+      <div class="cover-stat">
+        <span class="cover-stat-val">30</span>
+        <span class="cover-stat-label">Days</span>
+      </div>
+      <div class="cover-stat">
+        <span class="cover-stat-val">4</span>
+        <span class="cover-stat-label">Phases</span>
+      </div>
+      <div class="cover-stat">
+        <span class="cover-stat-val">3</span>
+        <span class="cover-stat-label">Open Questions</span>
+      </div>
+      <div class="cover-stat">
+        <span class="cover-stat-val">10</span>
+        <span class="cover-stat-label">Artifacts</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DOCUMENT ═══════════════════════════════════════════ -->
+
+<div class="page">
+
+  <!-- ── What we're trying to learn ─────────────────────── -->
+
+  <div class="section" id="unknowns">
+    <div class="section-eyebrow">
+      <span class="section-num">— 00</span>
+      <div class="section-rule"></div>
+    </div>
+    <h2>What We're Trying to Learn</h2>
+    <p class="section-intro">
+      The white paper sets a clear direction. But a vision document is only as good as the specific architecture that follows it — and that architecture can only be as good as our understanding of CivilGrid's actual operations. Three open questions shape everything else. This engagement exists to answer them.
+    </p>
+
+    <div class="unknowns-grid">
+      <div class="unknown-card">
+        <div class="unknown-number">01</div>
+        <h4>Where is the honest signal?</h4>
+        <p>The intelligence layer is only as good as the signal feeding it. Is CivilGrid's behavioral data consolidated, queryable, and machine-readable — or fragmented across disconnected tools that no AI can read continuously?</p>
+        <div class="unknown-answer">
+          <span class="unknown-answer-label">Via</span>
+          <p>Tool inventory + signal audit workshop + analytics access</p>
+        </div>
+      </div>
+      <div class="unknown-card">
+        <div class="unknown-number">02</div>
+        <h4>What is the minimum viable world model?</h4>
+        <p>Too thin and the AI can't surface useful context. Too thick and the team won't maintain it — it becomes the wiki nobody reads. The right answer lives in observing what information people actually seek out day to day.</p>
+        <div class="unknown-answer">
+          <span class="unknown-answer-label">Via</span>
+          <p>Documentation audit + IC interviews + meeting observation</p>
+        </div>
+      </div>
+      <div class="unknown-card">
+        <div class="unknown-number">03</div>
+        <h4>Will the team run toward this or away?</h4>
+        <p>An architecturally perfect model that nobody adopts is a failure. Cultural readiness shapes the rollout sequence — and identifying the right first DRI is as important as any technical decision.</p>
+        <div class="unknown-answer">
+          <span class="unknown-answer-label">Via</span>
+          <p>Team interviews + org mapping + leadership sessions</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Overview timeline ──────────────────────────────── -->
+
+  <div class="section" id="overview">
+    <div class="section-eyebrow">
+      <span class="section-num">— 01</span>
+      <div class="section-rule"></div>
+    </div>
+    <h2>The Thirty Days</h2>
+    <p class="section-intro">
+      Four phases, each with a distinct mode of inquiry. We move from mapping to deep-diving to observing to synthesizing — and we do not interpret before we have looked.
+    </p>
+
+    <div class="timeline-bar">
+      <div class="timeline-seg">
+        <div class="timeline-seg-week w1">Week 1</div>
+        <div class="timeline-seg-title">Orient + Map</div>
+        <div class="timeline-seg-days">Days 1–5</div>
+        <div class="timeline-progress w1"></div>
+      </div>
+      <div class="timeline-seg">
+        <div class="timeline-seg-week w2">Week 2</div>
+        <div class="timeline-seg-title">Deep Dives</div>
+        <div class="timeline-seg-days">Days 6–11</div>
+        <div class="timeline-progress w2"></div>
+      </div>
+      <div class="timeline-seg">
+        <div class="timeline-seg-week w3">Week 3</div>
+        <div class="timeline-seg-title">Shadow + Interview</div>
+        <div class="timeline-seg-days">Days 12–18</div>
+        <div class="timeline-progress w3"></div>
+      </div>
+      <div class="timeline-seg">
+        <div class="timeline-seg-week w4">Week 4</div>
+        <div class="timeline-seg-title">Synthesize + Deliver</div>
+        <div class="timeline-seg-days">Days 19–30</div>
+        <div class="timeline-progress w4"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Week 1 ─────────────────────────────────────────── -->
+
+  <div class="section" id="week1">
+    <div class="section-eyebrow">
+      <span class="section-num">— 02</span>
+      <div class="section-rule"></div>
+    </div>
+    <h2>Week 1 — Orient &amp; Map the Current State</h2>
+    <p class="section-intro">
+      Don't interpret yet. The job this week is to understand the landscape without projecting onto it: what tools exist, where information lives, what the signals are and who has access to them. Every assumption we arrive with should be challenged before Day 6.
+    </p>
+
+    <div class="week-banner">
+      <div class="week-banner-accent w1"></div>
+      <div class="week-banner-body">
+        <div class="week-banner-label">Goal</div>
+        <div class="week-banner-title">Complete map of the information environment</div>
+        <div class="week-banner-goal">By end of week: we know what every team uses, where their knowledge lives, what signals the product generates, and which of those signals are machine-readable today.</div>
+      </div>
+    </div>
+
+    <div class="day-list">
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAYS</span>
+          <span class="day-range">1–2</span>
+        </div>
+        <div class="day-content">
+          <h4>Kickoff + Tool Inventory</h4>
+          <p>Kickoff session with CTO and Head of Product: what do they most want to change, and what do they most want to preserve. Then a full tool inventory — every SaaS product the company pays for, what it's used for, who owns it, and whether it has an API or export capability. Request access to all relevant systems before Day 3.</p>
+          <p><strong>Key question:</strong> Where does institutional knowledge live today — Notion? Confluence? Google Docs? Slack threads? Someone's notebook?</p>
+          <span class="day-output">→ tool-inventory.md</span>
+        </div>
+      </div>
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAYS</span>
+          <span class="day-range">3–4</span>
+        </div>
+        <div class="day-content">
+          <h4>Leadership Interviews</h4>
+          <p>Five interviews, 45 minutes each. One open question per conversation: <em>"Walk me through the last time a decision in your area was slower than it should have been. What information were you waiting for, and where was it?"</em></p>
+          <table class="interview-table">
+            <thead>
+              <tr>
+                <th>Interview</th>
+                <th>Focus</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>CEO</td>
+                <td>Strategic context, what "throughput" means specifically, what they're afraid of losing</td>
+              </tr>
+              <tr>
+                <td>CTO</td>
+                <td>Engineering cycle time, where decisions stack up, current documentation practice</td>
+              </tr>
+              <tr>
+                <td>Head of Product</td>
+                <td>How signal reaches roadmap decisions — and what never does</td>
+              </tr>
+              <tr>
+                <td>Head of Data</td>
+                <td>How coverage decisions are made, how demand signals are tracked today</td>
+              </tr>
+              <tr>
+                <td>Head of CS</td>
+                <td>What customer feedback never reaches product, patterns nobody else is seeing</td>
+              </tr>
+            </tbody>
+          </table>
+          <span class="day-output">→ leadership-interviews.md</span>
+        </div>
+      </div>
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAY</span>
+          <span class="day-range">5</span>
+        </div>
+        <div class="day-content">
+          <h4>Signal Audit Workshop</h4>
+          <p>Two-hour working session with Head of Product, Head of Data, and one senior engineer. Goal: map every meaningful signal the business generates and trace it to where it lives, who has access, and how stale it gets. This is the single most important event of Week 1.</p>
+          <p>The workshop produces a draft signal map in this form — blank cells are the problem we are solving:</p>
+          <table class="signal-table">
+            <thead>
+              <tr>
+                <th>Signal</th>
+                <th>Source</th>
+                <th>Tool</th>
+                <th>Accessible to</th>
+                <th>Lag</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Layer activation patterns</td>
+                <td>Product</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+              </tr>
+              <tr>
+                <td>Coming Soon click volume</td>
+                <td>Product</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+              </tr>
+              <tr>
+                <td>Project location data</td>
+                <td>Product</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+              </tr>
+              <tr>
+                <td>Session return depth</td>
+                <td>Product</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+              </tr>
+              <tr>
+                <td>Support ticket patterns</td>
+                <td>CS / Support</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+              </tr>
+              <tr>
+                <td>Account health signals</td>
+                <td>CS</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+              </tr>
+              <tr>
+                <td>Dataset coverage requests</td>
+                <td>Data</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+              </tr>
+              <tr>
+                <td>Sales pipeline velocity</td>
+                <td>Sales</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+                <td class="blank-cell">?</td>
+              </tr>
+            </tbody>
+          </table>
+          <p><strong>Decision gate:</strong> If more than half the signal is siloed in tools with no API or export, Phase 1 of the implementation plan becomes a data consolidation sprint before anything else.</p>
+          <span class="day-output">→ signal-map.md</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Week 2 ─────────────────────────────────────────── -->
+
+  <div class="section" id="week2">
+    <div class="section-eyebrow">
+      <span class="section-num">— 03</span>
+      <div class="section-rule"></div>
+    </div>
+    <h2>Week 2 — Deep Dives by Function</h2>
+    <p class="section-intro">
+      Go deep in each function: Engineering, Product, Data, Customer Success. Measure what can be measured. Trace how information actually flows — not how people think it flows. The gap between those two things is where the architecture earns its keep.
+    </p>
+
+    <div class="week-banner">
+      <div class="week-banner-accent w2"></div>
+      <div class="week-banner-body">
+        <div class="week-banner-label">Goal</div>
+        <div class="week-banner-title">Baseline metrics + signal flow map for each function</div>
+        <div class="week-banner-goal">By end of week: we know current cycle time, coordination overhead, and signal flow for engineering, product, data, and CS. We have identified the five highest-cost coordination patterns in the company.</div>
+      </div>
+    </div>
+
+    <div class="day-list">
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAYS</span>
+          <span class="day-range">6–8</span>
+        </div>
+        <div class="day-content">
+          <h4>Engineering</h4>
+          <p>Interview three engineers at IC level. Review the last ten engineering decisions — where was the decision recorded? how long from "question raised" to "decision made"? Audit all existing documentation: what exists, where, how current.</p>
+          <ul class="question-list">
+            <li class="question-item"><span class="question-mark">→</span> What is the current average time from ticket created to ticket shipped?</li>
+            <li class="question-item"><span class="question-mark">→</span> What percentage of time goes to coordination vs. building?</li>
+            <li class="question-item"><span class="question-mark">→</span> What is the most expensive recurring coordination pattern?</li>
+            <li class="question-item"><span class="question-mark">→</span> Does the team write ADRs, RFCs, or anything that captures reasoning — not just decisions?</li>
+            <li class="question-item"><span class="question-mark">→</span> What context do engineers wish they had before starting a ticket?</li>
+          </ul>
+          <span class="day-output">→ engineering-baseline.md</span>
+        </div>
+      </div>
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAYS</span>
+          <span class="day-range">8–9</span>
+        </div>
+        <div class="day-content">
+          <h4>Product</h4>
+          <p>Review the current roadmap: format, location, who maintains it, how often it changes. Trace one recent feature from "idea" to "spec" — how many meetings, how many people, how long. Map the full path from signal to decision.</p>
+          <ul class="question-list">
+            <li class="question-item"><span class="question-mark">→</span> How does a Coming Soon click currently reach a roadmap prioritization meeting? How many hops? How much lag?</li>
+            <li class="question-item"><span class="question-mark">→</span> What product decisions in the last six months were made on gut rather than data, and why?</li>
+            <li class="question-item"><span class="question-mark">→</span> What is the PM function's biggest time sink today?</li>
+          </ul>
+          <span class="day-output">→ product-signal-flow.md</span>
+        </div>
+      </div>
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAY</span>
+          <span class="day-range">9</span>
+        </div>
+        <div class="day-content">
+          <h4>Data Team</h4>
+          <p>Understand the coverage matrix: how it's maintained, where it lives, who can edit it, how engineering learns about changes. Assess whether Coming Soon clicks are being systematically reviewed — and by whom.</p>
+          <ul class="question-list">
+            <li class="question-item"><span class="question-mark">→</span> When a new state goes live, what is the notification chain? How does CS find out? Engineering?</li>
+            <li class="question-item"><span class="question-mark">→</span> What data does the team produce that nobody seems to use?</li>
+            <li class="question-item"><span class="question-mark">→</span> What questions does the rest of the company ask repeatedly that the data team has to manually answer?</li>
+          </ul>
+          <span class="day-output">→ data-team-flows.md</span>
+        </div>
+      </div>
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAYS</span>
+          <span class="day-range">10–11</span>
+        </div>
+        <div class="day-content">
+          <h4>Customer Success</h4>
+          <p>Read the last thirty CS account notes — look for patterns and recurring requests that haven't reached the product team. Interview two CSMs. Observe one customer call if possible.</p>
+          <ul class="question-list">
+            <li class="question-item"><span class="question-mark">→</span> What customer feedback do you give repeatedly that never seems to reach the roadmap?</li>
+            <li class="question-item"><span class="question-mark">→</span> Which accounts are most at risk right now, and does engineering know why?</li>
+            <li class="question-item"><span class="question-mark">→</span> How do you communicate "this customer needs X dataset in Y state" to the data team?</li>
+          </ul>
+          <span class="day-output">→ cs-signal-gaps.md</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Week 3 ─────────────────────────────────────────── -->
+
+  <div class="section" id="week3">
+    <div class="section-eyebrow">
+      <span class="section-num">— 04</span>
+      <div class="section-rule"></div>
+    </div>
+    <h2>Week 3 — Shadowing &amp; Team Interviews</h2>
+    <p class="section-intro">
+      The most important week. What people tell you in an interview and what actually happens in a meeting are often two different things. This week we observe without participating, interview without leading, and map the human network that the org chart doesn't show.
+    </p>
+
+    <div class="week-banner">
+      <div class="week-banner-accent w3"></div>
+      <div class="week-banner-body">
+        <div class="week-banner-label">Goal</div>
+        <div class="week-banner-title">Org map with named DRI candidates and change readiness assessment</div>
+        <div class="week-banner-goal">By end of week: we know who the informal knowledge holders are, who is excited about this model and who is skeptical, and who the first DRI should be — by name.</div>
+      </div>
+    </div>
+
+    <h3>Meetings to observe — without participating</h3>
+
+    <table class="observe-table">
+      <thead>
+        <tr>
+          <th>Meeting</th>
+          <th>What to watch for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Engineering standup / planning</td>
+          <td>How is context provided? How long does it take engineers to understand what they're building and why? How many questions could have been answered by a document?</td>
+        </tr>
+        <tr>
+          <td>Product–Engineering sync</td>
+          <td>What information is being relayed that should already be written down? What decisions are made in real-time that could have been async?</td>
+        </tr>
+        <tr>
+          <td>CS–Product feedback loop</td>
+          <td>How much signal is compressed, distorted, or lost in the relay? What does CS know that Product visibly doesn't?</td>
+        </tr>
+        <tr>
+          <td>Any all-hands or company sync</td>
+          <td>What does leadership communicate that would be better as a substrate file, maintained continuously instead of repeated weekly?</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pull-quote">
+      <p>The recurring information gap that someone mentions in an interview becomes a substrate file. The repeated question to the same person becomes an intelligence layer query. Look for the patterns, not the anecdotes.</p>
+    </div>
+
+    <h3>IC Interviews — Days 12–15</h3>
+
+    <p>Six to eight interviews across Engineering, Data, and CS. One open question: <em>"Tell me about a time you needed information to do your job and it took longer than it should have to get it."</em></p>
+
+    <p>What to listen for:</p>
+    <ul class="question-list">
+      <li class="question-item"><span class="question-mark">→</span> Recurring information gaps — these become substrate files</li>
+      <li class="question-item"><span class="question-mark">→</span> Repeated questions sent to the same person — these become intelligence layer queries</li>
+      <li class="question-item"><span class="question-mark">→</span> Decisions made without full context — these reveal where the world model is thin</li>
+      <li class="question-item"><span class="question-mark">→</span> The informal coordination network — who does everyone go to? These are DRI and player-coach candidates</li>
+    </ul>
+
+    <h3>Org Structure Mapping — Days 14–15</h3>
+
+    <p>Full org chart with reporting lines, tenure, and self-described expertise. Then the harder map: who has the most institutional knowledge? Who is currently doing informal coordination work that should be systematized? Who is most likely to thrive as a DRI, and who needs a player-coach rather than a manager title?</p>
+
+    <p>Assess change readiness honestly — not just who is excited, but whose resistance would stall the rollout. An architecture that lands with leadership but fails with two senior engineers is still a failed architecture.</p>
+
+    <span class="day-output" style="display:inline-flex">→ org-map.md</span>
+  </div>
+
+  <!-- ── Week 4 ─────────────────────────────────────────── -->
+
+  <div class="section" id="week4">
+    <div class="section-eyebrow">
+      <span class="section-num">— 05</span>
+      <div class="section-rule"></div>
+    </div>
+    <h2>Week 4 — Synthesize &amp; Deliver</h2>
+    <p class="section-intro">
+      Turn everything gathered into a specific, validated architecture. Draft, pressure-test with the people who will implement it, revise, and deliver.
+    </p>
+
+    <div class="week-banner">
+      <div class="week-banner-accent w4"></div>
+      <div class="week-banner-body">
+        <div class="week-banner-label">Goal</div>
+        <div class="week-banner-title">A revised architecture document CivilGrid can act on immediately</div>
+        <div class="week-banner-goal">By Day 30: a specific substrate taxonomy with named owners, a signal consolidation roadmap, a role model with named pilot candidates, and a 24-week implementation plan with milestones.</div>
+      </div>
+    </div>
+
+    <div class="day-list">
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAYS</span>
+          <span class="day-range">16–18</span>
+        </div>
+        <div class="day-content">
+          <h4>Draft the Architecture</h4>
+          <p>Produce the first version of the implementation plan using everything gathered. Five components:</p>
+          <ul class="question-list">
+            <li class="question-item"><span class="question-mark">1</span> <strong>Substrate taxonomy</strong> — exact file list, named owner, update cadence, and what "current" means for each file</li>
+            <li class="question-item"><span class="question-mark">2</span> <strong>Signal consolidation plan</strong> — which signals need to move from siloed tools into the substrate, and how</li>
+            <li class="question-item"><span class="question-mark">3</span> <strong>Intelligence layer spec</strong> — the ten most important queries the system should answer, derived from actual friction patterns observed</li>
+            <li class="question-item"><span class="question-mark">4</span> <strong>Role mapping</strong> — specific names for first DRI assignments and player-coach transitions</li>
+            <li class="question-item"><span class="question-mark">5</span> <strong>Pilot spec</strong> — exact team, exact outcome, baseline metrics</li>
+          </ul>
+        </div>
+      </div>
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAYS</span>
+          <span class="day-range">19–20</span>
+        </div>
+        <div class="day-content">
+          <h4>Validation Sessions</h4>
+          <p><strong>Session 1 — CTO + one senior engineer:</strong> Pressure-test the substrate taxonomy and intelligence layer spec. Is the file taxonomy realistic to maintain? Are the intelligence layer queries the right ones?</p>
+          <p><strong>Session 2 — CEO + Head of Product:</strong> Pressure-test the role model and transition plan. Is the DRI model calibrated correctly for their culture? Is the timeline realistic?</p>
+        </div>
+      </div>
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAYS</span>
+          <span class="day-range">21–25</span>
+        </div>
+        <div class="day-content">
+          <h4>Final Deliverable Production</h4>
+          <p>Produce the updated architecture document — the white paper, now specific and actionable — with all five components finalized, validated, and ready to hand to an implementation team.</p>
+          <span class="day-output">→ implementation-plan.md</span>
+          <span class="day-output" style="margin-left: 8px">→ white-paper-v2.html</span>
+        </div>
+      </div>
+      <div class="day-row">
+        <div class="day-label">
+          <span class="day-num">DAYS</span>
+          <span class="day-range">26–30</span>
+        </div>
+        <div class="day-content">
+          <h4>Stakeholder Presentation + Alignment</h4>
+          <p>Present the final deliverable to CivilGrid leadership. Address remaining questions. Leave with explicit commitment on three things: which team runs the pilot, who the first DRI is and what outcome they own, and when Phase 1 begins.</p>
+          <p>The engagement does not end with a document handed over. It ends with a named person, a named outcome, and a start date.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Artifacts ──────────────────────────────────────── -->
+
+  <div class="section" id="artifacts">
+    <div class="section-eyebrow">
+      <span class="section-num">— 06</span>
+      <div class="section-rule"></div>
+    </div>
+    <h2>Artifacts Produced</h2>
+    <p class="section-intro">
+      The ten files produced during this engagement are not just deliverables — they are the first entries in CivilGrid's world model substrate. The engagement is self-demonstrating: we are building the thing while we are researching it.
+    </p>
+
+    <div class="artifacts-grid">
+      <div class="artifact-card">
+        <span class="artifact-week w1">Week 1</span>
+        <div class="artifact-body">
+          <div class="artifact-filename">tool-inventory.md</div>
+          <div class="artifact-desc">Every SaaS tool, its owner, its data, and whether it has an accessible API</div>
+        </div>
+      </div>
+      <div class="artifact-card">
+        <span class="artifact-week w1">Week 1</span>
+        <div class="artifact-body">
+          <div class="artifact-filename">signal-map.md</div>
+          <div class="artifact-desc">Complete map of behavioral, operational, and customer signals — sources, tools, access, and freshness</div>
+        </div>
+      </div>
+      <div class="artifact-card">
+        <span class="artifact-week w1">Week 1</span>
+        <div class="artifact-body">
+          <div class="artifact-filename">leadership-interviews.md</div>
+          <div class="artifact-desc">Key quotes and friction themes from five leadership conversations</div>
+        </div>
+      </div>
+      <div class="artifact-card">
+        <span class="artifact-week w2">Week 2</span>
+        <div class="artifact-body">
+          <div class="artifact-filename">engineering-baseline.md</div>
+          <div class="artifact-desc">Cycle time, coordination overhead estimate, and documentation state for Engineering</div>
+        </div>
+      </div>
+      <div class="artifact-card">
+        <span class="artifact-week w2">Week 2</span>
+        <div class="artifact-body">
+          <div class="artifact-filename">product-signal-flow.md</div>
+          <div class="artifact-desc">The current path from signal to decision, with lag measured at each step</div>
+        </div>
+      </div>
+      <div class="artifact-card">
+        <span class="artifact-week w2">Week 2</span>
+        <div class="artifact-body">
+          <div class="artifact-filename">data-team-flows.md</div>
+          <div class="artifact-desc">Coverage matrix maintenance process and demand signal capture state</div>
+        </div>
+      </div>
+      <div class="artifact-card">
+        <span class="artifact-week w2">Week 2</span>
+        <div class="artifact-body">
+          <div class="artifact-filename">cs-signal-gaps.md</div>
+          <div class="artifact-desc">Signals currently known to CS that are not reaching engineering or product decisions</div>
+        </div>
+      </div>
+      <div class="artifact-card">
+        <span class="artifact-week w3">Week 3</span>
+        <div class="artifact-body">
+          <div class="artifact-filename">org-map.md</div>
+          <div class="artifact-desc">Structure, tenure, informal influence network, DRI candidates, and player-coach candidates</div>
+        </div>
+      </div>
+      <div class="artifact-card">
+        <span class="artifact-week w4">Week 4</span>
+        <div class="artifact-body">
+          <div class="artifact-filename">substrate-taxonomy.md</div>
+          <div class="artifact-desc">Complete world model file list with named owners, update cadences, and freshness criteria</div>
+        </div>
+      </div>
+      <div class="artifact-card">
+        <span class="artifact-week w4">Week 4</span>
+        <div class="artifact-body">
+          <div class="artifact-filename">implementation-plan.md</div>
+          <div class="artifact-desc">24-week phased plan with milestones, named owners, pilot team spec, and baseline metrics</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Decision Gates ─────────────────────────────────── -->
+
+  <div class="section" id="gates">
+    <div class="section-eyebrow">
+      <span class="section-num">— 07</span>
+      <div class="section-rule"></div>
+    </div>
+    <h2>Decision Gates</h2>
+    <p class="section-intro">
+      Three moments where what we find changes the plan. These are not optional checkpoints — they are architectural forks. The right response to each depends entirely on what the evidence shows, and the plan must be willing to change accordingly.
+    </p>
+
+    <div class="gate-list">
+      <div class="gate-card">
+        <div class="gate-header g1">
+          <span class="gate-badge g1">Gate 1 · End of Week 1</span>
+          <span class="gate-title">Signal Fragmentation</span>
+          <span class="gate-timing">Day 5</span>
+        </div>
+        <div class="gate-body">
+          <div>
+            <div class="gate-col-label">If signal is fragmented</div>
+            <p>Phase 1 of the implementation becomes a data consolidation sprint — routing signals from disconnected tools into machine-readable substrate files — before the intelligence layer can be built. The white paper gets a new section on data infrastructure, and the timeline shifts by four to six weeks.</p>
+          </div>
+          <div>
+            <div class="gate-col-label">If signal is accessible</div>
+            <p>Proceed as planned. The intelligence layer can be built immediately on top of existing data, and the timeline compresses. The signal audit workshop output feeds directly into the substrate taxonomy without an intermediate consolidation step.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="gate-card">
+        <div class="gate-header g2">
+          <span class="gate-badge g2">Gate 2 · End of Week 2</span>
+          <span class="gate-title">Bottleneck Diagnosis</span>
+          <span class="gate-timing">Day 11</span>
+        </div>
+        <div class="gate-body">
+          <div>
+            <div class="gate-col-label">If bottleneck is not coordination</div>
+            <p>If cycle time data shows the primary bottleneck is unclear requirements, technical debt, or hiring gaps rather than coordination overhead, the intelligence layer solves the wrong problem. We address root causes first. An intelligence layer on top of a broken engineering process speeds up the wrong thing.</p>
+          </div>
+          <div>
+            <div class="gate-col-label">If bottleneck is coordination</div>
+            <p>The architecture is correctly targeted. We have quantified the cost of the problem the intelligence layer solves, which becomes the headline metric for the implementation plan's business case.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="gate-card">
+        <div class="gate-header g3">
+          <span class="gate-badge g3">Gate 3 · End of Week 3</span>
+          <span class="gate-title">Cultural Readiness</span>
+          <span class="gate-timing">Day 18</span>
+        </div>
+        <div class="gate-body">
+          <div>
+            <div class="gate-col-label">If readiness is low</div>
+            <p>The transition plan gets resequenced. A longer pilot with a softer rollout precedes any structural role changes. The DRI model is introduced without explicitly deprecating management titles — the architecture works through demonstrated value, not announced reorganization.</p>
+          </div>
+          <div>
+            <div class="gate-col-label">If readiness is high</div>
+            <p>Accelerate the timeline and consider a more visible structural commitment from leadership as part of the launch. Name the first DRI publicly, retire the first set of status meetings on Day 1 of Phase 1, and treat the pilot as a proof point for a company-wide announcement.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────────── -->
+
+  <div class="doc-footer">
+    <p>CivilGrid Intelligence Architecture · Discovery Plan · April 2026</p>
+    <p>Confidential</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -56,3 +56,11 @@ Quality thinking should start before the code is written, and prototypes are an 
 - **Marketing Manager** — Validates that promised features and capabilities work as advertised before launch.
 - **Sales Engineering Lead** — Ensures demo environments are stable and representative. Tests integration scenarios that are critical for sales conversations.
 - **Customer Success Manager** — Investigates bugs reported through support. Identifies patterns in customer-reported issues that indicate systemic quality problems.
+
+## Skills
+
+| Skill | When to reach for it |
+|---|---|
+| `ai-evals` | Designing evaluation rubrics for AI features — test cases, Pass/Fail scoring, LLM-as-judge validation |
+| `playwright-cli` | Browser automation for end-to-end tests, regression checks, and scripted QA flows |
+| `ai-build-loop` | Understanding the Tester actor's role — QA Engineer is the closest human analogue to the build loop Tester |

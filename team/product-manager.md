@@ -68,3 +68,14 @@ Before committing to a roadmap item, find the fastest way to test whether it is 
 - **Marketing Manager** — Shares positioning inputs and customer insights. Ensures messaging reflects the actual value delivered.
 - **Sales Engineering Lead** — Provides context on competitive landscape and buyer needs. Listens to field feedback as a discovery signal.
 - **Customer Success Manager** — Treats post-launch feedback as the start of the next discovery cycle. Closes the loop between what was shipped and what actually happened.
+
+## Skills
+
+| Skill | When to reach for it |
+|---|---|
+| `problem-definition` | Problem statement feels fuzzy, team is solution-first, or you suspect a shiny object trap |
+| `write-a-brief` | Starting any initiative or feature — owns the brief from first draft to Aligned status |
+| `run-discovery` | Opening a new project or moving through Discover phase |
+| `ai-build-loop` | Brief is Aligned and scenarios are written — ready to execute the build loop |
+| `ai-product-strategy` | Building an AI product or deciding where AI fits — human-AI boundary, model selection, feedback loops |
+| `measuring-product-market-fit` | Assessing whether to scale or keep iterating — Sean Ellis survey, retention curves, reference customers |

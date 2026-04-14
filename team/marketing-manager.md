@@ -57,3 +57,9 @@ Test messaging and positioning with real audiences before committing to a full c
 - **QA / Quality Engineer** — Ensures the product works as advertised before launch. Coordinates on launch readiness criteria.
 - **Sales Engineering Lead** — Aligns on messaging and positioning. Ensures sales collateral and marketing materials tell the same story.
 - **Customer Success Manager** — Gathers testimonials and success stories. Uses customer language and outcomes to create authentic marketing content.
+
+## Skills
+
+| Skill | When to reach for it |
+|---|---|
+| `measuring-product-market-fit` | Reading PMF signal before scaling spend — Sean Ellis survey thresholds, retention curves, reference customer validation |

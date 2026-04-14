@@ -57,3 +57,9 @@ Analysis does not need to be perfect to be useful. A rough answer now often beat
 - **Marketing Manager** — Measures campaign effectiveness, acquisition channels, and conversion. Provides data to support messaging decisions.
 - **Sales Engineering Lead** — Shares usage data and adoption metrics that support the sales narrative. Identifies which features drive conversion.
 - **Customer Success Manager** — Analyzes retention, churn, and engagement data. Identifies at-risk users and usage patterns that predict churn.
+
+## Skills
+
+| Skill | When to reach for it |
+|---|---|
+| `measuring-product-market-fit` | Assessing PMF signal — Sean Ellis survey, retention curves, reference customer counts, scale vs iterate decision |

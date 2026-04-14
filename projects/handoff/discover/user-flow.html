@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handoff — User Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Fira+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Fira Sans', sans-serif;
+  background: #F8FAFC;
+  color: #1E293B;
+  padding: 40px 24px;
+}
+.page-header {
+  max-width: 960px;
+  margin: 0 auto 32px;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 24px;
+}
+.page-header h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  margin-bottom: 4px;
+}
+.page-header p {
+  font-size: .82rem;
+  color: #64748B;
+  line-height: 1.6;
+}
+.diagram-wrap {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  padding: 32px 24px;
+  max-width: 960px;
+  margin: 0 auto 24px;
+}
+.diagram-wrap h2 {
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: #94A3B8;
+  margin-bottom: 6px;
+}
+.diagram-wrap p.note {
+  font-size: .78rem;
+  color: #64748B;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+.mermaid { display: flex; justify-content: center; }
+.tag {
+  display: inline-block;
+  font-family: 'Fira Code', monospace;
+  font-size: .68rem;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Handoff — User Flows</h1>
+  <p>Three flows: Foreman sends an SMS update · Superintendent reviews and approves · System learns from decisions</p>
+</div>
+
+<!-- Flow 1: Core update flow -->
+<div class="diagram-wrap">
+  <h2>Core Update Flow</h2>
+  <p class="note">End-to-end path from a foreman SMS to an approved schedule update in OpenProject.</p>
+  <div class="mermaid">
+flowchart TD
+    F1(["Foreman\ntexts update"])
+    T1["Twilio receives SMS\nPOST → /sms webhook"]
+    T2["Flask calls Claude API\nforeman identity + all 81 WPs\n+ last 15 decisions as few-shot examples"]
+    T3{"Match\nfound?"}
+    T4["Match queued\nin Superintendent UI\nwith confidence score + proposed %"]
+    T5["Added to\nUnmatched Queue\nin Superintendent UI"]
+
+    S1(["Superintendent\nopens web UI"])
+    S2["Reviews card\nactivity · confidence · proposed %\nraw foreman message"]
+    S3{"Decision"}
+    S4["Approve"]
+    S5["Override %\nthen approve"]
+    S6["Reassign to\ncorrect activity"]
+
+    OP["OpenProject updated\npercentageDone + status In Progress\n+ foreman message logged as comment"]
+    ML["Decision logged\nto match-rules.json\nas few-shot example"]
+
+    F1 --> T1 --> T2 --> T3
+    T3 -->|"Match found\n(confidence 0–100)"| T4
+    T3 -->|"No match"| T5
+
+    T4 --> S1 --> S2 --> S3
+    T5 --> S1
+    S3 --> S4
+    S3 --> S5
+    S3 --> S6
+
+    S4 --> OP
+    S5 --> OP
+    S6 --> OP
+    S4 --> ML
+    S5 --> ML
+    S6 --> ML
+
+    style F1 fill:#DBEAFE,stroke:#3B82F6,color:#1E3A8A
+    style S1 fill:#FEF3C7,stroke:#F59E0B,color:#78350F
+    style S2 fill:#FEF3C7,stroke:#F59E0B,color:#78350F
+    style S3 fill:#FEF3C7,stroke:#F59E0B,color:#78350F
+    style S4 fill:#DCFCE7,stroke:#22C55E,color:#14532D
+    style S5 fill:#DCFCE7,stroke:#22C55E,color:#14532D
+    style S6 fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
+    style T5 fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
+    style OP fill:#F0FDF4,stroke:#86EFAC,color:#166534
+    style ML fill:#FAF5FF,stroke:#D8B4FE,color:#4C1D95
+  </div>
+</div>
+
+<!-- Flow 2: LLM Matching -->
+<div class="diagram-wrap">
+  <h2>LLM Matching — Claude API</h2>
+  <p class="note">Replaced the original scoring algorithm. A single Claude call handles vocabulary ambiguity, missing context, and construction slang — and returns a structured confidence score the Superintendent can trust.</p>
+  <div class="mermaid">
+flowchart LR
+    MSG["Foreman SMS\n\"hall b low voltage tray\nis about three quarters done\""]
+
+    subgraph Prompt ["Prompt assembled by Flask"]
+      ID["Foreman identity\nname + trade"]
+      WPS["All 81 field-level WPs\nID | Name | Trade | Area"]
+      FS["Last 15 Superintendent decisions\nfrom match-rules.json\nas CONFIRMED / CORRECTED examples"]
+    end
+
+    CLAUDE["Claude\nclaude-sonnet-4-6\nmax_tokens: 512"]
+
+    subgraph Output ["Structured JSON response"]
+      WPID["wp_id\nbest matching WP"]
+      CONF["confidence\n0–100"]
+      PCT["proposed_pct\nextracted from message"]
+      ALT["alternatives\nup to 2 runner-ups"]
+      RSN["reasoning\nwhy this match"]
+    end
+
+    VAL["Validate wp_id\nagainst WP cache\n(prevents hallucination)"]
+    FALLBACK["extract_pct() fallback\nif LLM omits percentage"]
+
+    MSG --> ID & WPS & FS --> CLAUDE
+    CLAUDE --> WPID & CONF & PCT & ALT & RSN
+    WPID --> VAL
+    PCT --> FALLBACK
+    VAL & FALLBACK --> QUEUE["Queued match\nready for Superintendent review"]
+
+    style MSG fill:#DBEAFE,stroke:#3B82F6,color:#1E3A8A
+    style CLAUDE fill:#EFF6FF,stroke:#2563EB,color:#1D4ED8
+    style QUEUE fill:#FEF3C7,stroke:#F59E0B,color:#78350F
+    style VAL fill:#F0FDF4,stroke:#86EFAC,color:#166534
+  </div>
+</div>
+
+<!-- Flow 3: Learning loop -->
+<div class="diagram-wrap">
+  <h2>Learning Loop</h2>
+  <p class="note">Every Superintendent decision is logged as a few-shot example and included in the next Claude prompt. The model learns the specific language patterns of this site and crew over time.</p>
+  <div class="mermaid">
+flowchart LR
+    D1["Superintendent\ncorrects a match"] --> R1["CORRECTED example logged\nmatch-rules.json\nmessage + wrong WP + right WP"]
+    D2["Superintendent\napproves a match"] --> R2["CONFIRMED example logged\nmatch-rules.json\nmessage + WP + %"]
+    D3["Superintendent\noverrides %"] --> R3["CONFIRMED with override\ncorrected % recorded"]
+
+    R1 & R2 & R3 --> FS["Last 15 decisions\ninjected into every\nnew Claude prompt"]
+
+    FS --> LEARN["Model learns site-specific\nvocabulary over time\nDay 1: general construction\nMonth 3: this crew's slang"]
+
+    style D1 fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
+    style D2 fill:#DCFCE7,stroke:#22C55E,color:#14532D
+    style D3 fill:#DBEAFE,stroke:#3B82F6,color:#1E3A8A
+    style FS fill:#FAF5FF,stroke:#D8B4FE,color:#4C1D95
+    style LEARN fill:#FAF5FF,stroke:#D8B4FE,color:#4C1D95
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', flowchart: { curve: 'basis', padding: 20 } });
+</script>
+</body>
+</html>
